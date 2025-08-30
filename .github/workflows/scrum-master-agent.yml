@@ -199,12 +199,6 @@ jobs:
                   echo "action_result=moved_to_todo" >> $GITHUB_OUTPUT
                   echo "next_action=handoff_to_dev" >> $GITHUB_OUTPUT
                 fi
-                else
-                  echo "❌ Failed to update project status due to rate limits"
-                  echo "action_result=rate_limited" >> $GITHUB_OUTPUT
-                  echo "next_action=retry_later" >> $GITHUB_OUTPUT
-                fi
-                
               else
                 echo "⚠️  Story is already in progress (Status: $CURRENT_STATUS)"
                 echo "action_result=already_in_progress" >> $GITHUB_OUTPUT
