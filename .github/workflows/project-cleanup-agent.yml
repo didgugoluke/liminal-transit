@@ -35,6 +35,20 @@ jobs:
       - name: 🤖 AI Agent Initialization
         uses: actions/checkout@v4
 
+      - name: Setup Rate Limiting
+        run: |
+          echo "Setting up rate limiting for workflow..."
+          chmod +x scripts/github-rate-limit-manager.sh
+          
+          # Check initial rate limits
+          if ! scripts/github-rate-limit-manager.sh check; then
+            echo "❌ Rate limits too low for workflow operations"
+            scripts/github-rate-limit-manager.sh emergency "project-cleanup-agent.yml"
+            exit 1
+          fi
+          
+          echo "✅ Rate limits OK - proceeding with operations"
+
       - name: 🔧 Configure Environment
         run: |
           echo "🧹 Project Cleanup Agent Starting..."
@@ -76,7 +90,7 @@ jobs:
           VALID_ITEMS=0
           ORPHANED_ITEMS=0
           ORPHANED_LIST=""
-          
+
           # Process items in a way that preserves variable changes
           while IFS= read -r item; do
             ITEM_DATA=$(echo "$item" | base64 --decode)

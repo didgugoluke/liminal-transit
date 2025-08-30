@@ -35,10 +35,24 @@ jobs:
         contains(github.event.issue.labels.*.name, 'ai-agent')))
 
     steps:
-      - name: 🤖 Scrum Master Agent Initialization
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: 🔧 Configure Environment
+      - name: Setup Rate Limiting
+        run: |
+          echo "Setting up Scrum Master environment with rate limiting..."
+          chmod +x scripts/github-rate-limit-manager.sh
+
+          # Check initial rate limits
+          if ! scripts/github-rate-limit-manager.sh check; then
+            echo "❌ Rate limits too low for Scrum Master operations"
+            scripts/github-rate-limit-manager.sh emergency "Scrum Master Agent"
+            exit 1
+          fi
+
+          echo "✅ Rate limits OK - proceeding with sprint management"
+
+      - name: Sprint Management
         run: |
           echo "🏃‍♂️ Scrum Master Agent Starting..."
           echo "Repository: ${{ github.repository }}"
@@ -124,14 +138,24 @@ jobs:
               if [ "$CURRENT_STATUS" = "No Status" ] || [ "$CURRENT_STATUS" = "null" ]; then
                 echo "📋 Moving story to To Do status..."
                 
-                # Update project status to To Do
-                gh project item-edit --project-id "$PROJECT_ID" --id $(gh project item-list "$PROJECT_ID" --owner "@me" --format json | jq -r --arg title "$STORY_TITLE" '.items[] | select(.content.title == $title) | .id') --field-id "Status" --text "To Do" || echo "Status update may have failed"
-                
-                # Add story management comment
-                gh issue comment "$STORY_NUMBER" --body "🏃‍♂️ Scrum Master Agent - Story Activated. Moved to To Do status. $TASK_COUNT tasks identified. Ready for Development Agent handoff."
-                
-                echo "action_result=moved_to_todo" >> $GITHUB_OUTPUT
-                echo "next_action=handoff_to_dev" >> $GITHUB_OUTPUT
+                # Use safe project status update with rate limiting
+                if scripts/github-rate-limit-manager.sh batch-status-update "$PROJECT_ID" "$STORY_TITLE" "To Do"; then
+                  echo "✅ Status updated successfully"
+                  
+                  # Add story management comment with rate limiting
+                  if scripts/github-rate-limit-manager.sh check-rest "story comment" 10; then
+                    gh issue comment "$STORY_NUMBER" --body "🏃‍♂️ Scrum Master Agent - Story Activated. Moved to To Do status. $TASK_COUNT tasks identified. Ready for Development Agent handoff."
+                  else
+                    echo "⚠️ Skipping comment due to rate limits"
+                  fi
+                  
+                  echo "action_result=moved_to_todo" >> $GITHUB_OUTPUT
+                  echo "next_action=handoff_to_dev" >> $GITHUB_OUTPUT
+                else
+                  echo "❌ Failed to update project status due to rate limits"
+                  echo "action_result=rate_limited" >> $GITHUB_OUTPUT
+                  echo "next_action=retry_later" >> $GITHUB_OUTPUT
+                fi
                 
               else
                 echo "⚠️  Story is already in progress (Status: $CURRENT_STATUS)"

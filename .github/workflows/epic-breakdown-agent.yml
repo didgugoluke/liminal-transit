@@ -20,6 +20,20 @@ jobs:
       - name: 🏗️ Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Setup Rate Limiting
+        run: |
+          echo "Setting up rate limiting for workflow..."
+          chmod +x scripts/github-rate-limit-manager.sh
+          
+          # Check initial rate limits
+          if ! scripts/github-rate-limit-manager.sh check; then
+            echo "❌ Rate limits too low for workflow operations"
+            scripts/github-rate-limit-manager.sh emergency "epic-breakdown-agent.yml"
+            exit 1
+          fi
+          
+          echo "✅ Rate limits OK - proceeding with operations"
+
       - name: 🏷️ Intelligent Label Management
         id: label_management
         run: |

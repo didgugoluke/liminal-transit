@@ -5,158 +5,172 @@ on:
   workflow_call:
     inputs:
       issue_number:
-        description: 'GitHub issue number to update'
+        description: "GitHub issue number to update"
         required: true
         type: string
       agent_name:
-        description: 'Name of the AI agent reporting activity'
+        description: "Name of the AI agent reporting activity"
         required: true
         type: string
       activity_type:
-        description: 'Type of activity (started, progress, completed, error)'
+        description: "Type of activity (started, progress, completed, error)"
         required: true
         type: string
       activity_details:
-        description: 'Detailed description of the activity'
+        description: "Detailed description of the activity"
         required: true
         type: string
       files_changed:
-        description: 'List of files modified (optional)'
+        description: "List of files modified (optional)"
         required: false
         type: string
-        default: ''
+        default: ""
 
 jobs:
   update-issue:
     runs-on: ubuntu-latest
     name: Update GitHub Issue with AI Agent Activity
-    
+
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4
-      
-    - name: Generate Activity Report
-      id: activity-report
-      run: |
-        # Generate timestamp
-        TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
-        
-        # Determine activity icon based on type
-        case "${{ inputs.activity_type }}" in
-          "started")
-            ICON="⚡"
-            STATUS="ACTIVE"
-            ;;
-          "progress")
-            ICON="🔄"
-            STATUS="IN PROGRESS"
-            ;;
-          "completed")
-            ICON="✅"
-            STATUS="COMPLETED"
-            ;;
-          "error")
-            ICON="❌"
-            STATUS="ERROR"
-            ;;
-          *)
-            ICON="📝"
-            STATUS="UPDATE"
-            ;;
-        esac
-        
-        # Build comment body
-        COMMENT_BODY="## ${ICON} AI Agent Activity Report
-        
-        **Agent:** ${{ inputs.agent_name }}  
-        **Status:** ${STATUS}  
-        **Timestamp:** ${TIMESTAMP}
-        
-        ### Activity Details
-        ${{ inputs.activity_details }}"
-        
-        # Add files changed if provided
-        if [ -n "${{ inputs.files_changed }}" ]; then
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Rate Limiting
+        run: |
+          echo "Setting up rate limiting for workflow..."
+          chmod +x scripts/github-rate-limit-manager.sh
+          
+          # Check initial rate limits
+          if ! scripts/github-rate-limit-manager.sh check; then
+            echo "❌ Rate limits too low for workflow operations"
+            scripts/github-rate-limit-manager.sh emergency "github-issue-comment-agent.yml"
+            exit 1
+          fi
+          
+          echo "✅ Rate limits OK - proceeding with operations"
+
+      - name: Generate Activity Report
+        id: activity-report
+        run: |
+          # Generate timestamp
+          TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+
+          # Determine activity icon based on type
+          case "${{ inputs.activity_type }}" in
+            "started")
+              ICON="⚡"
+              STATUS="ACTIVE"
+              ;;
+            "progress")
+              ICON="🔄"
+              STATUS="IN PROGRESS"
+              ;;
+            "completed")
+              ICON="✅"
+              STATUS="COMPLETED"
+              ;;
+            "error")
+              ICON="❌"
+              STATUS="ERROR"
+              ;;
+            *)
+              ICON="📝"
+              STATUS="UPDATE"
+              ;;
+          esac
+
+          # Build comment body
+          COMMENT_BODY="## ${ICON} AI Agent Activity Report
+
+          **Agent:** ${{ inputs.agent_name }}  
+          **Status:** ${STATUS}  
+          **Timestamp:** ${TIMESTAMP}
+
+          ### Activity Details
+          ${{ inputs.activity_details }}"
+
+          # Add files changed if provided
+          if [ -n "${{ inputs.files_changed }}" ]; then
+            COMMENT_BODY="${COMMENT_BODY}
+
+          ### Files Modified
+          \`\`\`
+          ${{ inputs.files_changed }}
+          \`\`\`"
+          fi
+
+          # Add AI Native compliance footer
           COMMENT_BODY="${COMMENT_BODY}
-        
-        ### Files Modified
-        \`\`\`
-        ${{ inputs.files_changed }}
-        \`\`\`"
-        fi
-        
-        # Add AI Native compliance footer
-        COMMENT_BODY="${COMMENT_BODY}
-        
-        ---
-        *Autonomous AI Agent Activity - Zero Human Intervention*  
-        *Powered by NOVELI.SH AI Native Architecture*"
-        
-        # Output for next step
-        echo "comment_body<<EOF" >> $GITHUB_OUTPUT
-        echo "${COMMENT_BODY}" >> $GITHUB_OUTPUT
-        echo "EOF" >> $GITHUB_OUTPUT
-        
-    - name: Post Issue Comment
-      uses: actions/github-script@v7
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        script: |
-          const issueNumber = parseInt('${{ inputs.issue_number }}');
-          const commentBody = `${{ steps.activity-report.outputs.comment_body }}`;
-          
-          try {
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: issueNumber,
-              body: commentBody
-            });
-            
-            console.log(`Successfully posted comment to issue #${issueNumber}`);
-          } catch (error) {
-            console.error('Error posting comment:', error);
-            core.setFailed(`Failed to post comment: ${error.message}`);
-          }
-          
-    - name: Update Issue Labels
-      if: inputs.activity_type == 'started'
-      uses: actions/github-script@v7
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        script: |
-          const issueNumber = parseInt('${{ inputs.issue_number }}');
-          
-          try {
-            await github.rest.issues.addLabels({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: issueNumber,
-              labels: ['ai-agent-active']
-            });
-            
-            console.log(`Added 'ai-agent-active' label to issue #${issueNumber}`);
-          } catch (error) {
-            console.warn('Could not add label:', error.message);
-          }
-          
-    - name: Remove Active Label on Completion
-      if: inputs.activity_type == 'completed'
-      uses: actions/github-script@v7
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        script: |
-          const issueNumber = parseInt('${{ inputs.issue_number }}');
-          
-          try {
-            await github.rest.issues.removeLabel({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: issueNumber,
-              name: 'ai-agent-active'
-            });
-            
-            console.log(`Removed 'ai-agent-active' label from issue #${issueNumber}`);
-          } catch (error) {
-            console.warn('Could not remove label:', error.message);
-          }
+
+          ---
+          *Autonomous AI Agent Activity - Zero Human Intervention*  
+          *Powered by NOVELI.SH AI Native Architecture*"
+
+          # Output for next step
+          echo "comment_body<<EOF" >> $GITHUB_OUTPUT
+          echo "${COMMENT_BODY}" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Post Issue Comment
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issueNumber = parseInt('${{ inputs.issue_number }}');
+            const commentBody = `${{ steps.activity-report.outputs.comment_body }}`;
+
+            try {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                body: commentBody
+              });
+              
+              console.log(`Successfully posted comment to issue #${issueNumber}`);
+            } catch (error) {
+              console.error('Error posting comment:', error);
+              core.setFailed(`Failed to post comment: ${error.message}`);
+            }
+
+      - name: Update Issue Labels
+        if: inputs.activity_type == 'started'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issueNumber = parseInt('${{ inputs.issue_number }}');
+
+            try {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                labels: ['ai-agent-active']
+              });
+              
+              console.log(`Added 'ai-agent-active' label to issue #${issueNumber}`);
+            } catch (error) {
+              console.warn('Could not add label:', error.message);
+            }
+
+      - name: Remove Active Label on Completion
+        if: inputs.activity_type == 'completed'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issueNumber = parseInt('${{ inputs.issue_number }}');
+
+            try {
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                name: 'ai-agent-active'
+              });
+              
+              console.log(`Removed 'ai-agent-active' label from issue #${issueNumber}`);
+            } catch (error) {
+              console.warn('Could not remove label:', error.message);
+            }

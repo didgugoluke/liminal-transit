@@ -29,16 +29,33 @@ jobs:
 
     steps:
       - name: 🚀 Development Agent Initialization
+        run: |
+          echo "Development Agent starting..."
+          echo "Story: ${{ github.event.inputs.story_number }}"
+          echo "Action: ${{ github.event.inputs.action }}"
+
+      - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0
+
+      - name: Setup Rate Limiting
+        run: |
+          echo "Setting up Development Agent environment with rate limiting..."
+          chmod +x scripts/github-rate-limit-manager.sh
+
+          # Check initial rate limits
+          if ! scripts/github-rate-limit-manager.sh check; then
+            echo "❌ Rate limits too low for Development Agent operations"
+            scripts/github-rate-limit-manager.sh emergency "Development Agent"
+            exit 1
+          fi
+
+          echo "✅ Rate limits OK - proceeding with development tasks"
 
       - name: ⚙️ Configure Git and GitHub CLI
         run: |
           git config --global user.name "AI Development Agent"
           git config --global user.email "dev-agent@noveli.sh"
-          
+
           echo "Verifying GitHub CLI authentication..."
           gh auth status
         env:
@@ -283,10 +300,10 @@ jobs:
         if: steps.execute.outputs.action_result == 'tasks_implemented'
         run: |
           STORY_NUMBER="${{ github.event.inputs.story_number }}"
-          
+
           # Add all generated files
           git add .
-          
+
           # Check if there are changes to commit
           if git diff --staged --quiet; then
             echo "No changes to commit"
@@ -315,10 +332,10 @@ jobs:
           STORY_NUMBER="${{ github.event.inputs.story_number }}"
           STORY_TITLE="${{ steps.analyze.outputs.story_title }}"
           BRANCH_NAME="${{ steps.execute.outputs.branch_name }}"
-          
+
           # Push branch
           git push origin "$BRANCH_NAME"
-          
+
           # Create PR with detailed description
           PR_BODY="## 🚀 AI Development Agent: Story Implementation
 

@@ -2,8 +2,8 @@ name: 🔭 Observatory Monitoring
 
 on:
   schedule:
-    - cron: '*/15 * * * *'  # Every 15 minutes
-  workflow_dispatch:  # Manual trigger
+    - cron: "*/15 * * * *" # Every 15 minutes
+  workflow_dispatch: # Manual trigger
 
 jobs:
   observatory-health-check:
@@ -11,16 +11,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
+      - name: Setup Rate Limiting
+        run: |
+          echo "Setting up rate limiting for workflow..."
+          chmod +x scripts/github-rate-limit-manager.sh
+          
+          # Check initial rate limits
+          if ! scripts/github-rate-limit-manager.sh check; then
+            echo "❌ Rate limits too low for workflow operations"
+            scripts/github-rate-limit-manager.sh emergency "observatory-monitoring.yml"
+            exit 1
+          fi
+          
+          echo "✅ Rate limits OK - proceeding with operations"
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
-      
+
       - name: Install dependencies
         run: |
           npm install -g pnpm
-      
+
       - name: AI Agent Health Check
         run: |
           echo "🔭 AI Observatory Health Check"
@@ -28,14 +42,14 @@ jobs:
           echo "  Issues: $(gh issue list --state open --json number | jq length)"
           echo "  Workflows: $(ls -1 .github/workflows/ | wc -l | tr -d ' ')"
           echo "  Last Commit: $(git log --oneline -1)"
-          
+
       - name: Cost Analysis
         run: |
           echo "💰 AI Cost Analysis"
           echo "  GitHub Actions: Free tier usage"
           echo "  Repository: Standard GitHub hosting"
           echo "  Estimated Monthly: $0 (within free tier)"
-      
+
       - name: Update Observatory Dashboard
         run: |
           echo "🔭 Observatory monitoring cycle complete"

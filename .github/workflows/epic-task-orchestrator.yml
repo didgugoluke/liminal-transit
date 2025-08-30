@@ -21,7 +21,24 @@ jobs:
       - name: 🏗️ Checkout Repository
         uses: actions/checkout@v4
 
-      - name: 🔍 Epic Analysis & Task Breakdown
+      - name: � Setup Environment & Rate Limiting
+        run: |
+          echo "Setting up Epic Task Orchestrator environment..."
+
+          # Make rate limit manager executable
+          chmod +x scripts/github-rate-limit-manager.sh
+
+          # Check initial rate limits
+          echo "Checking GitHub API rate limits..."
+          if ! scripts/github-rate-limit-manager.sh check; then
+            echo "❌ Rate limits too low for Epic Task Orchestrator"
+            scripts/github-rate-limit-manager.sh emergency "Epic Task Orchestrator"
+            exit 1
+          fi
+
+          echo "✅ Rate limits OK - proceeding with Epic analysis"
+
+      - name: �🔍 Epic Analysis & Task Breakdown
         id: epic_analysis
         run: |
           echo "Analyzing Epic for task breakdown..."
@@ -48,7 +65,9 @@ jobs:
             echo "tasks_found=false" >> $GITHUB_OUTPUT
           fi
 
-          gh issue comment ${{ github.event.issue.number }} --body "🤖 **AI Project Manager Activated**
+          # Use safe issue comment with rate limiting
+          if scripts/github-rate-limit-manager.sh check-rest "issue comment" 20; then
+            gh issue comment ${{ github.event.issue.number }} --body "🤖 **AI Project Manager Activated**
 
           **Epic**: $EPIC_TITLE (#$EPIC_NUMBER)
           **Tasks Found**: $TASK_COUNT
@@ -62,6 +81,9 @@ jobs:
           [ ] Observatory integration
 
           **Next**: Creating individual issues for autonomous agent execution..."
+          else
+            echo "❌ Rate limit too low for issue comment - skipping"
+          fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -81,6 +103,13 @@ jobs:
               TASK_TEXT=$(echo "$task_line" | sed 's/^\s*\[\s*\]\s*//' | sed 's/^[ \t]*//' | sed 's/[ \t]*$//')
               
               if [ -n "$TASK_TEXT" ]; then
+                # Check rate limit before creating issue
+                if ! scripts/github-rate-limit-manager.sh check-rest "create issue #$TASK_NUMBER" 50; then
+                  echo "❌ Rate limit too low - stopping task creation at task $TASK_NUMBER"
+                  scripts/github-rate-limit-manager.sh emergency "Epic Task Creation"
+                  break
+                fi
+                
                 # Create issue for this task
                 ISSUE_TITLE="Epic $EPIC_NUMBER Task $TASK_NUMBER: $TASK_TEXT"
                 
