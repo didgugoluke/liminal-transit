@@ -1,7 +1,7 @@
 {
-  "name": "liminal-transit",
+  "name": "noveli",
   "version": "1.0.0",
-  "description": "AI Native Interactive Storytelling Platform with AWS Well-Architected Framework",
+  "description": "NOVELI.SH - AI Native Interactive Storytelling Platform with AWS Well-Architected Framework",
   "type": "module",
   "scripts": {
     "dev": "vite",

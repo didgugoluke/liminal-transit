@@ -2,7 +2,14 @@
 
 > **100% AI-driven development and content generation** with autonomous GitHub Copilot orchestration, self-optimizing AWS architecture, and zero human scaffolding. Built on the **AWS Well-Architected Framework** for enterprise-grade compliance "by design".
 
+# NOVELI.SH
+*AI Native Interactive Storytelling Platform*
+
 Interactive storytelling platform where every story begins in the spaces between destinations - powered entirely by AI agents with autonomous data management, cost governance, and operational excellence.
+
+**Platform**: NOVELI.SH - The future of narrative AI  
+**Domain**: https://noveli.sh  
+**Architecture**: 100% AI Native with autonomous governance
 
 ## 🏗️ AWS Well-Architected Enterprise Showcase
 
