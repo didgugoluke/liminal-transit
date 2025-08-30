@@ -30,7 +30,7 @@ jobs:
 
           # Extract Epic content for AI analysis
           EPIC_BODY=$(gh issue view $EPIC_NUMBER --json body --jq '.body // ""')
-          
+
           # Determine Epic type and complexity
           if echo "$EPIC_TITLE" | grep -qi "Epic 1.*Core Platform Foundation"; then
             EPIC_TYPE="foundation"
@@ -45,7 +45,7 @@ jobs:
             BREAKDOWN_MODE="ai_native_dynamic"
             echo "🤖 Feature Epic detected - using full AI Native dynamic generation"
           fi
-          
+
           # AI Native content extraction
           EPIC_COMPLEXITY=$(echo "$EPIC_BODY" | wc -w || echo "0")
           if [ "$EPIC_COMPLEXITY" -gt 500 ]; then
@@ -58,7 +58,7 @@ jobs:
             STORY_COUNT="2-3"
             TASK_MULTIPLIER="2"
           fi
-          
+
           # Extract key requirements using AI pattern recognition
           KEY_REQUIREMENTS=$(echo "$EPIC_BODY" | grep -E "(Requirements?|Goals?|Objectives?|Must have|Should have)" -A 3 2>/dev/null || echo "Standard implementation requirements")
           TECHNICAL_STACK=$(echo "$EPIC_BODY" | grep -E "(Technology|Tech stack|Framework|Library|Tool)" -A 2 2>/dev/null || echo "React, TypeScript, Node.js")          echo "epic_type=$EPIC_TYPE" >> $GITHUB_OUTPUT

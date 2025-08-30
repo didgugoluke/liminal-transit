@@ -24,31 +24,34 @@ jobs:
           echo "Simple Epic Breakdown Test starting..."
           EPIC_NUMBER="${{ github.event.issue.number }}"
           EPIC_TITLE="${{ github.event.issue.title }}"
-          
+
           echo "Epic Number: $EPIC_NUMBER"
           echo "Epic Title: $EPIC_TITLE"
-          
+
           # Test basic gh command
           gh issue view $EPIC_NUMBER --json title --jq '.title'
-          
+
           # Simple story creation test
           STORY_1=$(gh issue create \
             --title "Test Story 1 for Epic $EPIC_NUMBER" \
             --body "This is a test story created by the simplified Epic Breakdown Agent." \
             --label "epic-story,test")
-          
+
           STORY_1_ID=$(echo $STORY_1 | grep -o '[0-9]*$')
           echo "Created test story: #$STORY_1_ID"
-          
-          # Add to project (using project ID instead of number for user projects)
-          gh project item-add PVT_kwHOCf5VHc4BB1Po --url "https://github.com/didgugoluke/liminal-transit/issues/$STORY_1_ID"
-          
+
+          # Add to project (skipping for now - will implement repo project integration)
+          # gh project item-add PVT_kwHOCf5VHc4BB1Po --url "https://github.com/didgugoluke/liminal-transit/issues/$STORY_1_ID"
+          echo "Project integration skipped - focusing on Epic breakdown functionality"
+
           # Comment success
           gh issue comment ${{ github.event.issue.number }} --body "✅ **Simple Epic Breakdown Test Complete**
-          
+
           Created test story: #$STORY_1_ID
-          Added to GitHub Project successfully.
-          
-          This test confirms the basic Epic Breakdown functionality is working."
+          Epic breakdown functionality is working correctly.
+
+          **Next Steps:** 
+          - Configure repository project integration for Noveli
+          - Run full Epic Breakdown Agent for complete story/task generation"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
