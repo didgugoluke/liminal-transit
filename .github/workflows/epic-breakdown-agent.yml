@@ -15,20 +15,20 @@ jobs:
     if: |
       (contains(github.event.comment.body, 'Epic breakdown agent') && contains(github.event.issue.labels.*.name, 'epic')) ||
       (contains(github.event.comment.body, 'Epic breakdown agent: force rebuild') && contains(github.event.issue.labels.*.name, 'epic'))
-    
+
     steps:
       - name: 🏗️ Checkout Repository
         uses: actions/checkout@v4
-        
+
       - name: 📋 Start Epic Breakdown
         run: |
           echo "Epic Breakdown Agent activated!"
           EPIC_NUMBER="${{ github.event.issue.number }}"
           EPIC_TITLE="${{ github.event.issue.title }}"
-          
+
           # Check if this is a force rebuild
           FORCE_REBUILD=$(echo "${{ github.event.comment.body }}" | grep -c "force rebuild" || true)
-          
+
           if [ "$FORCE_REBUILD" -gt 0 ]; then
             echo "Force rebuild requested - cleaning up existing Epic breakdown..."
             
@@ -94,7 +94,7 @@ jobs:
         run: |
           echo "Creating Story issues for Epic 1..."
           EPIC_NUMBER="${{ github.event.issue.number }}"
-          
+
           # Double-check for existing stories before creation (unless force rebuild)
           FORCE_REBUILD=$(echo "${{ github.event.comment.body }}" | grep -c "force rebuild" || true)
           if [ "$FORCE_REBUILD" -eq 0 ]; then
@@ -111,117 +111,117 @@ jobs:
               exit 1
             fi
           fi
-          
+
           # Story 1: Project Architecture & Foundation
           STORY_1=$(gh issue create \
             --title "Epic 1 Story 1: Project Architecture & Foundation" \
             --body "## 🎭 Epic Story Implementation
-          
+
           **Parent Epic**: #$EPIC_NUMBER
           **Story ID**: 1
           **Story Name**: Project Architecture & Foundation
-          
+
           ## 📋 Story Overview
-          
+
           Establish the foundational architecture and project structure for NOVELI.SH, including TypeScript setup, modern tooling configuration, and AI Native development patterns.
-          
+
           ## 🎯 Story Goals
-          
+
           - TypeScript project structure with proper configuration
           - Modern build tooling (Vite/esbuild integration)  
           - AI Native development patterns and conventions
           - Foundation for scalable codebase architecture
-          
+
           ## 🔗 Dependencies
-          
+
           - Parent Epic: #$EPIC_NUMBER
           - Prerequisite for all other Epic 1 stories
-          
+
           ## 📊 Implementation Status
-          
+
           - [ ] Tasks created and assigned to AI agents
           - [ ] GitHub Project integration complete
           - [ ] Observatory tracking configured
-          
+
           Ready for Task breakdown and AI agent execution." \
             --label "ai-agent,epic-story,P1")
-          
+
           STORY_1_ID=$(echo $STORY_1 | grep -o '[0-9]*$')
-          
+
           # Story 2: Database Design & Models
           STORY_2=$(gh issue create \
             --title "Epic 1 Story 2: Database Design & Models" \
             --body "## 🎭 Epic Story Implementation
-          
+
           **Parent Epic**: #$EPIC_NUMBER
           **Story ID**: 2  
           **Story Name**: Database Design & Models
-          
+
           ## 📋 Story Overview
-          
+
           Design and implement database schema, models, and data access patterns for the core platform, supporting user management, content organization, and AI agent coordination.
-          
+
           ## 🎯 Story Goals
-          
+
           - Database schema design for users, content, AI agents
           - TypeScript models and interfaces
           - Data access layer with proper abstractions
           - Migration and seeding infrastructure
-          
+
           ## 🔗 Dependencies
-          
+
           - Parent Epic: #$EPIC_NUMBER  
           - Requires Story 1 (Project Architecture) completion
-          
+
           ## 📊 Implementation Status
-          
+
           - [ ] Tasks created and assigned to AI agents
           - [ ] GitHub Project integration complete
           - [ ] Observatory tracking configured
-          
+
           Ready for Task breakdown and AI agent execution." \
             --label "ai-agent,epic-story,P1")
-          
+
           STORY_2_ID=$(echo $STORY_2 | grep -o '[0-9]*$')
-          
+
           # Story 3: API Design & Core Endpoints  
           STORY_3=$(gh issue create \
             --title "Epic 1 Story 3: API Design & Core Endpoints" \
             --body "## 🎭 Epic Story Implementation
-          
+
           **Parent Epic**: #$EPIC_NUMBER
           **Story ID**: 3
           **Story Name**: API Design & Core Endpoints
-          
+
           ## 📋 Story Overview
-          
+
           Design and implement RESTful API endpoints for the core platform functionality, including authentication, user management, and content operations with proper validation and error handling.
-          
+
           ## 🎯 Story Goals
-          
+
           - RESTful API design following OpenAPI specifications
           - Core endpoints for authentication and user management
           - Request validation and error handling middleware
           - API documentation and testing infrastructure
-          
+
           ## 🔗 Dependencies
-          
+
           - Parent Epic: #$EPIC_NUMBER
           - Requires Story 1 (Project Architecture) and Story 2 (Database Design)
-          
+
           ## 📊 Implementation Status
-          
+
           - [ ] Tasks created and assigned to AI agents  
           - [ ] GitHub Project integration complete
           - [ ] Observatory tracking configured
-          
+
           Ready for Task breakdown and AI agent execution." \
             --label "ai-agent,epic-story,P1")
-          
+
           STORY_3_ID=$(echo $STORY_3 | grep -o '[0-9]*$')
-          
+
           echo "Created Stories: #$STORY_1_ID, #$STORY_2_ID, #$STORY_3_ID"
-          
+
           # Validate all stories were created successfully
           if [ -z "$STORY_1_ID" ] || [ -z "$STORY_2_ID" ] || [ -z "$STORY_3_ID" ]; then
             echo "ERROR: Failed to create all Epic Stories"
@@ -235,7 +235,7 @@ jobs:
             Please retry Epic breakdown or investigate issue creation permissions."
             exit 1
           fi
-          
+
           echo "story_ids=$STORY_1_ID,$STORY_2_ID,$STORY_3_ID" >> $GITHUB_OUTPUT
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -246,7 +246,7 @@ jobs:
           echo "Creating Task issues for Epic 1 Stories..."
           EPIC_NUMBER="${{ github.event.issue.number }}"
           IFS=',' read -ra STORIES <<< "${{ steps.create_stories.outputs.story_ids }}"
-          
+
           # Validate Story IDs before proceeding
           if [ -z "${{ steps.create_stories.outputs.story_ids }}" ]; then
             echo "No story IDs found - cannot create tasks"
@@ -255,162 +255,162 @@ jobs:
             No valid Story IDs received from previous step. Task creation aborted to prevent orphaned tasks."
             exit 1
           fi
-          
+
           # Check for existing tasks before creation
           EXISTING_TASKS=$(gh issue list --label "epic-task" --search "Epic $EPIC_NUMBER Story" --json number --jq length)
           if [ "$EXISTING_TASKS" -gt 0 ]; then
             echo "Tasks already exist for Epic $EPIC_NUMBER - checking for specific conflicts"
             # Allow creation only if we have valid story IDs and this is intentional
           fi
-          
+
           STORY_1_ID="${STORIES[0]}"
           STORY_2_ID="${STORIES[1]}"  
           STORY_3_ID="${STORIES[2]}"
-          
+
           ALL_TASK_IDS=""
-          
+
           # Tasks for Story 1: Project Architecture & Foundation
           TASK_1_1=$(gh issue create \
             --title "Epic 1 Story 1 Task 1: TypeScript Configuration & Project Structure" \
             --body "## ⚡ Epic Task Implementation
-          
+
           **Parent Epic**: #$EPIC_NUMBER
           **Parent Story**: #$STORY_1_ID
           **Task ID**: 1.1
           **Task Description**: Set up TypeScript configuration and project structure
-          
+
           ## 🤖 AI Agent Assignment
-          
+
           **Primary Agent**: CodeGen Agent
           **Supporting Agents**: Observatory Agent
           **Execution Mode**: Autonomous implementation
-          
+
           ## ✅ Success Criteria
-          
+
           - [ ] tsconfig.json configured with strict settings
           - [ ] Project directory structure established  
           - [ ] Package.json with TypeScript dependencies
           - [ ] Basic build scripts configured
-          
+
           ## 🔗 Dependencies
-          
+
           - Parent Epic: #$EPIC_NUMBER
           - Parent Story: #$STORY_1_ID
-          
+
           Ready for AI Agent autonomous execution." \
             --label "ai-agent,epic-task,P2")
-          
+
           TASK_1_1_ID=$(echo $TASK_1_1 | grep -o '[0-9]*$')
           ALL_TASK_IDS="$ALL_TASK_IDS,$TASK_1_1_ID"
-          
+
           TASK_1_2=$(gh issue create \
             --title "Epic 1 Story 1 Task 2: Modern Build Tooling Integration" \
             --body "## ⚡ Epic Task Implementation
-          
+
           **Parent Epic**: #$EPIC_NUMBER
           **Parent Story**: #$STORY_1_ID
           **Task ID**: 1.2
           **Task Description**: Integrate modern build tooling (Vite/esbuild)
-          
+
           ## 🤖 AI Agent Assignment
-          
+
           **Primary Agent**: CodeGen Agent
           **Supporting Agents**: Observatory Agent
           **Execution Mode**: Autonomous implementation
-          
+
           ## ✅ Success Criteria
-          
+
           - [ ] Vite configuration for TypeScript
           - [ ] Development server setup
           - [ ] Build optimization configured
           - [ ] Hot reload functionality working
-          
+
           ## 🔗 Dependencies
-          
+
           - Parent Epic: #$EPIC_NUMBER
           - Parent Story: #$STORY_1_ID
           - Previous Task: #$TASK_1_1_ID
-          
+
           Ready for AI Agent autonomous execution." \
             --label "ai-agent,epic-task,P2")
-          
+
           TASK_1_2_ID=$(echo $TASK_1_2 | grep -o '[0-9]*$')
           ALL_TASK_IDS="$ALL_TASK_IDS,$TASK_1_2_ID"
-          
+
           # Tasks for Story 2: Database Design & Models
           TASK_2_1=$(gh issue create \
             --title "Epic 1 Story 2 Task 1: Database Schema Design" \
             --body "## ⚡ Epic Task Implementation
-          
+
           **Parent Epic**: #$EPIC_NUMBER
           **Parent Story**: #$STORY_2_ID
           **Task ID**: 2.1
           **Task Description**: Design database schema for core entities
-          
+
           ## 🤖 AI Agent Assignment
-          
+
           **Primary Agent**: DataGov Agent
           **Supporting Agents**: CodeGen Agent, Observatory Agent
           **Execution Mode**: Autonomous implementation
-          
+
           ## ✅ Success Criteria
-          
+
           - [ ] User entity schema designed
           - [ ] Content entity relationships mapped
           - [ ] AI agent coordination schema planned
           - [ ] Migration scripts structure defined
-          
+
           ## 🔗 Dependencies
-          
+
           - Parent Epic: #$EPIC_NUMBER
           - Parent Story: #$STORY_2_ID
           - Requires Story 1 completion
-          
+
           Ready for AI Agent autonomous execution." \
             --label "ai-agent,epic-task,P2")
-          
+
           TASK_2_1_ID=$(echo $TASK_2_1 | grep -o '[0-9]*$')
           ALL_TASK_IDS="$ALL_TASK_IDS,$TASK_2_1_ID"
-          
+
           # Tasks for Story 3: API Design & Core Endpoints
           TASK_3_1=$(gh issue create \
             --title "Epic 1 Story 3 Task 1: API Specification Design" \
             --body "## ⚡ Epic Task Implementation
-          
+
           **Parent Epic**: #$EPIC_NUMBER
           **Parent Story**: #$STORY_3_ID
           **Task ID**: 3.1
           **Task Description**: Design OpenAPI specification for core endpoints
-          
+
           ## 🤖 AI Agent Assignment
-          
+
           **Primary Agent**: CodeGen Agent
           **Supporting Agents**: DataGov Agent, Observatory Agent
           **Execution Mode**: Autonomous implementation
-          
+
           ## ✅ Success Criteria
-          
+
           - [ ] OpenAPI 3.0 specification created
           - [ ] Authentication endpoints defined
           - [ ] User management endpoints specified
           - [ ] Content operation endpoints planned
-          
+
           ## 🔗 Dependencies
-          
+
           - Parent Epic: #$EPIC_NUMBER
           - Parent Story: #$STORY_3_ID
           - Requires Story 1 and Story 2 completion
-          
+
           Ready for AI Agent autonomous execution." \
             --label "ai-agent,epic-task,P2")
-          
+
           TASK_3_1_ID=$(echo $TASK_3_1 | grep -o '[0-9]*$')
           ALL_TASK_IDS="$ALL_TASK_IDS,$TASK_3_1_ID"
-          
+
           # Remove leading comma
           ALL_TASK_IDS=$(echo $ALL_TASK_IDS | sed 's/^,//')
           echo "Created Tasks: $ALL_TASK_IDS"
-          
+
           # Validate all tasks were created successfully
           TASK_COUNT=$(echo $ALL_TASK_IDS | tr ',' '\n' | wc -l)
           if [ "$TASK_COUNT" -lt 4 ]; then
@@ -423,7 +423,7 @@ jobs:
             Epic breakdown partially failed. Please retry or investigate task creation issues."
             exit 1
           fi
-          
+
           echo "task_ids=$ALL_TASK_IDS" >> $GITHUB_OUTPUT
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -434,7 +434,7 @@ jobs:
           EPIC_NUMBER="${{ github.event.issue.number }}"
           STORY_IDS="${{ steps.create_stories.outputs.story_ids }}"
           TASK_IDS="${{ steps.create_tasks.outputs.task_ids }}"
-          
+
           # Validate we have items to add
           if [ -z "$STORY_IDS" ] || [ -z "$TASK_IDS" ]; then
             echo "ERROR: Missing Story or Task IDs for project integration"
@@ -447,13 +447,13 @@ jobs:
             Epic breakdown items created but not added to project board."
             exit 0
           fi
-          
+
           # Track success/failure of project additions
           ADDED_STORIES=0
           FAILED_STORIES=0
           ADDED_TASKS=0
           FAILED_TASKS=0
-          
+
           # Add Stories to project
           IFS=',' read -ra STORIES <<< "$STORY_IDS"
           for story_id in "${STORIES[@]}"; do
@@ -467,7 +467,7 @@ jobs:
               fi
             fi
           done
-          
+
           # Add Tasks to project  
           IFS=',' read -ra TASKS <<< "$TASK_IDS"
           for task_id in "${TASKS[@]}"; do
@@ -481,32 +481,32 @@ jobs:
               fi
             fi
           done
-          
+
           # Report project integration results
           if [ "$FAILED_STORIES" -gt 0 ] || [ "$FAILED_TASKS" -gt 0 ]; then
             PROJECT_STATUS="⚠️ **Partial Success** - Some items failed to add to project"
           else
             PROJECT_STATUS="✅ **Full Success** - All items added to project"
           fi
-          
+
           # Final status comment
           gh issue comment ${{ github.event.issue.number }} --body "⚡ **Epic 1 Breakdown Complete**
-          
+
           **Epic**: #$EPIC_NUMBER  
           **Stories Created**: $STORY_IDS
           **Tasks Created**: $TASK_IDS
-          
+
           ## 🎯 **Ready for AI Agent Execution**
-          
+
           **$PROJECT_STATUS**
           **Project Integration**: Stories: $ADDED_STORIES✅ $FAILED_STORIES❌ | Tasks: $ADDED_TASKS✅ $FAILED_TASKS❌
           **Observatory**: Tracking configured for Epic progress
           **AI Agents**: Ready for autonomous task execution
-          
+
           **Epic Structure**: Epic → Stories → Tasks
           **Project Board**: https://github.com/users/didgugoluke/projects/1
           **Safeguards**: ✅ Duplication prevention active
-          
+
           Epic breakdown and orchestration complete! 🚀"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

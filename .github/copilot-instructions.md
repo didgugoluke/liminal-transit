@@ -3,6 +3,7 @@
 # NOVELI.SH — AI Native Interactive Storytelling Platform
 
 ### AI Native Development Principles
+
 - **100% AI Orchestration** — GitHub Copilot agents manage entire development lifecycle
 - **AWS Well-Architected Foundation** — All architecture decisions align with six pillars for enterprise compliance
 - **Zero Human Overhead Management** — AI handles governance, compliance, security, and operational tasks
@@ -14,6 +15,7 @@
 - **Enterprise Compliance by Design** — Automated SOC 2, ISO 27001, GDPR, PCI DSS adherence
 
 ### Design Principles
+
 - **Typography is the UI** — whitespace, rhythm, weight > chrome.
 - **Restraint builds immersion** — 1–2 sentences max.
 - **Conversation-first** — log like a chat, Yes/No as large buttons.
@@ -25,11 +27,13 @@
 - **ZERO EMOJIS** — Use icon libraries exclusively, never emoji characters in any user-facing content, narrative, dialogue, or UI elements.
 
 ## Project Overview
+
 AI Native interactive storytelling platform with **100% AI-driven development and content generation**. Features **autonomous GitHub Copilot orchestration**, self-optimizing architecture, and **zero human scaffolding**. Built on the **AWS Well-Architected Framework** for enterprise-grade compliance "by design" with automated governance, security, reliability, performance, cost optimization, and sustainability.
 
 The platform begins in a **liminal transit space** (bus/train/queue) that launches completely AI-generated branching storylines. **No hardcoded story elements, business rules, or fallback systems**. All development tasks, from feature implementation to story generation, are handled by AI agents while humans focus on strategic direction.
 
 ### AI Native Capabilities
+
 - **Autonomous Development**: GitHub Copilot Workspace handles feature implementation, testing, and deployment
 - **Self-Generating Stories**: AI agents create narrative content from themes without human writing
 - **Intelligent Orchestration**: Automated project management, bug fixes, and performance optimization
@@ -40,6 +44,7 @@ The platform begins in a **liminal transit space** (bus/train/queue) that launch
 ---
 
 ## Development Philosophy
+
 - **AI Native Architecture**: GitHub Copilot agents handle entire development lifecycle
 - **AWS Well-Architected Foundation**: All decisions align with six pillars (operational excellence, security, reliability, performance efficiency, cost optimization, sustainability)
 - **Enterprise Compliance by Design**: Automated adherence to SOC 2, ISO 27001, GDPR, PCI DSS with zero human overhead
@@ -57,6 +62,7 @@ The platform begins in a **liminal transit space** (bus/train/queue) that launch
 ---
 
 ## UX / Design Inspirations
+
 - **Dear Reader** — typographic clarity; text is the surface.
 - **A Dark Room** — sparse beginnings, incremental reveal.
 - **Device 6** — layout/orientation as story device.
@@ -66,6 +72,7 @@ The platform begins in a **liminal transit space** (bus/train/queue) that launch
 - **Twine/Choice games** — binary decisions carry weight.
 
 ### Design Principles
+
 - **Typography is the UI** — whitespace, rhythm, weight > chrome.
 - **Restraint builds immersion** — 1–2 sentences max.
 - **Conversation-first** — log like a chat, Yes/No as large buttons.
@@ -78,6 +85,7 @@ The platform begins in a **liminal transit space** (bus/train/queue) that launch
 ---
 
 ## Tech Stack
+
 - **Frontend**: Vite + React + TypeScript (+ Tailwind optional)
 - **Testing**: Vitest + @testing-library/react
 - **Linting**: ESLint (strict) + Prettier
@@ -87,12 +95,14 @@ The platform begins in a **liminal transit space** (bus/train/queue) that launch
 ---
 
 ## Architecture
+
 - **Domain Layer**: AI narrative generation, story context (pure)
 - **Application Layer**: prompt orchestration, AI integration
 - **Infrastructure Layer**: AI services, session storage
 - **Presentation Layer**: components, hooks, layout
 
 ### Core Functions
+
 - `buildContextualPrompt(history, seed)` — dynamic prompt construction with AI optimization
 - `generateNarrative(prompt, context)` — AI story generation with provider failover
 - `manageStoryContext(choices, narrative)` — intelligent context tracking and optimization
@@ -111,6 +121,7 @@ The platform begins in a **liminal transit space** (bus/train/queue) that launch
 ---
 
 ## File Structure
+
 ```
 src/
   main.tsx
@@ -138,6 +149,7 @@ scripts/
 ---
 
 ## Development Guidelines
+
 - **AI-First Development**: All features begin with AI agent analysis and implementation
 - **Code Quality**: strict TS, ESLint, Prettier, no `any`, comprehensive testing
 - **Autonomous Testing**: AI-generated unit, integration, E2E, and accessibility tests
@@ -155,6 +167,7 @@ scripts/
 ---
 
 ## Deployment
+
 - Dev: Docker Compose, hot reload.
 - Prod: static hosting + CDN via nginx.
 - PWA: offline capable.
@@ -162,11 +175,12 @@ scripts/
 ---
 
 ## Current Status
+
 - [x] **AWS Well-Architected Framework** - Complete six-pillar implementation with automation
 - [x] **Enterprise Compliance Framework** - Zero-overhead governance and automated policy enforcement
 - [x] **Architectural Principles** - AI Native design patterns and Well-Architected alignment
 - [x] **HITM Interaction Framework** - Three-point engagement system (VS Code, Dashboard, Mobile)
-- [x] **AI Native Architecture** - Complete AI orchestration and agent design  
+- [x] **AI Native Architecture** - Complete AI orchestration and agent design
 - [x] **Security Framework** - Defense in depth with zero-secret-exposure
 - [x] **Observatory System** - Live monitoring and experimentation platform
 - [x] **Epic Management** - Human and AI epic creation and tracking
@@ -187,6 +201,7 @@ scripts/
 ## AI Native Workflow Patterns
 
 ### Feature Development (AI Orchestrated)
+
 1. **HITM Input**: Natural language feature requirement in GitHub Issue
 2. **AI Analysis**: Copilot analyzes codebase context and requirements
 3. **Auto-Branch**: Create feature branch with descriptive naming
@@ -199,6 +214,7 @@ scripts/
 10. **Learning**: Capture outcomes to improve future implementations
 
 ### Story Generation (AI Content Pipeline)
+
 1. **Theme Input**: HITM provides high-level narrative themes
 2. **Story Planning**: AI creates GitHub Project board with story progression
 3. **Content Generation**: Generate story beats, choices, and character dialogue
@@ -211,6 +227,7 @@ scripts/
 10. **Iteration**: Continuous story improvement based on user feedback
 
 ### Infrastructure Management (Self-Optimizing)
+
 1. **Monitoring**: Real-time AWS infrastructure and application metrics
 2. **Analysis**: AI identifies optimization opportunities and bottlenecks
 3. **Planning**: Generate Terraform changes for infrastructure improvements
@@ -223,6 +240,7 @@ scripts/
 10. **Scaling**: Predictive scaling based on usage patterns and trends
 
 ### Bug Resolution (Autonomous Healing)
+
 1. **Detection**: Automated error monitoring and anomaly detection
 2. **Diagnosis**: AI analyzes logs, metrics, and code to identify root cause
 3. **Categorization**: Classify issue severity and impact automatically

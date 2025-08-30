@@ -1,0 +1,36 @@
+name: 🧪 Test Epic Breakdown Agent
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  test-epic-trigger:
+    runs-on: ubuntu-latest
+    if: contains(github.event.comment.body, 'Epic breakdown agent') && contains(github.event.issue.labels.*.name, 'epic')
+
+    steps:
+      - name: Test Epic Breakdown Trigger
+        run: |
+          echo "Epic Breakdown Agent trigger test successful!"
+          echo "Issue: ${{ github.event.issue.number }}"
+          echo "Comment: ${{ github.event.comment.body }}"
+          echo "Labels: ${{ join(github.event.issue.labels.*.name, ', ') }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Add Test Comment
+        run: |
+          gh issue comment ${{ github.event.issue.number }} --body "🧪 **Epic Breakdown Agent Test**
+
+          ✅ Trigger condition working correctly
+          ✅ Workflow permissions verified
+          ✅ Issue comment processing functional
+
+          **Ready to execute full Epic breakdown!**"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
