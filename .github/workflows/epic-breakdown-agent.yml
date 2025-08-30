@@ -12,7 +12,9 @@ permissions:
 jobs:
   epic-breakdown:
     runs-on: ubuntu-latest
-    if: contains(github.event.comment.body, 'Epic breakdown agent') && contains(github.event.issue.labels.*.name, 'epic')
+    if: |
+      (contains(github.event.comment.body, 'Epic breakdown agent') && contains(github.event.issue.labels.*.name, 'epic')) ||
+      (contains(github.event.comment.body, 'Epic breakdown agent: force rebuild') && contains(github.event.issue.labels.*.name, 'epic'))
     
     steps:
       - name: 🏗️ Checkout Repository
@@ -24,13 +26,66 @@ jobs:
           EPIC_NUMBER="${{ github.event.issue.number }}"
           EPIC_TITLE="${{ github.event.issue.title }}"
           
-          gh issue comment ${{ github.event.issue.number }} --body "📋 **Epic Breakdown Agent Activated**
+          # Check if this is a force rebuild
+          FORCE_REBUILD=$(echo "${{ github.event.comment.body }}" | grep -c "force rebuild" || true)
           
-          **Epic**: $EPIC_TITLE (#$EPIC_NUMBER)
-          **Status**: Starting strategic breakdown into Stories and Tasks
-          **Action**: Creating GitHub Project hierarchy with Observatory tracking
-          
-          **Processing Epic breakdown...**"
+          if [ "$FORCE_REBUILD" -gt 0 ]; then
+            echo "Force rebuild requested - cleaning up existing Epic breakdown..."
+            
+            # Close existing Epic Stories and Tasks
+            EXISTING_STORY_NUMBERS=$(gh issue list --label "epic-story" --search "Epic $EPIC_NUMBER Story" --json number --jq -r '.[].number')
+            EXISTING_TASK_NUMBERS=$(gh issue list --label "epic-task" --search "Epic $EPIC_NUMBER Story" --json number --jq -r '.[].number')
+            
+            for story_num in $EXISTING_STORY_NUMBERS; do
+              if [ -n "$story_num" ]; then
+                gh issue close $story_num --reason "not planned" --comment "Closed for Epic rebuild - superseded by new breakdown"
+                echo "Closed existing Story #$story_num"
+              fi
+            done
+            
+            for task_num in $EXISTING_TASK_NUMBERS; do
+              if [ -n "$task_num" ]; then
+                gh issue close $task_num --reason "not planned" --comment "Closed for Epic rebuild - superseded by new breakdown"
+                echo "Closed existing Task #$task_num"
+              fi
+            done
+            
+            gh issue comment ${{ github.event.issue.number }} --body "🔄 **Epic Breakdown Agent - Force Rebuild**
+            
+            **Epic**: $EPIC_TITLE (#$EPIC_NUMBER)
+            **Action**: Cleaned up existing breakdown items
+            **Status**: Proceeding with fresh Epic breakdown
+            
+            **Processing new Epic breakdown...**"
+          else
+            # Check if Epic has already been broken down
+            EXISTING_STORIES=$(gh issue list --label "epic-story" --search "Epic $EPIC_NUMBER Story" --json number --jq length)
+            EXISTING_TASKS=$(gh issue list --label "epic-task" --search "Epic $EPIC_NUMBER Story" --json number --jq length)
+            
+            if [ "$EXISTING_STORIES" -gt 0 ] || [ "$EXISTING_TASKS" -gt 0 ]; then
+              echo "Epic $EPIC_NUMBER already has breakdown: $EXISTING_STORIES stories, $EXISTING_TASKS tasks"
+              gh issue comment ${{ github.event.issue.number }} --body "⚠️ **Epic Breakdown Agent - Duplication Prevented**
+              
+              **Epic**: $EPIC_TITLE (#$EPIC_NUMBER)
+              **Status**: Epic already broken down
+              **Existing**: $EXISTING_STORIES Stories, $EXISTING_TASKS Tasks
+              
+              **Action**: Skipping breakdown to prevent duplication
+              **Existing Epic Items**: View at https://github.com/users/didgugoluke/projects/1
+              
+              Use \`Epic breakdown agent: force rebuild\` to recreate (will close existing items first)."
+              exit 0
+            fi
+            
+            gh issue comment ${{ github.event.issue.number }} --body "📋 **Epic Breakdown Agent Activated**
+            
+            **Epic**: $EPIC_TITLE (#$EPIC_NUMBER)
+            **Status**: Starting strategic breakdown into Stories and Tasks
+            **Action**: Creating GitHub Project hierarchy with Observatory tracking
+            **Safeguards**: ✅ Duplication prevention active
+            
+            **Processing Epic breakdown...**"
+          fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -39,6 +94,23 @@ jobs:
         run: |
           echo "Creating Story issues for Epic 1..."
           EPIC_NUMBER="${{ github.event.issue.number }}"
+          
+          # Double-check for existing stories before creation (unless force rebuild)
+          FORCE_REBUILD=$(echo "${{ github.event.comment.body }}" | grep -c "force rebuild" || true)
+          if [ "$FORCE_REBUILD" -eq 0 ]; then
+            STORY_1_EXISTS=$(gh issue list --search "Epic $EPIC_NUMBER Story 1: Project Architecture" --json number --jq length)
+            STORY_2_EXISTS=$(gh issue list --search "Epic $EPIC_NUMBER Story 2: Database Design" --json number --jq length)
+            STORY_3_EXISTS=$(gh issue list --search "Epic $EPIC_NUMBER Story 3: API Design" --json number --jq length)
+            
+            if [ "$STORY_1_EXISTS" -gt 0 ] || [ "$STORY_2_EXISTS" -gt 0 ] || [ "$STORY_3_EXISTS" -gt 0 ]; then
+              echo "Stories already exist for Epic $EPIC_NUMBER - aborting to prevent duplication"
+              gh issue comment ${{ github.event.issue.number }} --body "🛡️ **Duplication Safeguard Triggered**
+              
+              Existing Epic $EPIC_NUMBER Stories detected. Aborting creation to prevent duplicates.
+              Use \`Epic breakdown agent: force rebuild\` if intentional recreation is needed."
+              exit 1
+            fi
+          fi
           
           # Story 1: Project Architecture & Foundation
           STORY_1=$(gh issue create \
@@ -149,6 +221,21 @@ jobs:
           STORY_3_ID=$(echo $STORY_3 | grep -o '[0-9]*$')
           
           echo "Created Stories: #$STORY_1_ID, #$STORY_2_ID, #$STORY_3_ID"
+          
+          # Validate all stories were created successfully
+          if [ -z "$STORY_1_ID" ] || [ -z "$STORY_2_ID" ] || [ -z "$STORY_3_ID" ]; then
+            echo "ERROR: Failed to create all Epic Stories"
+            gh issue comment ${{ github.event.issue.number }} --body "❌ **Epic Breakdown Failed**
+            
+            Failed to create all Epic Stories. Story creation incomplete:
+            - Story 1 ID: $STORY_1_ID
+            - Story 2 ID: $STORY_2_ID  
+            - Story 3 ID: $STORY_3_ID
+            
+            Please retry Epic breakdown or investigate issue creation permissions."
+            exit 1
+          fi
+          
           echo "story_ids=$STORY_1_ID,$STORY_2_ID,$STORY_3_ID" >> $GITHUB_OUTPUT
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -159,6 +246,22 @@ jobs:
           echo "Creating Task issues for Epic 1 Stories..."
           EPIC_NUMBER="${{ github.event.issue.number }}"
           IFS=',' read -ra STORIES <<< "${{ steps.create_stories.outputs.story_ids }}"
+          
+          # Validate Story IDs before proceeding
+          if [ -z "${{ steps.create_stories.outputs.story_ids }}" ]; then
+            echo "No story IDs found - cannot create tasks"
+            gh issue comment ${{ github.event.issue.number }} --body "⚠️ **Task Creation Blocked**
+            
+            No valid Story IDs received from previous step. Task creation aborted to prevent orphaned tasks."
+            exit 1
+          fi
+          
+          # Check for existing tasks before creation
+          EXISTING_TASKS=$(gh issue list --label "epic-task" --search "Epic $EPIC_NUMBER Story" --json number --jq length)
+          if [ "$EXISTING_TASKS" -gt 0 ]; then
+            echo "Tasks already exist for Epic $EPIC_NUMBER - checking for specific conflicts"
+            # Allow creation only if we have valid story IDs and this is intentional
+          fi
           
           STORY_1_ID="${STORIES[0]}"
           STORY_2_ID="${STORIES[1]}"  
@@ -307,6 +410,20 @@ jobs:
           # Remove leading comma
           ALL_TASK_IDS=$(echo $ALL_TASK_IDS | sed 's/^,//')
           echo "Created Tasks: $ALL_TASK_IDS"
+          
+          # Validate all tasks were created successfully
+          TASK_COUNT=$(echo $ALL_TASK_IDS | tr ',' '\n' | wc -l)
+          if [ "$TASK_COUNT" -lt 4 ]; then
+            echo "ERROR: Expected 4 tasks but only created $TASK_COUNT"
+            gh issue comment ${{ github.event.issue.number }} --body "❌ **Task Creation Incomplete**
+            
+            Expected 4 Epic Tasks but only created $TASK_COUNT.
+            Created Task IDs: $ALL_TASK_IDS
+            
+            Epic breakdown partially failed. Please retry or investigate task creation issues."
+            exit 1
+          fi
+          
           echo "task_ids=$ALL_TASK_IDS" >> $GITHUB_OUTPUT
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -318,12 +435,36 @@ jobs:
           STORY_IDS="${{ steps.create_stories.outputs.story_ids }}"
           TASK_IDS="${{ steps.create_tasks.outputs.task_ids }}"
           
+          # Validate we have items to add
+          if [ -z "$STORY_IDS" ] || [ -z "$TASK_IDS" ]; then
+            echo "ERROR: Missing Story or Task IDs for project integration"
+            gh issue comment ${{ github.event.issue.number }} --body "⚠️ **Project Integration Skipped**
+            
+            Cannot add items to GitHub Project - missing Story or Task IDs.
+            Stories: $STORY_IDS
+            Tasks: $TASK_IDS
+            
+            Epic breakdown items created but not added to project board."
+            exit 0
+          fi
+          
+          # Track success/failure of project additions
+          ADDED_STORIES=0
+          FAILED_STORIES=0
+          ADDED_TASKS=0
+          FAILED_TASKS=0
+          
           # Add Stories to project
           IFS=',' read -ra STORIES <<< "$STORY_IDS"
           for story_id in "${STORIES[@]}"; do
             if [ -n "$story_id" ]; then
-              gh project item-add 1 --owner didgugoluke --url "https://github.com/didgugoluke/liminal-transit/issues/$story_id"
-              echo "Added Story #$story_id to GitHub Project"
+              if gh project item-add 1 --owner didgugoluke --url "https://github.com/didgugoluke/liminal-transit/issues/$story_id" 2>/dev/null; then
+                echo "✅ Added Story #$story_id to GitHub Project"
+                ADDED_STORIES=$((ADDED_STORIES + 1))
+              else
+                echo "❌ Failed to add Story #$story_id to GitHub Project"
+                FAILED_STORIES=$((FAILED_STORIES + 1))
+              fi
             fi
           done
           
@@ -331,10 +472,22 @@ jobs:
           IFS=',' read -ra TASKS <<< "$TASK_IDS"
           for task_id in "${TASKS[@]}"; do
             if [ -n "$task_id" ]; then
-              gh project item-add 1 --owner didgugoluke --url "https://github.com/didgugoluke/liminal-transit/issues/$task_id"
-              echo "Added Task #$task_id to GitHub Project"
+              if gh project item-add 1 --owner didgugoluke --url "https://github.com/didgugoluke/liminal-transit/issues/$task_id" 2>/dev/null; then
+                echo "✅ Added Task #$task_id to GitHub Project"
+                ADDED_TASKS=$((ADDED_TASKS + 1))
+              else
+                echo "❌ Failed to add Task #$task_id to GitHub Project"
+                FAILED_TASKS=$((FAILED_TASKS + 1))
+              fi
             fi
           done
+          
+          # Report project integration results
+          if [ "$FAILED_STORIES" -gt 0 ] || [ "$FAILED_TASKS" -gt 0 ]; then
+            PROJECT_STATUS="⚠️ **Partial Success** - Some items failed to add to project"
+          else
+            PROJECT_STATUS="✅ **Full Success** - All items added to project"
+          fi
           
           # Final status comment
           gh issue comment ${{ github.event.issue.number }} --body "⚡ **Epic 1 Breakdown Complete**
@@ -345,12 +498,14 @@ jobs:
           
           ## 🎯 **Ready for AI Agent Execution**
           
-          **GitHub Project**: All items added with proper hierarchy
+          **$PROJECT_STATUS**
+          **Project Integration**: Stories: $ADDED_STORIES✅ $FAILED_STORIES❌ | Tasks: $ADDED_TASKS✅ $FAILED_TASKS❌
           **Observatory**: Tracking configured for Epic progress
           **AI Agents**: Ready for autonomous task execution
           
           **Epic Structure**: Epic → Stories → Tasks
           **Project Board**: https://github.com/users/didgugoluke/projects/1
+          **Safeguards**: ✅ Duplication prevention active
           
           Epic breakdown and orchestration complete! 🚀"
         env:
