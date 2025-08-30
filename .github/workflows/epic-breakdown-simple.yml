@@ -40,18 +40,17 @@ jobs:
           STORY_1_ID=$(echo $STORY_1 | grep -o '[0-9]*$')
           echo "Created test story: #$STORY_1_ID"
 
-          # Add to project (skipping for now - will implement repo project integration)
-          # gh project item-add PVT_kwHOCf5VHc4BB1Po --url "https://github.com/didgugoluke/liminal-transit/issues/$STORY_1_ID"
-          echo "Project integration skipped - focusing on Epic breakdown functionality"
+          # Add to Noveli project (project 2)
+          gh project item-add 2 --owner didgugoluke --url "https://github.com/didgugoluke/liminal-transit/issues/$STORY_1_ID" || echo "Project integration failed - will address separately"
 
           # Comment success
           gh issue comment ${{ github.event.issue.number }} --body "✅ **Simple Epic Breakdown Test Complete**
 
-          Created test story: #$STORY_1_ID
+          Created test story: #$STORY_1_ID for **Noveli** project
           Epic breakdown functionality is working correctly.
 
           **Next Steps:** 
-          - Configure repository project integration for Noveli
-          - Run full Epic Breakdown Agent for complete story/task generation"
+          - Validate Noveli project integration 
+          - Run full Epic Breakdown Agent for complete AI-generated story/task network"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
