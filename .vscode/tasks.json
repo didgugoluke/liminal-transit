@@ -1,0 +1,111 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "🤖 Start AI Observatory: Repository Monitor",
+      "type": "shell",
+      "command": "watch",
+      "args": [
+        "-n", "5",
+        "echo \"📊 Repository Status ($(date))\" && echo \"═══════════════════════════════════════\" && git log --oneline -5 && echo \"\" && echo \"🎯 Active Issues:\" && gh issue list --state open --limit 5 && echo \"\" && echo \"🔄 Recent Activity:\" && gh pr list --limit 3"
+      ],
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "new",
+        "showReuseMessage": false,
+        "group": "ai-observatory"
+      },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "📁 Start AI Observatory: File Monitor",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-c",
+        "echo \"📁 File System Monitor - Watching for AI Agent Changes\" && echo \"═══════════════════════════════════════════════════\" && fswatch -r . --exclude='\\.git' --exclude='node_modules' --exclude='\\.DS_Store' | while read file; do echo \"$(date '+%H:%M:%S') 🔧 ${file}\"; done"
+      ],
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "new",
+        "showReuseMessage": false,
+        "group": "ai-observatory"
+      },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "🔬 Start AI Observatory: Agent Dashboard",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-c",
+        "echo \"🔬 AI Agent Activity Dashboard\" && echo \"═══════════════════════════════════════\" && while true; do clear && echo \"🤖 NOVELI.SH AI Agent Observatory\" && echo \"$(date)\" && echo \"═══════════════════════════════════════\" && echo \"\" && echo \"📈 Issue Status:\" && gh issue list --state open --json number,title,labels,updatedAt --template '{{range .}}{{printf \"#%-2d %s\" .number .title}}{{\"\\n\"}}    {{range .labels}}{{.name}} {{end}}{{\"\\n\"}}    Updated: {{timeago .updatedAt}}{{\"\\n\\n\"}}{{end}}' && echo \"🔄 Recent Commits:\" && git log --oneline -3 && echo \"\" && echo \"📊 Repository Stats:\" && echo \"Files: $(find . -type f -not -path '*/.*' | wc -l | tr -d ' ')\" && echo \"Lines: $(find . -name '*.md' -o -name '*.ts' -o -name '*.js' -o -name '*.json' | xargs wc -l 2>/dev/null | tail -1 | awk '{print $1}')\" && sleep 10; done"
+      ],
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "new",
+        "showReuseMessage": false,
+        "group": "ai-observatory"
+      },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "🚀 Launch Complete AI Observatory",
+      "dependsOn": [
+        "🤖 Start AI Observatory: Repository Monitor",
+        "📁 Start AI Observatory: File Monitor", 
+        "🔬 Start AI Observatory: Agent Dashboard"
+      ],
+      "dependsOrder": "parallel",
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared",
+        "showReuseMessage": false
+      }
+    },
+    {
+      "label": "🛠️ Install Observatory Dependencies",
+      "type": "shell",
+      "command": "brew",
+      "args": ["install", "fswatch"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared",
+        "showReuseMessage": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "📋 Show Observatory Commands",
+      "type": "shell",
+      "command": "./scripts/start-ai-observatory.sh",
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared",
+        "showReuseMessage": false
+      },
+      "problemMatcher": []
+    }
+  ]
+}
