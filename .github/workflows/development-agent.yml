@@ -21,6 +21,7 @@ permissions:
   contents: write
   issues: write
   pull-requests: write
+  actions: write
 
 jobs:
   development-agent:
@@ -29,6 +30,19 @@ jobs:
     steps:
       - name: 🚀 Development Agent Initialization
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: ⚙️ Configure Git and GitHub CLI
+        run: |
+          git config --global user.name "AI Development Agent"
+          git config --global user.email "dev-agent@noveli.sh"
+          
+          echo "Verifying GitHub CLI authentication..."
+          gh auth status
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 🔧 Configure Environment
         run: |
@@ -99,13 +113,18 @@ jobs:
             "take_story")
               echo "📋 Taking story from To Do to In Progress..."
               
+              # Create development branch
+              BRANCH_NAME="ai-agent/story-$STORY_NUMBER-implementation"
+              git checkout -b "$BRANCH_NAME"
+              
               # Update project status to In Progress
               gh project item-edit --project-id "$PROJECT_ID" --id $(gh project item-list "$PROJECT_ID" --owner "@me" --format json | jq -r --arg title "$STORY_TITLE" '.items[] | select(.content.title == $title) | .id') --field-id "Status" --text "In Progress" || echo "Status update may have failed"
               
               # Comment on story
-              gh issue comment "$STORY_NUMBER" --body "🚀 Development Agent activated. Story moved to In Progress. Beginning implementation of $TASK_COUNT associated tasks."
+              gh issue comment "$STORY_NUMBER" --body "🚀 Development Agent activated. Story moved to In Progress. Creating development branch: \`$BRANCH_NAME\`. Beginning implementation of $TASK_COUNT associated tasks."
               
               echo "action_result=moved_to_in_progress" >> $GITHUB_OUTPUT
+              echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
               echo "next_action=implement_tasks" >> $GITHUB_OUTPUT
               ;;
               
@@ -260,7 +279,84 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
 
-      - name: 🔄 Auto-Progress to Next Phase
+      - name: � Commit Generated Files
+        if: steps.execute.outputs.action_result == 'tasks_implemented'
+        run: |
+          STORY_NUMBER="${{ github.event.inputs.story_number }}"
+          
+          # Add all generated files
+          git add .
+          
+          # Check if there are changes to commit
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            COMMIT_MSG="🤖 AI Development Agent: Implement Story #$STORY_NUMBER Database Schema
+
+            Automated implementation by Development Agent:
+            - Database schema design (PostgreSQL)
+            - TypeScript interfaces and types
+            - Database configuration
+            - Performance indexes
+
+            Agent: Development Agent
+            Story: #$STORY_NUMBER
+            Tasks: Database schema implementation"
+
+            git commit -m "$COMMIT_MSG"
+            echo "Files committed successfully"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🚀 Create Pull Request
+        if: steps.execute.outputs.action_result == 'tasks_implemented'
+        run: |
+          STORY_NUMBER="${{ github.event.inputs.story_number }}"
+          STORY_TITLE="${{ steps.analyze.outputs.story_title }}"
+          BRANCH_NAME="${{ steps.execute.outputs.branch_name }}"
+          
+          # Push branch
+          git push origin "$BRANCH_NAME"
+          
+          # Create PR with detailed description
+          PR_BODY="## 🚀 AI Development Agent: Story Implementation
+
+          **Automated by**: Development Agent
+          **Related Story**: Closes #$STORY_NUMBER
+          **Agent Type**: Autonomous story implementation
+
+          ### 📊 Implementation Summary
+          - **Story**: $STORY_TITLE
+          - **Scope**: Database schema design and implementation
+          - **Files Generated**: SQL schema, TypeScript types, configuration
+          - **Quality**: Automated testing and validation
+
+          ### 🗄️ Database Implementation
+          - **Schema**: PostgreSQL with UUID primary keys
+          - **Tables**: Stories, user sessions, performance indexes
+          - **Types**: Complete TypeScript interface definitions
+          - **Config**: Development and production configurations
+
+          ### 🎯 Success Criteria
+          - [x] Story analysis completed
+          - [x] Task implementation executed
+          - [x] Database files generated
+          - [x] Automated commit and PR creation
+          - [x] Project status synchronized
+
+          **Ready for review and merge** ✅"
+
+          gh pr create \
+            --title "🚀 AI Development Agent: Implement $STORY_TITLE (#$STORY_NUMBER)" \
+            --body "$PR_BODY" \
+            --head "$BRANCH_NAME" \
+            --base main \
+            --label "ai-agent,automated,development,database"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: �🔄 Auto-Progress to Next Phase
         if: steps.execute.outputs.next_action
         run: |
           NEXT_ACTION="${{ steps.execute.outputs.next_action }}"
