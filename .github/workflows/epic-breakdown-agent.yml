@@ -31,7 +31,9 @@ jobs:
           echo "epic_title=$EPIC_TITLE" >> $GITHUB_OUTPUT
           
           # Extract Epic body and identify story sections
-          echo '${{ github.event.issue.body }}' > epic_body.txt
+          cat > epic_body.txt << 'EOF'
+          ${{ github.event.issue.body }}
+          EOF
           
           # Parse story sections (lines starting with ####)
           grep -E '^\s*####\s*' epic_body.txt > story_sections.txt || touch story_sections.txt
@@ -137,6 +139,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: ⚡ Create Task Issues from Stories  
+        id: create_tasks
         if: steps.create_stories.outputs.created_stories != ''
         run: |
           echo "Creating Task issues from each Story section..."
@@ -254,8 +257,8 @@ jobs:
           
           EPIC_NUMBER="${{ steps.parse_epic.outputs.epic_number }}"
           CREATED_STORIES="${{ steps.create_stories.outputs.created_stories }}"
-          ALL_CREATED_TASKS="${{ steps.create_stories.outputs.all_created_tasks || '' }}"
-          TOTAL_TASKS="${{ steps.create_stories.outputs.total_tasks || '0' }}"
+          ALL_CREATED_TASKS="${{ steps.create_tasks.outputs.all_created_tasks || '' }}"
+          TOTAL_TASKS="${{ steps.create_tasks.outputs.total_tasks || '0' }}"
           
           # Create comprehensive Epic tracking
           mkdir -p observatory/tracking
@@ -292,12 +295,7 @@ jobs:
           git config user.email "epic-breakdown@noveli.sh"
           
           git add observatory/tracking/
-          git commit -m "Add Epic $EPIC_NUMBER breakdown tracking
-          
-          - Created Stories and Tasks hierarchy
-          - Configured Observatory monitoring
-          - GitHub Project integration complete
-          - Ready for AI agent autonomous execution"
+          git commit -m "Add Epic $EPIC_NUMBER breakdown tracking - Stories and Tasks hierarchy created with Observatory monitoring and GitHub Project integration"
           
           git push
         env:
