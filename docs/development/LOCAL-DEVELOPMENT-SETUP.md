@@ -9,14 +9,16 @@ Comprehensive local development environment for the AI Native NOVELI.SH platform
 ### ✅ **Current Development Infrastructure (August 2025)**
 
 **Operational Agent Ecosystem:**
+
 - ✅ **11-Agent GitHub Actions System** - Complete AI automation framework operational
 - ✅ **GitHub Projects Integration** - Automated epic → story → task workflow management
-- ✅ **Observatory Monitoring** - Real-time development metrics and health monitoring  
+- ✅ **Observatory Monitoring** - Real-time development metrics and health monitoring
 - ✅ **AI Agent Orchestrator** - Central dispatch system for coordinated agent operations
 - ✅ **Rate Limiting Protection** - Comprehensive GitHub API safety across all workflows
 - ✅ **Bug Fix Automation** - Automated detection, diagnosis, and resolution systems
 
 **Development Workflow Status:**
+
 - ✅ **CI/CD Pipeline Agent** - 5-stage build pipeline with automated testing
 - ✅ **Epic Breakdown Agent** - Automated epic decomposition (Epic #60 → 8 Stories + 24 Tasks)
 - ✅ **Development Agent** - End-to-end implementation automation and lifecycle management
@@ -24,6 +26,7 @@ Comprehensive local development environment for the AI Native NOVELI.SH platform
 - ✅ **Scrum Master Agent** - Story lifecycle management and progress tracking
 
 **Foundation Ready for Development:**
+
 - ✅ **GitHub Repository Structure** - Organized with docs/, scripts/, and workflow automation
 - ✅ **Package.json Configuration** - React + TypeScript + Vite foundation prepared
 - ✅ **Development Scripts** - Bootstrap, monitoring, and automation scripts operational
@@ -47,6 +50,7 @@ git clone https://github.com/your-org/story-time.git && cd story-time && ./scrip
 ## 🛠 **Development Tools & Prerequisites**
 
 ### Essential Tools
+
 ```bash
 # Install all development dependencies (macOS)
 ./scripts/install-dev-tools.sh
@@ -76,13 +80,14 @@ brew install hashicorp/tap/terraform
 ```
 
 ### Development Environment Verification
+
 ```bash
 # Verify all tools are properly installed
 ./scripts/verify-dev-environment.sh
 
 # Expected output:
 # ✅ Node.js v20.x.x
-# ✅ Docker v24.x.x  
+# ✅ Docker v24.x.x
 # ✅ pnpm v8.x.x
 # ✅ AWS CLI v2.x.x
 # ✅ Terraform v1.x.x
@@ -94,9 +99,10 @@ brew install hashicorp/tap/terraform
 ## 🐳 **Docker Development Environment**
 
 ### Local Development Stack
+
 ```yaml
 # docker-compose.dev.yml
-version: '3.8'
+version: "3.8"
 
 services:
   # Main application with hot reload
@@ -190,6 +196,7 @@ volumes:
 ```
 
 ### CORS-Solving Reverse Proxy Configuration
+
 ```nginx
 # docker/nginx/dev.conf
 worker_processes auto;
@@ -378,6 +385,7 @@ http {
 ## ⚡ **One-Liner Development Commands**
 
 ### Environment Management
+
 ```bash
 # Start complete development environment
 npm run dev:start
@@ -401,6 +409,7 @@ npm run dev:shell
 ```
 
 ### Development Workflow
+
 ```bash
 # Install dependencies and setup
 npm run setup
@@ -428,6 +437,7 @@ npm run analyze
 ```
 
 ### Database Operations
+
 ```bash
 # Reset development database
 npm run db:reset
@@ -447,6 +457,7 @@ npm run db:console
 ```
 
 ### AWS LocalStack Operations
+
 ```bash
 # Setup LocalStack services
 npm run aws:setup
@@ -466,6 +477,7 @@ npm run aws:dashboard
 ```
 
 ### AI Development Tools
+
 ```bash
 # Start AI development server with all providers
 npm run ai:dev
@@ -489,6 +501,7 @@ npm run ai:benchmark
 ## 🔧 **Development Scripts**
 
 ### Main Setup Script
+
 ```bash
 #!/bin/bash
 # scripts/setup-dev.sh
@@ -500,11 +513,11 @@ echo "🚀 Setting up NOVELI.SH development environment..."
 # Check prerequisites
 check_prerequisites() {
     echo "📋 Checking prerequisites..."
-    
+
     command -v node >/dev/null 2>&1 || { echo "❌ Node.js is required"; exit 1; }
     command -v docker >/dev/null 2>&1 || { echo "❌ Docker is required"; exit 1; }
     command -v pnpm >/dev/null 2>&1 || { echo "❌ pnpm is required"; exit 1; }
-    
+
     echo "✅ Prerequisites met"
 }
 
@@ -518,26 +531,26 @@ install_dependencies() {
 # Setup environment files
 setup_environment() {
     echo "🔧 Setting up environment files..."
-    
+
     if [ ! -f .env.local ]; then
         cp .env.example .env.local
         echo "📝 Created .env.local from template"
     fi
-    
+
     if [ ! -f docker/.env ]; then
         cp docker/.env.example docker/.env
         echo "📝 Created docker environment file"
     fi
-    
+
     echo "✅ Environment files ready"
 }
 
 # Generate SSL certificates for local HTTPS
 generate_ssl_certs() {
     echo "🔐 Generating SSL certificates for local development..."
-    
+
     mkdir -p docker/nginx/ssl
-    
+
     if [ ! -f docker/nginx/ssl/dev.crt ]; then
         openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
             -keyout docker/nginx/ssl/dev.key \
@@ -552,13 +565,13 @@ generate_ssl_certs() {
 # Setup git hooks
 setup_git_hooks() {
     echo "🪝 Setting up git hooks..."
-    
+
     # Pre-commit hook
     cat > .git/hooks/pre-commit << 'EOF'
 #!/bin/bash
 npm run lint:staged && npm run type:check
 EOF
-    
+
     chmod +x .git/hooks/pre-commit
     echo "✅ Git hooks configured"
 }
@@ -566,16 +579,16 @@ EOF
 # Build and start development environment
 start_environment() {
     echo "🐳 Building and starting development environment..."
-    
+
     docker-compose -f docker-compose.dev.yml build
     docker-compose -f docker-compose.dev.yml up -d
-    
+
     echo "⏳ Waiting for services to be ready..."
     sleep 10
-    
+
     # Wait for application to be ready
     timeout 60 bash -c 'until curl -f http://localhost:8080/health; do sleep 2; done'
-    
+
     echo "✅ Development environment ready!"
 }
 
@@ -617,6 +630,7 @@ main "$@"
 ```
 
 ### Environment Verification Script
+
 ```bash
 #!/bin/bash
 # scripts/verify-dev-environment.sh
@@ -636,7 +650,7 @@ check_tool() {
     local tool=$1
     local version_cmd=$2
     local expected_pattern=$3
-    
+
     if command -v "$tool" >/dev/null 2>&1; then
         local version=$($version_cmd 2>&1)
         if [[ $version =~ $expected_pattern ]]; then
@@ -716,6 +730,7 @@ echo "🎯 Environment verification complete!"
 ```
 
 ### LocalStack Setup Script
+
 ```bash
 #!/bin/bash
 # scripts/setup-localstack.sh
@@ -734,14 +749,14 @@ wait_for_localstack() {
 # Create S3 buckets
 create_s3_buckets() {
     echo "🪣 Creating S3 buckets..."
-    
+
     local buckets=(
         "noveli-dev-stories"
         "noveli-dev-assets"
         "noveli-dev-user-data"
         "noveli-dev-telemetry"
     )
-    
+
     for bucket in "${buckets[@]}"; do
         aws --endpoint-url=http://localhost:4566 s3 mb "s3://$bucket" || true
         echo "✅ Created bucket: $bucket"
@@ -751,7 +766,7 @@ create_s3_buckets() {
 # Create DynamoDB tables
 create_dynamodb_tables() {
     echo "📊 Creating DynamoDB tables..."
-    
+
     # Users table
     aws --endpoint-url=http://localhost:4566 dynamodb create-table \
         --table-name Users \
@@ -760,7 +775,7 @@ create_dynamodb_tables() {
         --key-schema \
             AttributeName=userId,KeyType=HASH \
         --billing-mode PAY_PER_REQUEST || true
-    
+
     # Stories table
     aws --endpoint-url=http://localhost:4566 dynamodb create-table \
         --table-name Stories \
@@ -772,7 +787,7 @@ create_dynamodb_tables() {
         --global-secondary-indexes \
             IndexName=UserIndex,KeySchema=[{AttributeName=userId,KeyType=HASH}],Projection={ProjectionType=ALL} \
         --billing-mode PAY_PER_REQUEST || true
-    
+
     # AI Prompts table
     aws --endpoint-url=http://localhost:4566 dynamodb create-table \
         --table-name AIPrompts \
@@ -784,26 +799,26 @@ create_dynamodb_tables() {
         --global-secondary-indexes \
             IndexName=TimestampIndex,KeySchema=[{AttributeName=timestamp,KeyType=HASH}],Projection={ProjectionType=ALL} \
         --billing-mode PAY_PER_REQUEST || true
-    
+
     echo "✅ DynamoDB tables created"
 }
 
 # Setup Cognito User Pool
 create_cognito_resources() {
     echo "👤 Creating Cognito resources..."
-    
+
     # Create User Pool
     local user_pool_id=$(aws --endpoint-url=http://localhost:4566 cognito-idp create-user-pool \
         --pool-name "noveli-dev" \
         --policies '{"PasswordPolicy":{"MinimumLength":8}}' \
         --query 'UserPool.Id' --output text)
-    
+
     # Create User Pool Client
     aws --endpoint-url=http://localhost:4566 cognito-idp create-user-pool-client \
         --user-pool-id "$user_pool_id" \
         --client-name "noveli-dev-client" \
         --explicit-auth-flows ADMIN_NO_SRP_AUTH USER_PASSWORD_AUTH || true
-    
+
     echo "✅ Cognito resources created"
     echo "📝 User Pool ID: $user_pool_id"
 }
@@ -814,7 +829,7 @@ main() {
     create_s3_buckets
     create_dynamodb_tables
     create_cognito_resources
-    
+
     echo ""
     echo "🎉 LocalStack setup complete!"
     echo "📍 LocalStack dashboard: http://localhost:4566/_localstack/health"
@@ -838,12 +853,12 @@ main "$@"
     "dev:logs": "docker-compose -f docker-compose.dev.yml logs -f",
     "dev:shell": "docker-compose -f docker-compose.dev.yml exec app sh",
     "dev:status": "docker-compose -f docker-compose.dev.yml ps",
-    
+
     "// === Setup and Verification ===": "",
     "setup": "pnpm install && ./scripts/setup-local-env.sh",
     "verify": "./scripts/verify-dev-environment.sh",
     "install:tools": "./scripts/install-dev-tools.sh",
-    
+
     "// === Code Quality ===": "",
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
     "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
@@ -851,7 +866,7 @@ main "$@"
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "type:check": "tsc --noEmit",
-    
+
     "// === Testing ===": "",
     "test": "vitest",
     "test:watch": "vitest --watch",
@@ -859,33 +874,33 @@ main "$@"
     "test:ui": "vitest --ui",
     "e2e": "playwright test",
     "e2e:headed": "playwright test --headed",
-    
+
     "// === Building ===": "",
     "build": "next build",
     "build:analyze": "ANALYZE=true next build",
     "build:test": "pnpm build && pnpm start:prod",
     "start": "next start",
     "start:prod": "NODE_ENV=production next start",
-    
+
     "// === Database ===": "",
     "db:migrate": "prisma migrate dev",
     "db:seed": "prisma db seed",
     "db:reset": "docker-compose exec postgres psql -U dev_user -c \"DROP DATABASE IF EXISTS liminal_transit_dev; CREATE DATABASE liminal_transit_dev;\"",
     "db:console": "docker-compose exec postgres psql -U dev_user liminal_transit_dev",
     "db:studio": "prisma studio",
-    
+
     "// === AWS LocalStack ===": "",
     "aws:setup": "./scripts/setup-localstack.sh",
     "aws:buckets": "aws --endpoint-url=http://localhost:4566 s3 mb s3://dev-stories s3://dev-assets",
     "aws:tables": "./scripts/create-dynamodb-tables.sh",
     "aws:dashboard": "open http://localhost:4566/_localstack/health",
-    
+
     "// === AI Development ===": "",
     "ai:dev": "AI_PROVIDERS=all pnpm dev",
     "ai:test": "pnpm test src/lib/ai-engine.test.ts --watch",
     "ai:stories": "node scripts/generate-test-stories.js",
     "ai:benchmark": "node scripts/ai-performance-benchmark.js",
-    
+
     "// === Utilities ===": "",
     "clean": "rm -rf .next dist node_modules/.cache",
     "clean:all": "rm -rf .next dist node_modules",
@@ -902,6 +917,7 @@ main "$@"
 ### Common Issues and Solutions
 
 **CORS Issues:**
+
 ```bash
 # Restart reverse proxy with fresh configuration
 docker-compose restart reverse-proxy
@@ -914,6 +930,7 @@ docker-compose logs reverse-proxy
 ```
 
 **Port Conflicts:**
+
 ```bash
 # Check what's using ports
 lsof -i :3000,8080,5432,6379
@@ -926,6 +943,7 @@ PORT=3001 npm run dev
 ```
 
 **Container Issues:**
+
 ```bash
 # Rebuild containers from scratch
 docker-compose down -v
@@ -938,6 +956,7 @@ docker-compose logs app
 ```
 
 **Permission Issues:**
+
 ```bash
 # Fix file permissions
 sudo chown -R $(whoami):$(whoami) .
@@ -951,6 +970,7 @@ sudo chmod 666 /var/run/docker.sock
 ## 📱 **Mobile Development**
 
 ### iOS Testing
+
 ```bash
 # Install iOS Simulator (requires Xcode)
 xcrun simctl list devices
@@ -963,6 +983,7 @@ npx localtunnel --port 8080 --subdomain noveli-dev
 ```
 
 ### Android Testing
+
 ```bash
 # Setup Android emulator
 $ANDROID_HOME/emulator/emulator -avd Pixel_4_API_30

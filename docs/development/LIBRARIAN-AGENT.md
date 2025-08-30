@@ -9,6 +9,7 @@ The **Librarian Agent** is an autonomous AI system responsible for maintaining p
 ### ✅ **Current Librarian Capabilities (August 2025)**
 
 **Operational Organization Systems:**
+
 - ✅ **AI Agent Register** - Complete 20-agent tracking CSV with capabilities mapping
 - ✅ **Documentation Organization** - Separated core docs from working files (docs/working/)
 - ✅ **Workflow Management** - 11 operational GitHub Actions with syntax validation
@@ -16,6 +17,7 @@ The **Librarian Agent** is an autonomous AI system responsible for maintaining p
 - ✅ **Bootstrap Evolution** - Comprehensive analysis and reproduction capabilities
 
 **Autonomous Maintenance:**
+
 - ✅ **File Organization** - Automated movement of working documents to appropriate folders
 - ✅ **Syntax Validation** - GitHub Actions YAML validation and error correction
 - ✅ **Documentation Hygiene** - Working files separated from core documentation resources
@@ -23,6 +25,7 @@ The **Librarian Agent** is an autonomous AI system responsible for maintaining p
 - ✅ **Project Token Management** - Audit and verification of GitHub Project integrations
 
 **Ready for Advanced Features:**
+
 - 🔄 **Real-time Monitoring** - Foundation for continuous organization health checks
 - 🔄 **Automated Cleanup** - Scripts ready for deployment-based cleanup automation
 - 🔄 **Knowledge Graph** - Documentation relationship mapping system prepared
@@ -33,6 +36,7 @@ The **Librarian Agent** is an autonomous AI system responsible for maintaining p
 ## 🤖 **Agent Architecture**
 
 ### Core Responsibilities
+
 ```yaml
 LibrarianAgent:
   PrimaryFunctions:
@@ -63,6 +67,7 @@ LibrarianAgent:
 ```
 
 ### Agent Intelligence Framework
+
 ```typescript
 // lib/agents/librarian-agent.ts
 
@@ -76,11 +81,11 @@ export class LibrarianAgent {
 
   constructor() {
     this.aiProvider = new AIProvider({
-      model: 'gpt-4',
+      model: "gpt-4",
       temperature: 0.1, // Low temperature for consistent organizational decisions
-      maxTokens: 4000
+      maxTokens: 4000,
     });
-    
+
     this.fileSystemMonitor = new FileSystemMonitor();
     this.repositoryAnalyzer = new RepositoryAnalyzer();
     this.complianceEngine = new ComplianceEngine();
@@ -91,12 +96,13 @@ export class LibrarianAgent {
   // Primary agent orchestration
   async orchestrate(): Promise<void> {
     const analysisResults = await this.performRepositoryAnalysis();
-    const optimizationPlan = await this.generateOptimizationPlan(analysisResults);
-    
+    const optimizationPlan =
+      await this.generateOptimizationPlan(analysisResults);
+
     await this.executeOptimizations(optimizationPlan);
     await this.updateKnowledgeGraph();
     await this.generateReports();
-    
+
     // Schedule next analysis
     setTimeout(() => this.orchestrate(), this.getAnalysisInterval());
   }
@@ -109,14 +115,14 @@ export class LibrarianAgent {
       codeQualityAnalysis,
       complianceAnalysis,
       dependencyAnalysis,
-      securityAnalysis
+      securityAnalysis,
     ] = await Promise.all([
       this.analyzeRepositoryStructure(),
       this.analyzeDocumentation(),
       this.analyzeCodeQuality(),
       this.analyzeCompliance(),
       this.analyzeDependencies(),
-      this.analyzeSecurityPosture()
+      this.analyzeSecurityPosture(),
     ]);
 
     return {
@@ -133,8 +139,8 @@ export class LibrarianAgent {
         codeQualityAnalysis,
         complianceAnalysis,
         dependencyAnalysis,
-        securityAnalysis
-      ])
+        securityAnalysis,
+      ]),
     };
   }
 
@@ -142,21 +148,31 @@ export class LibrarianAgent {
   async analyzeRepositoryStructure(): Promise<StructureAnalysis> {
     const files = await this.fileSystemMonitor.scanRepository();
     const currentStructure = this.buildStructureTree(files);
-    
+
     const idealStructure = await this.generateIdealStructure();
-    const structureGaps = this.identifyStructureGaps(currentStructure, idealStructure);
-    
+    const structureGaps = this.identifyStructureGaps(
+      currentStructure,
+      idealStructure
+    );
+
     const namingConventionViolations = await this.checkNamingConventions(files);
     const organizationIssues = await this.identifyOrganizationIssues(files);
-    
+
     return {
       currentStructure,
       idealStructure,
       structureGaps,
       namingConventionViolations,
       organizationIssues,
-      recommendations: await this.generateStructureRecommendations(structureGaps, organizationIssues),
-      healthScore: this.calculateStructureHealth(structureGaps, namingConventionViolations, organizationIssues)
+      recommendations: await this.generateStructureRecommendations(
+        structureGaps,
+        organizationIssues
+      ),
+      healthScore: this.calculateStructureHealth(
+        structureGaps,
+        namingConventionViolations,
+        organizationIssues
+      ),
     };
   }
 
@@ -164,24 +180,27 @@ export class LibrarianAgent {
   async analyzeDocumentation(): Promise<DocumentationAnalysis> {
     const documentFiles = await this.fileSystemMonitor.findDocumentFiles();
     const codeFiles = await this.fileSystemMonitor.findCodeFiles();
-    
+
     const [
       completenessAnalysis,
       qualityAnalysis,
       consistencyAnalysis,
       crossReferenceAnalysis,
-      obsoleteContentAnalysis
+      obsoleteContentAnalysis,
     ] = await Promise.all([
       this.analyzeDocumentationCompleteness(documentFiles, codeFiles),
       this.analyzeDocumentationQuality(documentFiles),
       this.analyzeDocumentationConsistency(documentFiles),
       this.analyzeCrossReferences(documentFiles),
-      this.identifyObsoleteContent(documentFiles, codeFiles)
+      this.identifyObsoleteContent(documentFiles, codeFiles),
     ]);
 
-    const missingDocumentation = await this.identifyMissingDocumentation(codeFiles, documentFiles);
+    const missingDocumentation = await this.identifyMissingDocumentation(
+      codeFiles,
+      documentFiles
+    );
     const duplicateContent = await this.identifyDuplicateContent(documentFiles);
-    
+
     return {
       completeness: completenessAnalysis,
       quality: qualityAnalysis,
@@ -194,35 +213,39 @@ export class LibrarianAgent {
         completenessAnalysis,
         qualityAnalysis,
         missingDocumentation,
-        duplicateContent
+        duplicateContent,
       }),
-      healthScore: this.calculateDocumentationHealth(completenessAnalysis, qualityAnalysis, consistencyAnalysis)
+      healthScore: this.calculateDocumentationHealth(
+        completenessAnalysis,
+        qualityAnalysis,
+        consistencyAnalysis
+      ),
     };
   }
 
   // Code quality and architectural compliance
   async analyzeCodeQuality(): Promise<CodeQualityAnalysis> {
     const codeFiles = await this.fileSystemMonitor.findCodeFiles();
-    
+
     const [
       architecturalCompliance,
       aiNativePatterns,
       typeScriptCompliance,
       testCoverage,
       codeComplexity,
-      duplicateCode
+      duplicateCode,
     ] = await Promise.all([
       this.analyzeArchitecturalCompliance(codeFiles),
       this.analyzeAINativePatterns(codeFiles),
       this.analyzeTypeScriptCompliance(codeFiles),
       this.analyzeTestCoverage(codeFiles),
       this.analyzeCodeComplexity(codeFiles),
-      this.analyzeDuplicateCode(codeFiles)
+      this.analyzeDuplicateCode(codeFiles),
     ]);
 
     const technicalDebt = await this.identifyTechnicalDebt(codeFiles);
     const performanceIssues = await this.identifyPerformanceIssues(codeFiles);
-    
+
     return {
       architecturalCompliance,
       aiNativePatterns,
@@ -235,9 +258,13 @@ export class LibrarianAgent {
       recommendations: await this.generateCodeQualityRecommendations({
         architecturalCompliance,
         technicalDebt,
-        performanceIssues
+        performanceIssues,
       }),
-      healthScore: this.calculateCodeQualityHealth(architecturalCompliance, testCoverage, technicalDebt)
+      healthScore: this.calculateCodeQualityHealth(
+        architecturalCompliance,
+        testCoverage,
+        technicalDebt
+      ),
     };
   }
 
@@ -248,13 +275,13 @@ export class LibrarianAgent {
       privacyCompliance,
       accessibilityCompliance,
       licenseCompliance,
-      auditCompliance
+      auditCompliance,
     ] = await Promise.all([
       this.analyzeSecurityCompliance(),
       this.analyzePrivacyCompliance(),
       this.analyzeAccessibilityCompliance(),
       this.analyzeLicenseCompliance(),
-      this.analyzeAuditCompliance()
+      this.analyzeAuditCompliance(),
     ]);
 
     const complianceGaps = this.identifyComplianceGaps([
@@ -262,7 +289,7 @@ export class LibrarianAgent {
       privacyCompliance,
       accessibilityCompliance,
       licenseCompliance,
-      auditCompliance
+      auditCompliance,
     ]);
 
     return {
@@ -272,8 +299,9 @@ export class LibrarianAgent {
       license: licenseCompliance,
       audit: auditCompliance,
       gaps: complianceGaps,
-      recommendations: await this.generateComplianceRecommendations(complianceGaps),
-      healthScore: this.calculateComplianceHealth(complianceGaps)
+      recommendations:
+        await this.generateComplianceRecommendations(complianceGaps),
+      healthScore: this.calculateComplianceHealth(complianceGaps),
     };
   }
 
@@ -281,19 +309,19 @@ export class LibrarianAgent {
   async analyzeDependencies(): Promise<DependencyAnalysis> {
     const packageFiles = await this.fileSystemMonitor.findPackageFiles();
     const dependencies = await this.extractDependencies(packageFiles);
-    
+
     const [
       vulnerabilities,
       outdatedPackages,
       unusedDependencies,
       licensingIssues,
-      sizeOptimization
+      sizeOptimization,
     ] = await Promise.all([
       this.scanVulnerabilities(dependencies),
       this.identifyOutdatedPackages(dependencies),
       this.identifyUnusedDependencies(dependencies),
       this.analyzeLicensingIssues(dependencies),
-      this.analyzeSizeOptimization(dependencies)
+      this.analyzeSizeOptimization(dependencies),
     ]);
 
     return {
@@ -306,9 +334,12 @@ export class LibrarianAgent {
       recommendations: await this.generateDependencyRecommendations({
         vulnerabilities,
         outdatedPackages,
-        unusedDependencies
+        unusedDependencies,
       }),
-      healthScore: this.calculateDependencyHealth(vulnerabilities, outdatedPackages)
+      healthScore: this.calculateDependencyHealth(
+        vulnerabilities,
+        outdatedPackages
+      ),
     };
   }
 
@@ -319,13 +350,13 @@ export class LibrarianAgent {
       accessControls,
       encryptionCompliance,
       auditLogging,
-      threatModeling
+      threatModeling,
     ] = await Promise.all([
       this.scanForSecretsExposure(),
       this.analyzeAccessControls(),
       this.analyzeEncryptionCompliance(),
       this.analyzeAuditLogging(),
-      this.performThreatModeling()
+      this.performThreatModeling(),
     ]);
 
     const securityGaps = this.identifySecurityGaps([
@@ -333,7 +364,7 @@ export class LibrarianAgent {
       accessControls,
       encryptionCompliance,
       auditLogging,
-      threatModeling
+      threatModeling,
     ]);
 
     return {
@@ -344,32 +375,38 @@ export class LibrarianAgent {
       threatModeling,
       gaps: securityGaps,
       recommendations: await this.generateSecurityRecommendations(securityGaps),
-      healthScore: this.calculateSecurityHealth(securityGaps)
+      healthScore: this.calculateSecurityHealth(securityGaps),
     };
   }
 
   // Optimization plan generation
-  async generateOptimizationPlan(analysis: RepositoryAnalysis): Promise<OptimizationPlan> {
+  async generateOptimizationPlan(
+    analysis: RepositoryAnalysis
+  ): Promise<OptimizationPlan> {
     const prioritizedActions = await this.prioritizeOptimizations(analysis);
-    const resourceRequirements = await this.calculateResourceRequirements(prioritizedActions);
-    const timeline = await this.generateOptimizationTimeline(prioritizedActions);
-    
+    const resourceRequirements =
+      await this.calculateResourceRequirements(prioritizedActions);
+    const timeline =
+      await this.generateOptimizationTimeline(prioritizedActions);
+
     return {
       actions: prioritizedActions,
       resources: resourceRequirements,
       timeline,
       expectedImpact: await this.calculateExpectedImpact(prioritizedActions),
-      riskAssessment: await this.assessOptimizationRisks(prioritizedActions)
+      riskAssessment: await this.assessOptimizationRisks(prioritizedActions),
     };
   }
 
   // Execute optimizations with safety checks
-  async executeOptimizations(plan: OptimizationPlan): Promise<OptimizationResults> {
+  async executeOptimizations(
+    plan: OptimizationPlan
+  ): Promise<OptimizationResults> {
     const results: OptimizationResults = {
       executedActions: [],
       skippedActions: [],
       errors: [],
-      overallSuccess: true
+      overallSuccess: true,
     };
 
     for (const action of plan.actions) {
@@ -379,30 +416,30 @@ export class LibrarianAgent {
         if (!safetyCheck.safe) {
           results.skippedActions.push({
             action,
-            reason: safetyCheck.reason
+            reason: safetyCheck.reason,
           });
           continue;
         }
 
         // Execute action with rollback capability
         const executionResult = await this.executeOptimizationAction(action);
-        
+
         if (executionResult.success) {
           results.executedActions.push({
             action,
-            result: executionResult
+            result: executionResult,
           });
         } else {
           results.errors.push({
             action,
-            error: executionResult.error
+            error: executionResult.error,
           });
           results.overallSuccess = false;
         }
       } catch (error) {
         results.errors.push({
           action,
-          error: error.message
+          error: error.message,
         });
         results.overallSuccess = false;
       }
@@ -415,35 +452,36 @@ export class LibrarianAgent {
   async updateKnowledgeGraph(): Promise<void> {
     const repositoryKnowledge = await this.extractRepositoryKnowledge();
     const relationships = await this.identifyRelationships(repositoryKnowledge);
-    
+
     await this.knowledgeGraph.update({
       entities: repositoryKnowledge.entities,
       relationships,
       metadata: {
         lastUpdated: new Date(),
         version: repositoryKnowledge.version,
-        confidence: repositoryKnowledge.confidence
-      }
+        confidence: repositoryKnowledge.confidence,
+      },
     });
 
     // Generate knowledge-based recommendations
-    const knowledgeRecommendations = await this.generateKnowledgeRecommendations();
+    const knowledgeRecommendations =
+      await this.generateKnowledgeRecommendations();
     await this.storeRecommendations(knowledgeRecommendations);
   }
 
   // Real-time monitoring and intervention
   async monitorFileSystemChanges(): Promise<void> {
-    this.fileSystemMonitor.on('change', async (change: FileSystemChange) => {
+    this.fileSystemMonitor.on("change", async (change: FileSystemChange) => {
       const impact = await this.assessChangeImpact(change);
-      
+
       if (impact.requiresIntervention) {
         await this.performImmedateIntervention(change, impact);
       }
-      
+
       if (impact.requiresReorganization) {
         await this.scheduleReorganization(change, impact);
       }
-      
+
       // Update knowledge graph with change
       await this.updateKnowledgeGraphIncremental(change);
     });
@@ -456,13 +494,13 @@ export class LibrarianAgent {
       complianceReport,
       qualityReport,
       securityReport,
-      optimizationReport
+      optimizationReport,
     ] = await Promise.all([
       this.generateOrganizationReport(),
       this.generateComplianceReport(),
       this.generateQualityReport(),
       this.generateSecurityReport(),
-      this.generateOptimizationReport()
+      this.generateOptimizationReport(),
     ]);
 
     const executiveSummary = await this.generateExecutiveSummary({
@@ -470,7 +508,7 @@ export class LibrarianAgent {
       compliance: complianceReport,
       quality: qualityReport,
       security: securityReport,
-      optimization: optimizationReport
+      optimization: optimizationReport,
     });
 
     return {
@@ -480,30 +518,32 @@ export class LibrarianAgent {
       quality: qualityReport,
       security: securityReport,
       optimization: optimizationReport,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
   }
 
   // AI-powered decision making
-  async makeOrganizationalDecision(context: DecisionContext): Promise<OrganizationalDecision> {
+  async makeOrganizationalDecision(
+    context: DecisionContext
+  ): Promise<OrganizationalDecision> {
     const prompt = this.buildDecisionPrompt(context);
-    
+
     const aiResponse = await this.aiProvider.generateResponse(prompt, {
       temperature: 0.1,
       maxTokens: 2000,
-      stop: ['###END###']
+      stop: ["###END###"],
     });
 
     const decision = this.parseDecisionResponse(aiResponse);
-    
+
     // Validate decision against organizational principles
     const validation = await this.validateDecision(decision, context);
-    
+
     return {
       ...decision,
       validation,
       confidence: this.calculateDecisionConfidence(decision, validation),
-      timestamp: new Date()
+      timestamp: new Date(),
     };
   }
 
@@ -544,24 +584,25 @@ Provide your decision in the following format:
   }
 
   private calculateOverallHealth(analyses: any[]): HealthScore {
-    const scores = analyses.map(analysis => analysis.healthScore || 0);
-    const average = scores.reduce((sum, score) => sum + score, 0) / scores.length;
-    
+    const scores = analyses.map((analysis) => analysis.healthScore || 0);
+    const average =
+      scores.reduce((sum, score) => sum + score, 0) / scores.length;
+
     return {
       score: Math.round(average * 100) / 100,
       grade: this.calculateHealthGrade(average),
       trend: this.calculateHealthTrend(scores),
-      critical_issues: analyses.flatMap(a => a.criticalIssues || []),
-      recommendations: analyses.flatMap(a => a.recommendations || [])
+      critical_issues: analyses.flatMap((a) => a.criticalIssues || []),
+      recommendations: analyses.flatMap((a) => a.recommendations || []),
     };
   }
 
   private calculateHealthGrade(score: number): string {
-    if (score >= 0.9) return 'A';
-    if (score >= 0.8) return 'B';
-    if (score >= 0.7) return 'C';
-    if (score >= 0.6) return 'D';
-    return 'F';
+    if (score >= 0.9) return "A";
+    if (score >= 0.8) return "B";
+    if (score >= 0.7) return "C";
+    if (score >= 0.6) return "D";
+    return "F";
   }
 
   private getAnalysisInterval(): number {
@@ -590,7 +631,7 @@ export class LibrarianWorkflows {
       this.createLibrarianAnalysisWorkflow(),
       this.createOrganizationMaintenanceWorkflow(),
       this.createComplianceCheckWorkflow(),
-      this.createDocumentationUpdateWorkflow()
+      this.createDocumentationUpdateWorkflow(),
     ];
 
     for (const workflow of workflows) {
@@ -600,77 +641,78 @@ export class LibrarianWorkflows {
 
   private createLibrarianAnalysisWorkflow(): GitHubWorkflow {
     return {
-      name: 'Librarian Agent Analysis',
+      name: "Librarian Agent Analysis",
       on: {
-        schedule: [{ cron: '0 */6 * * *' }], // Every 6 hours
-        push: { branches: ['main', 'develop'] },
-        pull_request: { types: ['opened', 'synchronize'] }
+        schedule: [{ cron: "0 */6 * * *" }], // Every 6 hours
+        push: { branches: ["main", "develop"] },
+        pull_request: { types: ["opened", "synchronize"] },
       },
       jobs: {
         librarian_analysis: {
-          'runs-on': 'ubuntu-latest',
+          "runs-on": "ubuntu-latest",
           steps: [
-            { uses: 'actions/checkout@v4' },
-            { uses: 'actions/setup-node@v4', with: { 'node-version': '20' } },
-            { run: 'npm ci' },
-            { 
-              name: 'Run Librarian Analysis',
-              run: 'npm run librarian:analyze',
+            { uses: "actions/checkout@v4" },
+            { uses: "actions/setup-node@v4", with: { "node-version": "20" } },
+            { run: "npm ci" },
+            {
+              name: "Run Librarian Analysis",
+              run: "npm run librarian:analyze",
               env: {
-                GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}',
-                OPENAI_API_KEY: '${{ secrets.OPENAI_API_KEY }}'
-              }
+                GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}",
+                OPENAI_API_KEY: "${{ secrets.OPENAI_API_KEY }}",
+              },
             },
             {
-              name: 'Upload Analysis Results',
-              uses: 'actions/upload-artifact@v4',
+              name: "Upload Analysis Results",
+              uses: "actions/upload-artifact@v4",
               with: {
-                name: 'librarian-analysis',
-                path: 'reports/librarian-analysis.json'
-              }
-            }
-          ]
-        }
-      }
+                name: "librarian-analysis",
+                path: "reports/librarian-analysis.json",
+              },
+            },
+          ],
+        },
+      },
     };
   }
 
   private createOrganizationMaintenanceWorkflow(): GitHubWorkflow {
     return {
-      name: 'Repository Organization Maintenance',
+      name: "Repository Organization Maintenance",
       on: {
-        schedule: [{ cron: '0 2 * * 1' }], // Weekly on Monday at 2 AM
-        workflow_dispatch: {}
+        schedule: [{ cron: "0 2 * * 1" }], // Weekly on Monday at 2 AM
+        workflow_dispatch: {},
       },
       jobs: {
         organization_maintenance: {
-          'runs-on': 'ubuntu-latest',
+          "runs-on": "ubuntu-latest",
           steps: [
-            { uses: 'actions/checkout@v4' },
-            { uses: 'actions/setup-node@v4', with: { 'node-version': '20' } },
-            { run: 'npm ci' },
+            { uses: "actions/checkout@v4" },
+            { uses: "actions/setup-node@v4", with: { "node-version": "20" } },
+            { run: "npm ci" },
             {
-              name: 'Run Organization Maintenance',
-              run: 'npm run librarian:maintain',
+              name: "Run Organization Maintenance",
+              run: "npm run librarian:maintain",
               env: {
-                GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}',
-                OPENAI_API_KEY: '${{ secrets.OPENAI_API_KEY }}'
-              }
+                GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}",
+                OPENAI_API_KEY: "${{ secrets.OPENAI_API_KEY }}",
+              },
             },
             {
-              name: 'Create Pull Request for Changes',
-              uses: 'peter-evans/create-pull-request@v5',
+              name: "Create Pull Request for Changes",
+              uses: "peter-evans/create-pull-request@v5",
               with: {
-                token: '${{ secrets.GITHUB_TOKEN }}',
-                'commit-message': 'chore: automated repository organization maintenance',
-                title: 'Automated Repository Organization Updates',
-                body: 'This PR contains automated repository organization improvements generated by the Librarian Agent.',
-                branch: 'librarian/organization-maintenance'
-              }
-            }
-          ]
-        }
-      }
+                token: "${{ secrets.GITHUB_TOKEN }}",
+                "commit-message":
+                  "chore: automated repository organization maintenance",
+                title: "Automated Repository Organization Updates",
+                body: "This PR contains automated repository organization improvements generated by the Librarian Agent.",
+                branch: "librarian/organization-maintenance",
+              },
+            },
+          ],
+        },
+      },
     };
   }
 
@@ -678,25 +720,26 @@ export class LibrarianWorkflows {
   async setupVSCodeIntegration(): Promise<void> {
     await this.vscodeExtension.registerCommands([
       {
-        command: 'noveli.librarian.analyze',
-        title: 'Analyze Repository Organization',
-        callback: () => this.librarianAgent.performRepositoryAnalysis()
+        command: "noveli.librarian.analyze",
+        title: "Analyze Repository Organization",
+        callback: () => this.librarianAgent.performRepositoryAnalysis(),
       },
       {
-        command: 'noveli.librarian.optimize',
-        title: 'Optimize Repository Structure',
-        callback: () => this.performOptimization()
+        command: "noveli.librarian.optimize",
+        title: "Optimize Repository Structure",
+        callback: () => this.performOptimization(),
       },
       {
-        command: 'noveli.librarian.report',
-        title: 'Generate Organization Report',
-        callback: () => this.generateReport()
-      }
+        command: "noveli.librarian.report",
+        title: "Generate Organization Report",
+        callback: () => this.generateReport(),
+      },
     ]);
 
     // Real-time suggestions
     await this.vscodeExtension.registerFileWatcher(async (change) => {
-      const suggestions = await this.librarianAgent.generateFileSuggestions(change);
+      const suggestions =
+        await this.librarianAgent.generateFileSuggestions(change);
       if (suggestions.length > 0) {
         this.vscodeExtension.showSuggestions(suggestions);
       }
@@ -707,7 +750,7 @@ export class LibrarianWorkflows {
     const analysis = await this.librarianAgent.performRepositoryAnalysis();
     const plan = await this.librarianAgent.generateOptimizationPlan(analysis);
     const results = await this.librarianAgent.executeOptimizations(plan);
-    
+
     this.vscodeExtension.showResults(results);
   }
 
@@ -870,6 +913,7 @@ interface GitHubWorkflow {
 ## 🚀 **Implementation Scripts**
 
 ### Package.json Integration
+
 ```json
 {
   "scripts": {
@@ -885,6 +929,7 @@ interface GitHubWorkflow {
 ```
 
 ### Automation Setup Script
+
 ```bash
 #!/bin/bash
 # scripts/setup-librarian-agent.sh
@@ -950,29 +995,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'pnpm'
-      
+
       - run: pnpm install
-      
+
       - name: Run Librarian Analysis
         run: pnpm librarian:analyze
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      
+
       - name: Generate Organization Report
         run: pnpm librarian:report
-      
+
       - name: Upload Analysis Results
         uses: actions/upload-artifact@v4
         with:
           name: librarian-analysis-${{ github.sha }}
           path: .librarian/reports/
-      
+
       - name: Comment on PR
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
@@ -980,23 +1025,23 @@ jobs:
           script: |
             const fs = require('fs');
             const report = JSON.parse(fs.readFileSync('.librarian/reports/analysis.json', 'utf8'));
-            
+
             const comment = `## 🤖 Librarian Agent Analysis
-            
+
             **Overall Health Score:** ${report.overallHealth.score}/1.0 (${report.overallHealth.grade})
-            
+
             ### Key Findings:
             - **Structure:** ${report.structure.healthScore}/1.0
             - **Documentation:** ${report.documentation.healthScore}/1.0
             - **Code Quality:** ${report.codeQuality.healthScore}/1.0
             - **Compliance:** ${report.compliance.healthScore}/1.0
-            
+
             ### Recommendations:
             ${report.overallHealth.recommendations.map(r => `- ${r}`).join('\n')}
-            
+
             [View Full Report](${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID})
             `;
-            
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
@@ -1011,20 +1056,20 @@ jobs:
       - uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-      
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'pnpm'
-      
+
       - run: pnpm install
-      
+
       - name: Run Organization Maintenance
         run: pnpm librarian:maintain
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      
+
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v5
         with:
@@ -1033,18 +1078,18 @@ jobs:
           title: '🤖 Automated Repository Organization Updates'
           body: |
             This PR contains automated repository organization improvements generated by the Librarian Agent.
-            
+
             ## Changes Made:
             - Repository structure optimization
             - Documentation updates and corrections
             - Code quality improvements
             - Compliance enhancements
-            
+
             ## Review Guidelines:
             - Verify all changes align with project standards
             - Check that no sensitive information is exposed
             - Ensure all tests pass before merging
-            
+
             *Generated by Librarian Agent on $(date)*
           branch: librarian/organization-maintenance
           delete-branch: true

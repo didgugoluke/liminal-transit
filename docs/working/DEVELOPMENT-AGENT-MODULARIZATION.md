@@ -6,13 +6,14 @@ The Development Agent is currently hardcoded for database schema creation tasks:
 
 ```yaml
 if [[ "$TASK_TITLE" == *"Database Schema"* ]]; then
-  echo "🗄️  Implementing Database Schema Design..."
-  # Hardcoded database schema implementation
+echo "🗄️  Implementing Database Schema Design..."
+# Hardcoded database schema implementation
 ```
 
 This approach doesn't scale for different task types like:
+
 - API Design & Core Endpoints
-- UI Components & React Implementation  
+- UI Components & React Implementation
 - Testing Implementation
 - Documentation Creation
 - Infrastructure Setup
@@ -25,35 +26,35 @@ This approach doesn't scale for different task types like:
 ```yaml
 # Detect task type from title/labels/content
 detect_task_type() {
-  TASK_TITLE="$1"
-  TASK_BODY="$2"
-  
-  case "$TASK_TITLE" in
-    *"Database Schema"*|*"database"*|*"DB"*)
-      echo "database"
-      ;;
-    *"API"*|*"endpoint"*|*"REST"*|*"GraphQL"*)
-      echo "api"
-      ;;
-    *"UI"*|*"component"*|*"React"*|*"frontend"*)
-      echo "frontend"
-      ;;
-    *"Test"*|*"testing"*|*"spec"*)
-      echo "testing"
-      ;;
-    *"Documentation"*|*"docs"*|*"README"*)
-      echo "documentation"
-      ;;
-    *"Infrastructure"*|*"terraform"*|*"AWS"*|*"deploy"*)
-      echo "infrastructure"
-      ;;
-    *"Configuration"*|*"config"*|*"setup"*)
-      echo "configuration"
-      ;;
-    *)
-      echo "generic"
-      ;;
-  esac
+TASK_TITLE="$1"
+TASK_BODY="$2"
+
+case "$TASK_TITLE" in
+*"Database Schema"*|*"database"*|*"DB"*)
+echo "database"
+;;
+*"API"*|*"endpoint"*|*"REST"*|*"GraphQL"*)
+echo "api"
+;;
+*"UI"*|*"component"*|*"React"*|*"frontend"*)
+echo "frontend"
+;;
+*"Test"*|*"testing"*|*"spec"*)
+echo "testing"
+;;
+*"Documentation"*|*"docs"*|*"README"*)
+echo "documentation"
+;;
+*"Infrastructure"*|*"terraform"*|*"AWS"*|*"deploy"*)
+echo "infrastructure"
+;;
+*"Configuration"*|*"config"*|*"setup"*)
+echo "configuration"
+;;
+*)
+echo "generic"
+;;
+esac
 }
 ```
 
@@ -66,17 +67,17 @@ Each task type gets its own handler function:
 handle_database_task() {
   local TASK_NUM="$1"
   local TASK_TITLE="$2"
-  
+
   echo "🗄️  Implementing Database Schema Design..."
   mkdir -p src/database
-  
+
   # Generate schema.sql
   generate_database_schema > src/database/schema.sql
-  # Generate types.ts  
+  # Generate types.ts
   generate_database_types > src/database/types.ts
   # Generate config.ts
   generate_database_config > src/database/config.ts
-  
+
   gh issue comment "$TASK_NUM" --body "✅ Database schema implemented: schema.sql, types.ts, config.ts"
   gh issue close "$TASK_NUM" --reason completed
 }
@@ -85,17 +86,17 @@ handle_database_task() {
 handle_api_task() {
   local TASK_NUM="$1"
   local TASK_TITLE="$2"
-  
+
   echo "🔌 Implementing API Design & Endpoints..."
   mkdir -p src/api
-  
+
   # Generate OpenAPI spec
   generate_api_specification > src/api/openapi.yml
   # Generate route handlers
   generate_api_routes > src/api/routes.ts
   # Generate middleware
   generate_api_middleware > src/api/middleware.ts
-  
+
   gh issue comment "$TASK_NUM" --body "✅ API design implemented: OpenAPI spec, routes, middleware"
   gh issue close "$TASK_NUM" --reason completed
 }
@@ -104,17 +105,17 @@ handle_api_task() {
 handle_frontend_task() {
   local TASK_NUM="$1"
   local TASK_TITLE="$2"
-  
+
   echo "🎨 Implementing Frontend Components..."
   mkdir -p src/components
-  
+
   # Generate React components
   generate_react_components > src/components/
   # Generate styles
   generate_component_styles > src/styles/
   # Generate tests
   generate_component_tests > src/__tests__/
-  
+
   gh issue comment "$TASK_NUM" --body "✅ Frontend components implemented: React components, styles, tests"
   gh issue close "$TASK_NUM" --reason completed
 }
@@ -123,17 +124,17 @@ handle_frontend_task() {
 handle_testing_task() {
   local TASK_NUM="$1"
   local TASK_TITLE="$2"
-  
+
   echo "🧪 Implementing Testing Infrastructure..."
   mkdir -p src/__tests__
-  
+
   # Generate test suites
   generate_test_suites > src/__tests__/
   # Generate test configuration
   generate_test_config > vitest.config.ts
   # Generate CI/CD test pipeline
   generate_test_pipeline > .github/workflows/tests.yml
-  
+
   gh issue comment "$TASK_NUM" --body "✅ Testing infrastructure implemented: test suites, config, CI pipeline"
   gh issue close "$TASK_NUM" --reason completed
 }
@@ -142,17 +143,17 @@ handle_testing_task() {
 handle_documentation_task() {
   local TASK_NUM="$1"
   local TASK_TITLE="$2"
-  
+
   echo "📚 Implementing Documentation..."
   mkdir -p docs
-  
+
   # Generate technical documentation
   generate_technical_docs > docs/
   # Generate API documentation
   generate_api_docs > docs/api/
   # Generate user guides
   generate_user_guides > docs/guides/
-  
+
   gh issue comment "$TASK_NUM" --body "✅ Documentation implemented: technical docs, API docs, user guides"
   gh issue close "$TASK_NUM" --reason completed
 }
@@ -162,14 +163,14 @@ handle_generic_task() {
   local TASK_NUM="$1"
   local TASK_TITLE="$2"
   local TASK_BODY="$3"
-  
+
   echo "🔧 Processing generic task: $TASK_TITLE"
-  
+
   # AI-powered generic implementation
   analyze_task_requirements "$TASK_TITLE" "$TASK_BODY"
   generate_implementation_plan
   execute_implementation_steps
-  
+
   gh issue comment "$TASK_NUM" --body "🔧 Development Agent processed generic task. Implementation completed."
   gh issue close "$TASK_NUM" --reason completed
 }
@@ -184,16 +185,16 @@ if [ -n "$TASK_NUMBERS" ]; then
   for TASK_NUM in "${TASK_ARRAY[@]}"; do
     if [ -n "$TASK_NUM" ]; then
       echo "🔧 Processing Task #$TASK_NUM..."
-      
+
       # Get task details
       TASK_DATA=$(gh issue view "$TASK_NUM" --json title,body,labels)
       TASK_TITLE=$(echo "$TASK_DATA" | jq -r '.title')
       TASK_BODY=$(echo "$TASK_DATA" | jq -r '.body')
-      
+
       # Detect task type
       TASK_TYPE=$(detect_task_type "$TASK_TITLE" "$TASK_BODY")
       echo "  Task Type: $TASK_TYPE"
-      
+
       # Route to appropriate handler
       case "$TASK_TYPE" in
         "database")
@@ -275,7 +276,7 @@ info:
   title: NOVELI.SH API
   description: AI Native Interactive Storytelling Platform
   version: 1.0.0
-  
+
 paths:
   /api/stories:
     get:
@@ -300,7 +301,7 @@ paths:
       responses:
         '201':
           description: Created
-          
+
 components:
   schemas:
     Story:
@@ -334,25 +335,25 @@ export interface StoryProps {
   onChoice: (choice: string) => void;
 }
 
-export const StoryComponent: React.FC<StoryProps> = ({ 
-  id, 
-  title, 
-  content, 
-  onChoice 
+export const StoryComponent: React.FC<StoryProps> = ({
+  id,
+  title,
+  content,
+  onChoice
 }) => {
   return (
     <div className="story-container">
       <h1 className="story-title">{title}</h1>
       <p className="story-content">{content}</p>
-      
+
       <div className="choice-buttons">
-        <button 
+        <button
           onClick={() => onChoice('yes')}
           className="choice-yes"
         >
           Yes
         </button>
-        <button 
+        <button
           onClick={() => onChoice('no')}
           className="choice-no"
         >

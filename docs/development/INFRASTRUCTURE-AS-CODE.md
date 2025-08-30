@@ -9,6 +9,7 @@ Comprehensive Infrastructure as Code patterns for the AI Native NOVELI.SH platfo
 ### ✅ **Current Infrastructure State (August 2025)**
 
 **Operational Infrastructure:**
+
 - ✅ **11-Agent GitHub Actions Ecosystem** - Complete CI/CD automation with AI orchestration
 - ✅ **AWS Well-Architected Framework** - Full six-pillar implementation with compliance automation
 - ✅ **Enterprise Compliance Engine** - Automated SOC 2, ISO 27001, GDPR, PCI DSS adherence
@@ -18,6 +19,7 @@ Comprehensive Infrastructure as Code patterns for the AI Native NOVELI.SH platfo
 - ✅ **Serverless Backend Architecture** - DynamoDB + Lambda + API Gateway foundation ready
 
 **Infrastructure Automation:**
+
 - ✅ **GitHub Actions CI/CD** - 11 operational workflows with comprehensive testing
 - ✅ **Project Management Integration** - GitHub Projects with automated kanban workflows
 - ✅ **Monitoring & Alerting** - 15-minute monitoring cycles with health reporting
@@ -29,6 +31,7 @@ Comprehensive Infrastructure as Code patterns for the AI Native NOVELI.SH platfo
 ## 🏗️ **Terraform Architecture Principles**
 
 ### Modular Infrastructure Design
+
 ```hcl
 # Root module structure
 terraform/
@@ -59,6 +62,7 @@ terraform/
 ```
 
 ### AWS Well-Architected Terraform Patterns
+
 ```hcl
 # terraform/modules/well-architected-foundation/main.tf
 
@@ -142,6 +146,7 @@ module "well_architected_foundation" {
 ## 🚀 **Core Infrastructure Modules**
 
 ### VPC and Networking Module
+
 ```hcl
 # terraform/modules/vpc/main.tf
 
@@ -352,6 +357,7 @@ resource "aws_iam_role_policy" "flow_log" {
 ```
 
 ### AI Infrastructure Module
+
 ```hcl
 # terraform/modules/ai-infrastructure/main.tf
 
@@ -871,6 +877,7 @@ data "aws_caller_identity" "current" {}
 ```
 
 ### Lambda Deployment Module
+
 ```hcl
 # terraform/modules/lambda/main.tf
 
@@ -882,7 +889,7 @@ resource "aws_lambda_function" "this" {
   runtime         = var.runtime
   timeout         = var.timeout
   memory_size     = var.memory_size
-  
+
   source_code_hash = var.source_code_hash
 
   dynamic "environment" {
@@ -1005,7 +1012,7 @@ resource "aws_cloudwatch_metric_alarm" "lambda_errors" {
   statistic           = "Sum"
   threshold           = var.error_alarm_threshold
   alarm_description   = "This metric monitors lambda errors for ${var.function_name}"
-  
+
   dimensions = {
     FunctionName = aws_lambda_function.this.function_name
   }
@@ -1026,7 +1033,7 @@ resource "aws_cloudwatch_metric_alarm" "lambda_duration" {
   statistic           = "Average"
   threshold           = var.duration_alarm_threshold
   alarm_description   = "This metric monitors lambda duration for ${var.function_name}"
-  
+
   dimensions = {
     FunctionName = aws_lambda_function.this.function_name
   }
@@ -1042,6 +1049,7 @@ resource "aws_cloudwatch_metric_alarm" "lambda_duration" {
 ## 🔄 **Multi-Environment Management**
 
 ### Environment-Specific Configurations
+
 ```hcl
 # terraform/environments/dev/main.tf
 
@@ -1057,7 +1065,7 @@ terraform {
 
 provider "aws" {
   region = var.aws_region
-  
+
   default_tags {
     tags = {
       Environment = "dev"
@@ -1071,7 +1079,7 @@ provider "aws" {
 locals {
   environment = "dev"
   project     = "noveli"
-  
+
   common_tags = {
     Environment = local.environment
     Project     = local.project
@@ -1090,7 +1098,7 @@ module "vpc" {
   availability_zones = ["us-east-1a", "us-east-1b", "us-east-1c"]
   enable_nat_gateway = false  # Cost optimization for dev
   enable_flow_logs   = true
-  
+
   tags = local.common_tags
 }
 
@@ -1103,11 +1111,11 @@ module "ai_infrastructure" {
   vpc_id               = module.vpc.vpc_id
   private_subnet_ids   = module.vpc.private_subnet_ids
   monthly_cost_budget  = 1000  # $1000/month for dev environment
-  
+
   openai_endpoint      = "https://api.openai.com/v1"
   anthropic_endpoint   = "https://api.anthropic.com"
   aws_region          = var.aws_region
-  
+
   tags = local.common_tags
 }
 
@@ -1119,7 +1127,7 @@ module "api_gateway" {
   project           = local.project
   lambda_function_arn = module.ai_infrastructure.ai_orchestrator_arn
   domain_name       = "dev-api.noveli.local"
-  
+
   tags = local.common_tags
 }
 
@@ -1129,25 +1137,26 @@ module "monitoring" {
 
   environment = local.environment
   project     = local.project
-  
+
   # Monitoring targets
   lambda_functions = [
     module.ai_infrastructure.ai_orchestrator_name,
     module.ai_infrastructure.cost_optimizer_name
   ]
-  
+
   dynamodb_tables = [
     module.ai_infrastructure.ai_prompts_table_name,
     module.ai_infrastructure.ai_responses_table_name
   ]
-  
+
   api_gateway_id = module.api_gateway.api_gateway_id
-  
+
   tags = local.common_tags
 }
 ```
 
 ### Production Environment
+
 ```hcl
 # terraform/environments/production/main.tf
 
@@ -1164,7 +1173,7 @@ terraform {
 locals {
   environment = "production"
   project     = "noveli"
-  
+
   common_tags = {
     Environment = local.environment
     Project     = local.project
@@ -1185,7 +1194,7 @@ module "vpc" {
   availability_zones = ["us-east-1a", "us-east-1b", "us-east-1c"]
   enable_nat_gateway = true   # Required for production
   enable_flow_logs   = true
-  
+
   tags = local.common_tags
 }
 
@@ -1197,12 +1206,12 @@ module "ai_infrastructure" {
   vpc_id               = module.vpc.vpc_id
   private_subnet_ids   = module.vpc.private_subnet_ids
   monthly_cost_budget  = 50000  # $50,000/month for production
-  
+
   # Production-grade configurations
   enable_multi_az       = true
   enable_backups        = true
   backup_retention_days = 30
-  
+
   tags = local.common_tags
 }
 
@@ -1212,16 +1221,16 @@ module "waf" {
 
   environment = local.environment
   project     = local.project
-  
+
   # Associate with API Gateway
   resource_arn = module.api_gateway.api_gateway_arn
-  
+
   # Protection rules
   enable_rate_limiting    = true
   enable_geo_blocking     = true
   enable_ip_reputation    = true
   enable_bot_protection   = true
-  
+
   tags = local.common_tags
 }
 
@@ -1231,9 +1240,9 @@ module "cloudfront" {
 
   environment = local.environment
   project     = local.project
-  
+
   origin_domain_name = module.api_gateway.api_gateway_domain_name
-  
+
   # Cache behaviors for AI responses
   cache_behaviors = [
     {
@@ -1244,7 +1253,7 @@ module "cloudfront" {
       compress        = true
     }
   ]
-  
+
   tags = local.common_tags
 }
 ```
@@ -1254,6 +1263,7 @@ module "cloudfront" {
 ## 🤖 **Automation Scripts**
 
 ### Deployment Script
+
 ```bash
 #!/bin/bash
 # terraform/scripts/deploy.sh
@@ -1318,7 +1328,7 @@ EOF
 # Validate environment
 validate_environment() {
     local env=$1
-    
+
     if [[ ! " ${ENVIRONMENTS[@]} " =~ " ${env} " ]]; then
         log_error "Invalid environment: $env"
         log_info "Valid environments: ${ENVIRONMENTS[*]}"
@@ -1329,7 +1339,7 @@ validate_environment() {
 # Check prerequisites
 check_prerequisites() {
     log_info "Checking prerequisites..."
-    
+
     # Check required tools
     local tools=("terraform" "aws" "jq")
     for tool in "${tools[@]}"; do
@@ -1338,28 +1348,28 @@ check_prerequisites() {
             exit 1
         fi
     done
-    
+
     # Check AWS credentials
     if ! aws sts get-caller-identity &> /dev/null; then
         log_error "AWS credentials not configured or invalid"
         exit 1
     fi
-    
+
     # Check Terraform version
     local tf_version=$(terraform version -json | jq -r '.terraform_version')
     log_info "Using Terraform version: $tf_version"
-    
+
     log_success "Prerequisites check passed"
 }
 
 # Initialize Terraform
 terraform_init() {
     local env_dir=$1
-    
+
     log_info "Initializing Terraform for $env_dir..."
-    
+
     cd "$PROJECT_ROOT/environments/$env_dir"
-    
+
     # Initialize with backend configuration
     terraform init \
         -backend-config="bucket=noveli-terraform-state" \
@@ -1367,16 +1377,16 @@ terraform_init() {
         -backend-config="region=us-east-1" \
         -backend-config="encrypt=true" \
         -backend-config="dynamodb_table=noveli-terraform-locks"
-    
+
     log_success "Terraform initialized"
 }
 
 # Validate Terraform configuration
 terraform_validate() {
     log_info "Validating Terraform configuration..."
-    
+
     terraform validate
-    
+
     if [ $? -eq 0 ]; then
         log_success "Terraform configuration is valid"
     else
@@ -1389,16 +1399,16 @@ terraform_validate() {
 terraform_plan() {
     local env=$1
     local plan_file="$env.tfplan"
-    
+
     log_info "Running Terraform plan for $env..."
-    
+
     terraform plan \
         -var-file="terraform.tfvars" \
         -out="$plan_file" \
         -detailed-exitcode
-    
+
     local exit_code=$?
-    
+
     case $exit_code in
         0)
             log_info "No changes detected"
@@ -1420,15 +1430,15 @@ terraform_apply() {
     local env=$1
     local plan_file="$env.tfplan"
     local auto_approve=$2
-    
+
     log_info "Applying Terraform changes for $env..."
-    
+
     if [ "$auto_approve" = true ]; then
         terraform apply "$plan_file"
     else
         terraform apply "$plan_file"
     fi
-    
+
     if [ $? -eq 0 ]; then
         log_success "Terraform apply completed successfully"
     else
@@ -1441,9 +1451,9 @@ terraform_apply() {
 terraform_destroy() {
     local env=$1
     local auto_approve=$2
-    
+
     log_warning "This will DESTROY all infrastructure in $env environment!"
-    
+
     if [ "$auto_approve" != true ]; then
         read -p "Are you sure you want to continue? (yes/no): " confirm
         if [ "$confirm" != "yes" ]; then
@@ -1451,15 +1461,15 @@ terraform_destroy() {
             exit 0
         fi
     fi
-    
+
     log_info "Destroying infrastructure for $env..."
-    
+
     if [ "$auto_approve" = true ]; then
         terraform destroy -var-file="terraform.tfvars" -auto-approve
     else
         terraform destroy -var-file="terraform.tfvars"
     fi
-    
+
     if [ $? -eq 0 ]; then
         log_success "Infrastructure destroyed successfully"
     else
@@ -1471,11 +1481,11 @@ terraform_destroy() {
 # Get outputs
 terraform_outputs() {
     local env=$1
-    
+
     log_info "Retrieving Terraform outputs for $env..."
-    
+
     terraform output -json > "${env}_outputs.json"
-    
+
     log_success "Outputs saved to ${env}_outputs.json"
 }
 
@@ -1486,30 +1496,30 @@ deploy() {
     local destroy=$3
     local auto_approve=$4
     local verbose=$5
-    
+
     if [ "$verbose" = true ]; then
         set -x
     fi
-    
+
     validate_environment "$environment"
     check_prerequisites
-    
+
     local env_dir="$PROJECT_ROOT/environments/$environment"
-    
+
     if [ ! -d "$env_dir" ]; then
         log_error "Environment directory not found: $env_dir"
         exit 1
     fi
-    
+
     terraform_init "$environment"
     terraform_validate
-    
+
     if [ "$destroy" = true ]; then
         terraform_destroy "$environment" "$auto_approve"
     else
         terraform_plan "$environment"
         local plan_exit_code=$?
-        
+
         if [ "$plan_only" = true ]; then
             log_info "Plan-only mode: skipping apply"
         elif [ $plan_exit_code -eq 2 ]; then
@@ -1577,6 +1587,7 @@ deploy "$ENVIRONMENT" "$PLAN_ONLY" "$DESTROY" "$AUTO_APPROVE" "$VERBOSE"
 ```
 
 ### State Management Script
+
 ```bash
 #!/bin/bash
 # terraform/scripts/manage-state.sh
@@ -1591,17 +1602,17 @@ AWS_REGION="us-east-1"
 # Setup Terraform backend resources
 setup_backend() {
     echo "🏗️  Setting up Terraform backend resources..."
-    
+
     # Create S3 bucket for state
     aws s3api create-bucket \
         --bucket "$TERRAFORM_BUCKET" \
         --region "$AWS_REGION" || true
-    
+
     # Enable versioning
     aws s3api put-bucket-versioning \
         --bucket "$TERRAFORM_BUCKET" \
         --versioning-configuration Status=Enabled
-    
+
     # Enable encryption
     aws s3api put-bucket-encryption \
         --bucket "$TERRAFORM_BUCKET" \
@@ -1614,13 +1625,13 @@ setup_backend() {
                 }
             ]
         }'
-    
+
     # Block public access
     aws s3api put-public-access-block \
         --bucket "$TERRAFORM_BUCKET" \
         --public-access-block-configuration \
             BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true
-    
+
     # Create DynamoDB table for locking
     aws dynamodb create-table \
         --table-name "$TERRAFORM_LOCK_TABLE" \
@@ -1628,7 +1639,7 @@ setup_backend() {
         --key-schema AttributeName=LockID,KeyType=HASH \
         --billing-mode PAY_PER_REQUEST \
         --region "$AWS_REGION" || true
-    
+
     echo "✅ Terraform backend resources ready"
 }
 
@@ -1638,12 +1649,12 @@ import_resources() {
     local resource_type=$2
     local resource_id=$3
     local terraform_address=$4
-    
+
     echo "📥 Importing $resource_type: $resource_id"
-    
+
     cd "environments/$environment"
     terraform import "$terraform_address" "$resource_id"
-    
+
     echo "✅ Resource imported successfully"
 }
 
@@ -1651,13 +1662,13 @@ import_resources() {
 backup_state() {
     local environment=$1
     local backup_suffix=$(date +%Y%m%d_%H%M%S)
-    
+
     echo "💾 Backing up state for $environment..."
-    
+
     aws s3 cp \
         "s3://$TERRAFORM_BUCKET/$environment/terraform.tfstate" \
         "s3://$TERRAFORM_BUCKET/backups/$environment/terraform.tfstate.$backup_suffix"
-    
+
     echo "✅ State backed up with suffix: $backup_suffix"
 }
 
@@ -1665,13 +1676,13 @@ backup_state() {
 restore_state() {
     local environment=$1
     local backup_suffix=$2
-    
+
     echo "🔄 Restoring state for $environment from backup: $backup_suffix"
-    
+
     aws s3 cp \
         "s3://$TERRAFORM_BUCKET/backups/$environment/terraform.tfstate.$backup_suffix" \
         "s3://$TERRAFORM_BUCKET/$environment/terraform.tfstate"
-    
+
     echo "✅ State restored successfully"
 }
 
@@ -1700,6 +1711,7 @@ esac
 ## 📊 **Cost Optimization Patterns**
 
 ### Intelligent Resource Sizing
+
 ```hcl
 # terraform/modules/cost-optimization/main.tf
 
@@ -1710,11 +1722,11 @@ resource "aws_lambda_function" "cost_optimizer" {
   role         = aws_iam_role.cost_optimizer.arn
   handler      = "index.handler"
   runtime      = "python3.11"
-  
+
   # Dynamic memory sizing based on environment
   memory_size = var.environment == "production" ? 1024 : 512
   timeout     = var.environment == "production" ? 900 : 300
-  
+
   # Reserved concurrency for production
   reserved_concurrent_executions = var.environment == "production" ? 10 : null
 
@@ -1765,7 +1777,7 @@ resource "aws_s3_bucket_intelligent_tiering_configuration" "main" {
 # CloudWatch cost anomaly detection
 resource "aws_ce_anomaly_detector" "service_monitor" {
   name = "${var.environment}-service-cost-anomaly"
-  
+
   monitor_specification {
     dimension_key = "SERVICE"
     match_options = ["EQUALS"]
@@ -1776,11 +1788,11 @@ resource "aws_ce_anomaly_detector" "service_monitor" {
 resource "aws_ce_anomaly_subscription" "cost_alerts" {
   name      = "${var.environment}-cost-anomaly-alerts"
   frequency = "DAILY"
-  
+
   monitor_arn_list = [
     aws_ce_anomaly_detector.service_monitor.arn,
   ]
-  
+
   subscriber {
     type    = "EMAIL"
     address = var.cost_alert_email
