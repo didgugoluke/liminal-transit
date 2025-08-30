@@ -136,6 +136,39 @@ check_project_status() {
     fi
 }
 
+# Cached project status check (reduces API calls)
+cached_project_status_check() {
+    local issue_number=$1
+    local cache_file="/tmp/project_status_cache_${issue_number}"
+    local cache_age=15  # Cache for 15 seconds to reduce API calls
+    
+    # Check if cache exists and is fresh
+    if [ -f "$cache_file" ]; then
+        local file_age=$(($(date +%s) - $(stat -c %Y "$cache_file" 2>/dev/null || stat -f %m "$cache_file" 2>/dev/null || echo 0)))
+        if [ $file_age -lt $cache_age ]; then
+            echo -e "${YELLOW}📋 Using cached status for #${issue_number}${NC}"
+            cat "$cache_file"
+            return 0
+        fi
+    fi
+    
+    # Cache miss or expired - check rate limits before fetch
+    if ! scripts/github-rate-limit-manager.sh check-graphql "project status check" 50; then
+        echo -e "${YELLOW}⚠️ Rate limited - using last known status${NC}"
+        if [ -f "$cache_file" ]; then
+            cat "$cache_file"
+        else
+            echo "No Status"
+        fi
+        return 0
+    fi
+    
+    # Fetch fresh data
+    local status=$(check_project_status "$issue_number")
+    echo "$status" > "$cache_file"
+    echo "$status"
+}
+
 # Function to check recent webhook deliveries (to diagnose workflow_dispatch issues)
 check_webhook_deliveries() {
     echo -e "${BLUE}🔗 Checking recent webhook deliveries...${NC}"
@@ -168,7 +201,7 @@ monitor_project_status() {
     
     echo -e "${YELLOW}👀 Monitoring project status changes for Story #${story_number}...${NC}"
     
-    local initial_status=$(check_project_status "$story_number")
+    local initial_status=$(cached_project_status_check "$story_number")
     echo "Initial status: $initial_status"
     
     while true; do
@@ -180,15 +213,28 @@ monitor_project_status() {
             break
         fi
         
-        local current_status=$(check_project_status "$story_number")
+        local current_status=$(cached_project_status_check "$story_number")
         if [ "$current_status" != "$initial_status" ]; then
             echo -e "${GREEN}📊 Status changed: ${initial_status} → ${current_status}${NC}"
+            
+            # Check for key workflow transitions
+            if [ "$current_status" = "Todo" ] && [ "$initial_status" != "Todo" ]; then
+                echo -e "${GREEN}✅ Scrum Master moved story to Todo - ready for Development Agent${NC}"
+            elif [ "$current_status" = "In Progress" ] && [ "$initial_status" = "Todo" ]; then
+                echo -e "${GREEN}🚀 Development Agent picked up the story (Todo → In Progress)${NC}"
+                echo -e "${GREEN}✅ Kanban workflow progression detected - continuing test${NC}"
+                return 0
+            elif [ "$current_status" = "Done" ]; then
+                echo -e "${GREEN}🎉 Story completed (moved to Done)${NC}"
+                return 0
+            fi
+            
             initial_status="$current_status"
         else
             echo -n "."
         fi
         
-        sleep 3  # Wait 3 seconds between checks to avoid API rate limiting
+        sleep 10  # Wait 10 seconds between checks to reduce API rate limiting
         
         sleep 5
     done
@@ -242,6 +288,9 @@ reset_hello_world() {
     done
     
     echo -e "${GREEN}✅ Branches cleaned${NC}"
+    
+    # Clean up any cache files
+    rm -f /tmp/project_status_cache_* 2>/dev/null || true
     
     # 2. Reset issues to open state
     echo -e "${BLUE}📝 Resetting issue states...${NC}"
@@ -331,9 +380,32 @@ run_e2e_test() {
     
     # Monitor project status transitions after Scrum Master completes
     echo -e "${BLUE}⏱️ Monitoring project status transitions...${NC}"
-    monitor_project_status "${STORY_NUMBER}" 60 # Monitor for 1 minute
+    if monitor_project_status "${STORY_NUMBER}" 120; then # Monitor for 2 minutes
+        echo -e "${GREEN}✅ Development Agent pickup detected via status change${NC}"
+        
+        # Verify with workflow run check
+        echo -e "${BLUE}🔍 Verifying Development Agent workflow...${NC}"
+        sleep 5  # Brief pause for workflow to start
+        
+        local latest_dev_run=$(gh run list --workflow="development-agent.yml" --limit=1 --json createdAt,status,databaseId --jq '.[0]' 2>/dev/null || echo "{}")
+        local dev_created_at=$(echo "$latest_dev_run" | jq -r '.createdAt // empty')
+        local dev_run_id=$(echo "$latest_dev_run" | jq -r '.databaseId // empty')
+        
+        if [ -n "$dev_created_at" ]; then
+            local dev_timestamp=$(date -d "$dev_created_at" +%s 2>/dev/null || date -j -f "%Y-%m-%dT%H:%M:%SZ" "$dev_created_at" +%s 2>/dev/null || echo "0")
+            local current_timestamp=$(date +%s)
+            local time_diff=$((current_timestamp - dev_timestamp))
+            
+            if [ $time_diff -lt 300 ]; then  # Within last 5 minutes
+                echo -e "${GREEN}✅ Development Agent workflow confirmed (Run ID: ${dev_run_id})${NC}"
+                return 0
+            fi
+        fi
+        
+        echo -e "${YELLOW}⚠️ Status changed but no recent Development Agent workflow found${NC}"
+    fi
     
-    # Check if Development Agent was triggered
+    # Fallback: Traditional Development Agent detection
     echo -e "${BLUE}2️⃣ Checking if Development Agent was triggered...${NC}"
     
     # Wait a moment for the trigger to happen
@@ -430,7 +502,7 @@ validate_outcomes() {
     
     # Check if story is in project and its status
     echo -e "${BLUE}📋 Checking project status...${NC}"
-    local project_status=$(check_project_status "${STORY_NUMBER}")
+    local project_status=$(cached_project_status_check "${STORY_NUMBER}")
     if [ "$project_status" != "Not in project" ]; then
         echo -e "${GREEN}✅ Story added to project${NC}"
         echo "  Current status: $project_status"

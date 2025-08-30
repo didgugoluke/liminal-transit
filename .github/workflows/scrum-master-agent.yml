@@ -151,13 +151,20 @@ jobs:
             "start_story")
               echo "🏁 Starting Story Lifecycle Management..."
               
-              # First, ensure story is added to project
+              # Cache project items to reduce API calls
+              echo "📋 Fetching project items..."
+              PROJECT_ITEMS_DATA=$(gh project item-list "$PROJECT_NUMBER" --owner "didgugoluke" --format json)
+              
+              # Check if story is in project using cached data
               echo "📋 Ensuring story is in project..."
-              if ! gh project item-list "$PROJECT_NUMBER" --owner "didgugoluke" --format json | jq -e --arg title "$STORY_TITLE" '.items[] | select(.content.title == $title)' > /dev/null; then
+              if ! echo "$PROJECT_ITEMS_DATA" | jq -e --arg title "$STORY_TITLE" '.items[] | select(.content.title == $title)' > /dev/null; then
                 echo "➕ Adding story to project..."
                 if gh project item-add "$PROJECT_NUMBER" --owner "didgugoluke" --url "https://github.com/didgugoluke/liminal-transit/issues/$STORY_NUMBER"; then
                   echo "✅ Story added to project successfully"
                   sleep 2  # Brief pause for project system to sync
+                  
+                  # Refresh cached data after adding
+                  PROJECT_ITEMS_DATA=$(gh project item-list "$PROJECT_NUMBER" --owner "didgugoluke" --format json)
                 else
                   echo "❌ Failed to add story to project"
                   echo "action_result=project_add_failed" >> $GITHUB_OUTPUT
@@ -172,8 +179,8 @@ jobs:
               if [ "$CURRENT_STATUS" = "No Status" ] || [ "$CURRENT_STATUS" = "null" ] || [ -z "$CURRENT_STATUS" ]; then
                 echo "📋 Moving story to Todo status..."
                 
-                # Get the item ID for this story
-                ITEM_ID=$(gh project item-list "$PROJECT_NUMBER" --owner "didgugoluke" --format json | jq -r --arg title "$STORY_TITLE" '.items[] | select(.content.title == $title) | .id')
+                # Get the item ID for this story using cached data
+                ITEM_ID=$(echo "$PROJECT_ITEMS_DATA" | jq -r --arg title "$STORY_TITLE" '.items[] | select(.content.title == $title) | .id')
                 
                 if [ -n "$ITEM_ID" ] && [ "$ITEM_ID" != "null" ]; then
                   echo "Found item ID: $ITEM_ID"
