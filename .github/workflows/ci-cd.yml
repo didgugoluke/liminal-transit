@@ -24,13 +24,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
       
       - name: Install pnpm
         run: npm install -g pnpm
       
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install
       
       - name: TypeScript type checking
         run: pnpm typecheck
@@ -58,13 +57,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
       
       - name: Install pnpm
         run: npm install -g pnpm
       
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install
       
       - name: Unit Tests
         run: pnpm test:run --coverage
@@ -118,13 +116,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
       
       - name: Install pnpm
         run: npm install -g pnpm
       
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install
       
       - name: Build application
         run: pnpm build
