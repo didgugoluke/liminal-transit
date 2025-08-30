@@ -93,6 +93,7 @@ jobs:
           ensure_label_exists "automated" "00D084" "Automated processes and workflows"
           ensure_label_exists "development" "1D76DB" "Development tasks and implementations"
           ensure_label_exists "database" "FF6B6B" "Database schema and configuration"
+          ensure_label_exists "in-progress" "FFA500" "Story is currently being implemented"
         env:
           GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
 
