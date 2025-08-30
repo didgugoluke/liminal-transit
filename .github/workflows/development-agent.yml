@@ -298,6 +298,35 @@ jobs:
               echo "ℹ️ TypeScript configuration already exists"
             fi
             
+            # Ensure ESLint configuration exists for CI compliance
+            if [ ! -f ".eslintrc.js" ] && [ ! -f ".eslintrc.json" ] && ! grep -q '"eslintConfig"' package.json 2>/dev/null; then
+              echo "📝 Creating basic ESLint configuration for CI compliance..."
+              
+              # Create minimal .eslintrc.json
+              printf '%s\n' \
+                '{' \
+                '  "extends": [' \
+                '    "@typescript-eslint/recommended"' \
+                '  ],' \
+                '  "parser": "@typescript-eslint/parser",' \
+                '  "plugins": ["@typescript-eslint"],' \
+                '  "parserOptions": {' \
+                '    "ecmaVersion": "latest",' \
+                '    "sourceType": "module"' \
+                '  },' \
+                '  "rules": {' \
+                '    "@typescript-eslint/no-unused-vars": "warn",' \
+                '    "@typescript-eslint/no-explicit-any": "warn"' \
+                '  },' \
+                '  "ignorePatterns": ["dist/", "node_modules/"]' \
+                '}' \
+                > .eslintrc.json
+              
+              echo "✅ ESLint configuration created for CI compliance"
+            else
+              echo "ℹ️ ESLint configuration already exists"
+            fi
+            
             # Update task with completion
             gh issue comment "$TASK_NUM" --body "✅ Enhanced Development Agent completed database schema design. Files created: schema.sql, types.ts, config.ts. Task ready for review."
             
@@ -817,14 +846,17 @@ jobs:
               # Context-specific labels based on file changes and task description
               context_labels=""
               
-              # Check if database-related files were created or modified
-              if find . -name "*.sql" -o -path "*/database/*" -o -name "*database*" | grep -q . 2>/dev/null; then
+              # Check if this is a database infrastructure task (not just files in database folder)
+              task_description=$(gh issue view "$STORY_NUMBER" --json body --jq '.body')
+              if echo "$task_description" | grep -qi "database.*schema\|database.*design\|database.*infrastructure\|database.*migration\|sql.*schema"; then
                 context_labels="$context_labels database"
-                echo "🗄️ Database-related files detected, adding database label"
+                echo "🗄️ Database infrastructure task detected, adding database label"
+              elif find . -name "*.sql" -o -name "*migration*" -o -name "*schema*" | grep -q . 2>/dev/null; then
+                context_labels="$context_labels database"
+                echo "🗄️ Database migration/schema files detected, adding database label"
               fi
               
               # Check if this is an enhancement (based on task description)
-              task_description=$(gh issue view "$STORY_NUMBER" --json body --jq '.body')
               if echo "$task_description" | grep -qi "enhance\|improvement\|optimize\|upgrade"; then
                 context_labels="$context_labels enhanced"
                 echo "⚡ Enhancement detected, adding enhanced label"

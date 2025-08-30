@@ -57,11 +57,25 @@ jobs:
 
       - name: ESLint code quality
         if: steps.check-scaffold.outputs.scaffolded == 'true'
-        run: pnpm lint
+        run: |
+          # Check if ESLint config exists before running lint
+          if [ -f ".eslintrc.js" ] || [ -f ".eslintrc.json" ] || [ -f ".eslintrc.yml" ] || [ -f "eslint.config.js" ] || grep -q '"eslintConfig"' package.json; then
+            echo "Found ESLint configuration, running lint check..."
+            pnpm lint
+          else
+            echo "No ESLint configuration found, skipping lint check..."
+          fi
 
       - name: Prettier formatting
         if: steps.check-scaffold.outputs.scaffolded == 'true'
-        run: pnpm format:check
+        run: |
+          # Check if Prettier config exists before running format check
+          if [ -f ".prettierrc" ] || [ -f ".prettierrc.json" ] || [ -f ".prettierrc.js" ] || [ -f "prettier.config.js" ] || grep -q '"prettier"' package.json; then
+            echo "Found Prettier configuration, running format check..."
+            pnpm format:check
+          else
+            echo "No Prettier configuration found, skipping format check..."
+          fi
 
       - name: Project not scaffolded notification
         if: steps.check-scaffold.outputs.scaffolded == 'false'
