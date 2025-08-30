@@ -51,7 +51,7 @@ jobs:
 
           echo "✅ Rate limits OK - proceeding with development tasks"
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
 
       - name: ⚙️ Configure Git and GitHub CLI
         run: |
@@ -66,7 +66,7 @@ jobs:
 
           echo "✅ Git and GitHub CLI configured successfully"
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
 
       - name: 🏷️ Ensure Required Labels
         run: |
@@ -94,7 +94,7 @@ jobs:
           ensure_label_exists "development" "1D76DB" "Development tasks and implementations"
           ensure_label_exists "database" "FF6B6B" "Database schema and configuration"
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
 
       - name: 📋 Setup Enhanced Task Handlers
         run: |
@@ -460,7 +460,7 @@ jobs:
       - name: 📊 Story Context Analysis
         id: context_analysis
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
           STORY_NUMBER: ${{ github.event.inputs.story_number }}
         run: |
           echo "🔍 Analyzing story context..."
@@ -497,7 +497,7 @@ jobs:
       - name: 🎯 Enhanced Development Execution
         id: execute
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
           STORY_NUMBER: ${{ env.STORY_NUMBER }}
           STORY_TITLE: ${{ env.STORY_TITLE }}
           STORY_LABELS: ${{ env.STORY_LABELS }}
@@ -685,7 +685,7 @@ jobs:
       - name: 🔄 Auto-Progress to Next Phase
         if: steps.execute.outputs.next_action
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
           STORY_NUMBER: ${{ env.STORY_NUMBER }}
         run: |
           NEXT_ACTION="${{ steps.execute.outputs.next_action }}"
@@ -712,7 +712,7 @@ jobs:
       - name: 🚨 Emergency Cleanup
         if: failure()
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
           STORY_NUMBER: ${{ env.STORY_NUMBER }}
         run: |
           echo "🚨 Enhanced Development Agent execution failed - performing emergency cleanup..."
