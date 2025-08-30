@@ -348,8 +348,8 @@ jobs:
         if: always()
         run: |
           echo "Cleaning up temporary agent files..."
-          
+
           # Remove agent working files
           rm -f patterns.txt target_files.txt affected_files.txt dry_run_report.md transform-config.json unique_affected_files.txt
-          
+
           echo "Agent cleanup completed"
