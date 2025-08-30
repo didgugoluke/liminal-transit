@@ -1,5 +1,0 @@
-liminal-transit|noveli
-Liminal Transit|NOVELI.SH
-liminal-transit.ai|noveli.sh
-@liminal-transit.ai|@noveli.sh
-bootstrap-liminal-transit.sh|bootstrap-noveli.sh

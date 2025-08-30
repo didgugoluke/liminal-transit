@@ -149,6 +149,7 @@ scripts/
 - **GitHub Integration**: Projects for story management, Actions for AI workflows, Discussions for collaboration
 - **Infrastructure**: Terraform modules, GitHub Actions CI/CD, AWS native services
 - **Monitoring**: CloudWatch metrics, AI performance tracking, automated optimization
+- **TERMINAL SAFETY**: NEVER end git commit messages, gh issue comments, or any shell commands with exclamation marks or special characters that break terminal execution. Always use periods or no punctuation.
 - **CONTENT POLICY**: Zero emojis in all user-facing content, narrative text, UI labels, dialogue, or system messages. Use icon libraries for visual elements. Exception: developer logs and build scripts only.
 
 ---

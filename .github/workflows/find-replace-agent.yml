@@ -16,7 +16,7 @@ jobs:
   find-replace-orchestrator:
     if: contains(github.event.issue.labels.*.name, 'find-replace') || contains(github.event.issue.labels.*.name, 'branding') || contains(github.event.issue.labels.*.name, 'refactor')
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: 🤖 AI Agent Initialization
         uses: actions/checkout@v4
@@ -28,7 +28,7 @@ jobs:
         run: |
           git config --global user.name "AI Agent - Find/Replace Engine"
           git config --global user.email "ai-agent@noveli.sh"
-          
+
           # Verify GitHub CLI authentication (it should work automatically with GH_TOKEN)
           echo "Verifying GitHub CLI authentication..."
           gh auth status
@@ -40,10 +40,10 @@ jobs:
         run: |
           # Extract find/replace patterns from issue body
           ISSUE_BODY="${{ github.event.issue.body }}"
-          
+
           # Parse transformation rules section
           echo "Parsing transformation instructions..."
-          
+
           # Create transformation config
           cat > transform-config.json << 'EOF'
           {
@@ -61,7 +61,7 @@ jobs:
             }
           }
           EOF
-          
+
           # Set outputs for next steps
           echo "config_created=true" >> $GITHUB_OUTPUT
           echo "branch_name=ai-agent/find-replace-${{ github.event.issue.number }}" >> $GITHUB_OUTPUT
@@ -69,12 +69,12 @@ jobs:
       - name: 🔍 AI Agent Status Update
         run: |
           gh issue comment ${{ github.event.issue.number }} --body "🤖 **Find/Replace Agent Activated**
-          
+
           **Agent Status**: Analyzing transformation patterns
           **Branch**: ai-agent/find-replace-${{ github.event.issue.number }}
           **Scope**: Multi-file find/replace operation
           **Mode**: Autonomous execution with validation
-          
+
           **Processing Steps**:
           - [x] Agent initialization complete
           - [x] Transformation config parsed
@@ -83,7 +83,7 @@ jobs:
           - [ ] Dry run execution
           - [ ] Branch creation and changes
           - [ ] PR creation with preview
-          
+
           **Next**: Extracting find/replace patterns from issue body..."
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -93,14 +93,14 @@ jobs:
         run: |
           # Parse issue body for transformation patterns
           ISSUE_BODY="${{ github.event.issue.body }}"
-          
+
           # Look for patterns in various formats:
           # 1. "find" → "replace" format
           # 2. find/replace tables
           # 3. transformation rules sections
-          
+
           echo "Extracting transformation patterns..."
-          
+
           # Default patterns for common operations
           if [[ "${{ github.event.issue.title }}" == *"rebrand"* ]] || [[ "${{ github.event.issue.title }}" == *"Rebrand"* ]]; then
             # Extract branding patterns from issue body
@@ -115,11 +115,11 @@ jobs:
             # Parse custom patterns from issue body
             echo "$ISSUE_BODY" | grep -E ".*→.*|.*->.*|.*=>.*" > patterns.txt || true
           fi
-          
+
           # Validate patterns found
           PATTERN_COUNT=$(wc -l < patterns.txt)
           echo "patterns_found=$PATTERN_COUNT" >> $GITHUB_OUTPUT
-          
+
           if [ $PATTERN_COUNT -gt 0 ]; then
             echo "patterns_valid=true" >> $GITHUB_OUTPUT
           else
@@ -130,14 +130,14 @@ jobs:
         if: steps.extract_patterns.outputs.patterns_valid == 'true'
         run: |
           echo "Analyzing file scope for transformations..."
-          
+
           # Find all files that match our scope (exclude workflows)
           find . -type f \( -name "*.md" -o -name "*.json" -o -name "*.yml" -o -name "*.yaml" -o -name "*.js" -o -name "*.ts" -o -name "*.sh" \) \
             ! -path "./.git/*" ! -path "./node_modules/*" ! -path "./.github/workflows/*" ! -name ".DS_Store" > target_files.txt
-          
+
           FILE_COUNT=$(wc -l < target_files.txt)
           echo "Found $FILE_COUNT files in scope"
-          
+
           # Check which files contain patterns to replace
           AFFECTED_FILES=0
           while IFS='|' read -r find_pattern replace_pattern; do
@@ -145,20 +145,20 @@ jobs:
               grep -l "$find_pattern" $(cat target_files.txt) >> affected_files.txt 2>/dev/null || true
             fi
           done < patterns.txt
-          
+
           if [ -f affected_files.txt ]; then
             sort -u affected_files.txt > unique_affected_files.txt
             AFFECTED_FILES=$(wc -l < unique_affected_files.txt)
           fi
-          
+
           gh issue comment ${{ github.event.issue.number }} --body "📊 **File Scope Analysis Complete**
-          
+
           **Scope Results**:
           - **Total files in scope**: $FILE_COUNT files
           - **Files requiring changes**: $AFFECTED_FILES files
           - **File types**: .md, .json, .yml, .js, .ts, .sh
           - **Excluded**: .git, node_modules, .DS_Store
-          
+
           **Next**: Executing dry run to preview changes..."
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -167,13 +167,13 @@ jobs:
         if: steps.extract_patterns.outputs.patterns_valid == 'true'
         run: |
           echo "Executing dry run of find/replace operations..."
-          
+
           # Create dry run report
           echo "# Find/Replace Dry Run Report" > dry_run_report.md
           echo "" >> dry_run_report.md
           echo "## Transformation Patterns" >> dry_run_report.md
           echo "" >> dry_run_report.md
-          
+
           while IFS='|' read -r find_pattern replace_pattern; do
             if [ -n "$find_pattern" ]; then
               echo "- \`$find_pattern\` → \`$replace_pattern\`" >> dry_run_report.md
@@ -183,7 +183,7 @@ jobs:
               echo "  - **$OCCURRENCE_COUNT occurrences** found" >> dry_run_report.md
             fi
           done < patterns.txt
-          
+
           echo "" >> dry_run_report.md
           echo "## Preview Changes" >> dry_run_report.md
           echo "" >> dry_run_report.md
@@ -196,18 +196,18 @@ jobs:
         if: steps.extract_patterns.outputs.patterns_valid == 'true'
         run: |
           BRANCH_NAME="ai-agent/find-replace-${{ github.event.issue.number }}"
-          
+
           git config user.name "AI Find/Replace Agent"
           git config user.email "ai-agent@noveli.sh"
-          
+
           # Clean up existing branch if it exists
           git branch -D "$BRANCH_NAME" 2>/dev/null || true
           git push origin --delete "$BRANCH_NAME" 2>/dev/null || true
-          
+
           git checkout -b "$BRANCH_NAME"
-          
+
           gh issue comment ${{ github.event.issue.number }} --body "🌿 **Agent Branch Created**
-          
+
           **Branch**: \`$BRANCH_NAME\`
           **Next**: Executing find/replace transformations..."
         env:
@@ -218,9 +218,9 @@ jobs:
         if: steps.extract_patterns.outputs.patterns_valid == 'true'
         run: |
           echo "Executing find/replace transformations..."
-          
+
           CHANGES_MADE=0
-          
+
           while IFS='|' read -r find_pattern replace_pattern; do
             if [ -n "$find_pattern" ] && [ -n "$replace_pattern" ]; then
               echo "Replacing: $find_pattern → $replace_pattern"
@@ -236,44 +236,44 @@ jobs:
               CHANGES_MADE=1
             fi
           done < patterns.txt
-          
+
           # Special handling for file renames
           if [ -f "bootstrap-liminal-transit.sh" ]; then
             git mv bootstrap-liminal-transit.sh bootstrap-noveli.sh
             CHANGES_MADE=1
           fi
-          
+
           echo "changes_made=$CHANGES_MADE" >> $GITHUB_OUTPUT
 
       - name: 📝 Commit Changes
         if: steps.extract_patterns.outputs.patterns_valid == 'true'
         run: |
           git add .
-          
+
           COMMIT_MSG="🤖 AI Agent: Find/Replace Transformation (Issue #${{ github.event.issue.number }})
 
           Automated find/replace execution:
           - Multi-file pattern replacement
           - File renames and updates
           - Comprehensive scope coverage
-          
+
           Agent: Find/Replace Engine
           Issue: #${{ github.event.issue.number }}
           Validation: Dry run completed"
-          
+
           git commit -m "$COMMIT_MSG"
 
       - name: 🚀 Create Pull Request
         if: steps.extract_patterns.outputs.patterns_valid == 'true'
         run: |
           BRANCH_NAME="ai-agent/find-replace-${{ github.event.issue.number }}"
-          
+
           # Switch to existing branch (already created in previous step)
           git checkout "$BRANCH_NAME"
-          
+
           # Push branch
           git push origin "$BRANCH_NAME"
-          
+
           # Create PR with detailed description
           PR_BODY="## 🤖 AI Agent: Find/Replace Transformation
 
@@ -298,7 +298,7 @@ jobs:
           - [x] Automated commit and PR creation
 
           **Ready for review and merge** ✅"
-          
+
           gh pr create \
             --title "🤖 AI Agent: Find/Replace Transformation (Issue #${{ github.event.issue.number }})" \
             --body "$PR_BODY" \
@@ -339,7 +339,17 @@ jobs:
             - \`old-text\` → \`new-text\`
             - Use transformation tables or clear pattern definitions"
           fi
-          
+
           gh issue comment ${{ github.event.issue.number }} --body "$STATUS"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🧹 Agent Cleanup
+        if: always()
+        run: |
+          echo "Cleaning up temporary agent files..."
+          
+          # Remove agent working files
+          rm -f patterns.txt target_files.txt affected_files.txt dry_run_report.md transform-config.json unique_affected_files.txt
+          
+          echo "Agent cleanup completed"
