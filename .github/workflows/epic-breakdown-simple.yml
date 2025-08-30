@@ -29,7 +29,7 @@ jobs:
           echo "Epic Title: $EPIC_TITLE"
           
           # Test basic gh command
-          gh issue view $EPIC_NUMBER --json title --jq -r '.title'
+          gh issue view $EPIC_NUMBER --json title --jq '.title'
           
           # Simple story creation test
           STORY_1=$(gh issue create \

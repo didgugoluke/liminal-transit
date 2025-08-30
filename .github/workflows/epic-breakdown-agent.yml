@@ -28,7 +28,7 @@ jobs:
           EPIC_TITLE="${{ github.event.issue.title }}"
 
           # Extract Epic content for AI analysis
-          EPIC_BODY=$(gh issue view $EPIC_NUMBER --json body --jq -r '.body // ""')
+          EPIC_BODY=$(gh issue view $EPIC_NUMBER --json body --jq '.body // ""')
           
           # Determine Epic type and complexity
           if echo "$EPIC_TITLE" | grep -qi "Epic 1.*Core Platform Foundation"; then
@@ -87,8 +87,8 @@ jobs:
             echo "Force rebuild requested - cleaning up existing Epic breakdown..."
             
             # Close existing Epic Stories and Tasks
-            EXISTING_STORY_NUMBERS=$(gh issue list --label "epic-story" --search "Epic $EPIC_NUMBER Story" --json number --jq -r '.[].number')
-            EXISTING_TASK_NUMBERS=$(gh issue list --label "epic-task" --search "Epic $EPIC_NUMBER Story" --json number --jq -r '.[].number')
+            EXISTING_STORY_NUMBERS=$(gh issue list --label "epic-story" --search "Epic $EPIC_NUMBER Story" --json number --jq '.[].number')
+            EXISTING_TASK_NUMBERS=$(gh issue list --label "epic-task" --search "Epic $EPIC_NUMBER Story" --json number --jq '.[].number')
             
             for story_num in $EXISTING_STORY_NUMBERS; do
               if [ -n "$story_num" ]; then
@@ -388,7 +388,7 @@ jobs:
             "ai_native_dynamic")
               echo "🤖 Using full AI Native dynamic generation..."
               # Extract Epic content for AI analysis
-              EPIC_BODY=$(gh issue view $EPIC_NUMBER --json body --jq -r '.body')
+              EPIC_BODY=$(gh issue view $EPIC_NUMBER --json body --jq '.body')
               
               # AI Native story extraction based on Epic complexity and content
               STORY_COUNT_TARGET=$(echo "${{ steps.epic_analysis.outputs.story_count }}" | cut -d'-' -f1)
