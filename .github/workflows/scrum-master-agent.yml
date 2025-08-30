@@ -172,8 +172,10 @@ jobs:
               if [ "$CURRENT_STATUS" = "No Status" ] || [ "$CURRENT_STATUS" = "null" ] || [ -z "$CURRENT_STATUS" ]; then
                 echo "📋 Moving story to Todo status..."
                 
-              # Get the item ID for this story
-              ITEM_ID=$(gh project item-list "$PROJECT_NUMBER" --owner "didgugoluke" --format json | jq -r --arg title "$STORY_TITLE" '.items[] | select(.content.title == $title) | .id')                if [ -n "$ITEM_ID" ] && [ "$ITEM_ID" != "null" ]; then
+                # Get the item ID for this story
+                ITEM_ID=$(gh project item-list "$PROJECT_NUMBER" --owner "didgugoluke" --format json | jq -r --arg title "$STORY_TITLE" '.items[] | select(.content.title == $title) | .id')
+                
+                if [ -n "$ITEM_ID" ] && [ "$ITEM_ID" != "null" ]; then
                   echo "Found item ID: $ITEM_ID"
                   if gh project item-edit --id "$ITEM_ID" --field-id "PVTSSF_lAHOCf5VHc4BB2AJzg0OtoQ" --single-select-option-id "f75ad846" --project-id "$PROJECT_ID"; then
                     echo "✅ Status updated successfully"
