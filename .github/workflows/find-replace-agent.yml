@@ -35,6 +35,8 @@ jobs:
           fi
 
           echo "✅ Rate limits OK - proceeding with operations"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: ⚙️ Configure Git and GitHub CLI
         run: |

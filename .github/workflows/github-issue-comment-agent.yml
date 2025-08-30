@@ -39,15 +39,17 @@ jobs:
         run: |
           echo "Setting up rate limiting for workflow..."
           chmod +x scripts/github-rate-limit-manager.sh
-          
+
           # Check initial rate limits
           if ! scripts/github-rate-limit-manager.sh check; then
             echo "❌ Rate limits too low for workflow operations"
             scripts/github-rate-limit-manager.sh emergency "github-issue-comment-agent.yml"
             exit 1
           fi
-          
+
           echo "✅ Rate limits OK - proceeding with operations"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Generate Activity Report
         id: activity-report
