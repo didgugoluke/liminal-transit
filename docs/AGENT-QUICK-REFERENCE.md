@@ -155,24 +155,24 @@ jobs:
 - name: 🔍 Enhanced Commit Detection
   run: |
     HAS_CHANGES=false
-    
+
     if ! git diff --quiet; then
       echo "🔍 Found unstaged changes"
       HAS_CHANGES=true
     fi
-    
+
     if ! git diff --staged --quiet; then
       echo "🔍 Found staged changes" 
       HAS_CHANGES=true
     fi
-    
+
     # CRITICAL: Check for new untracked files
     if [ -n "$(git status --porcelain | grep '^??')" ]; then
       echo "🔍 Found untracked files"
       git status --porcelain | grep '^??'
       HAS_CHANGES=true
     fi
-    
+
     if [ "$HAS_CHANGES" = "true" ]; then
       git add .
       git commit -m "Your commit message"
@@ -189,12 +189,12 @@ jobs:
   id: execute
   run: |
     ACTION="${{ github.event.inputs.action }}"
-    
+
     # Default action to avoid null issues
     if [ -z "$ACTION" ] || [ "$ACTION" = "null" ]; then
       ACTION="take_story"
     fi
-    
+
     case "$ACTION" in
       "take_story")
         echo "📋 Taking story..."
@@ -225,10 +225,10 @@ jobs:
   run: |
     # Extract file path from task body
     FILE_PATH=$(echo "$TASK_BODY" | sed -n 's/.*Create[[:space:]]*`\([^`]*\)`.*/\1/p' | head -1)
-    
+
     if [ -n "$FILE_PATH" ]; then
       mkdir -p "$(dirname "$FILE_PATH")"
-      
+
       case "$FILE_PATH" in
         *.ts|*.tsx)
           cat > "$FILE_PATH" << 'EOF'
@@ -245,7 +245,7 @@ Generated documentation file.
 EOF
           ;;
       esac
-      
+
       echo "✅ Created: $FILE_PATH"
     fi
 ```
@@ -257,19 +257,19 @@ EOF
   run: |
     BRANCH_NAME="story/$STORY_NUMBER"
     git fetch origin
-    
+
     # Clean up existing branch
     if git show-ref --verify --quiet "refs/remotes/origin/$BRANCH_NAME"; then
       git push origin --delete "$BRANCH_NAME" 2>/dev/null || true
       git branch -D "$BRANCH_NAME" 2>/dev/null || true
     fi
-    
+
     # Create fresh branch
     git checkout main
     git pull origin main  
     git checkout -b "$BRANCH_NAME"
     git push -u origin "$BRANCH_NAME"
-    
+
     echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
 ```
 
@@ -323,15 +323,15 @@ FILE_COUNT=$(gh pr view "$PR_NUMBER" --json files --jq '.files.length')
     echo "🔍 DEBUG: Agent status check"
     echo "🔍 DEBUG: Working directory: $(pwd)"
     echo "🔍 DEBUG: Git branch: $(git branch --show-current)"
-    
+
     echo "🔍 DEBUG: Created files:"
     find . -name "*.ts" -o -name "*.md" | head -10 | while read file; do
       echo "  $file ($(wc -c < "$file" 2>/dev/null || echo "0") bytes)"
     done
-    
+
     echo "🔍 DEBUG: Git status:"
     git status --porcelain
-    
+
     echo "🔍 DEBUG: Change detection:"
     echo "  Unstaged: $(git diff --quiet && echo "NONE" || echo "FOUND")"
     echo "  Staged: $(git diff --staged --quiet && echo "NONE" || echo "FOUND")" 
