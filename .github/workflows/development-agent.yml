@@ -504,12 +504,12 @@ jobs:
         run: |
           echo "🚀 Executing enhanced development workflow..."
           echo "Processing Story: #$STORY_NUMBER - $STORY_TITLE"
-          
+
           ACTION="${{ github.event.inputs.action }}"
-          
+
           # Source the task handlers
           source task_handlers.sh
-          
+
           case "$ACTION" in
             "take_story")
               echo "📝 Taking ownership of story..."

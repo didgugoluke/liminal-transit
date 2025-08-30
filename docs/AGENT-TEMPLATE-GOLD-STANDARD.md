@@ -250,12 +250,14 @@ Every agent workflow requires these secrets to be configured:
 ### **TOKEN USAGE GUIDELINES**
 
 #### **GITHUB_TOKEN** - Use for:
+
 - Reading repository content
 - Creating issues and comments
 - Basic PR operations (create, comment)
 - Repository analysis and status checks
 
 #### **PROJECT_TOKEN** - Required for:
+
 - **PR merging operations** (auto-merge functionality)
 - **Branch deletion** after merge
 - **GitHub Projects API** (updating project status)
@@ -272,7 +274,7 @@ Every agent workflow requires these secrets to be configured:
   run: |
     gh pr view "$PR_NUMBER" --json files,title,body
 
-# ✅ Administrative operations - Use PROJECT_TOKEN  
+# ✅ Administrative operations - Use PROJECT_TOKEN
 - name: 🚀 Auto-merge PR
   env:
     GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
@@ -372,7 +374,7 @@ When working with long markdown strings (like PR review comments), avoid YAML mu
 
     # Use the file content for GitHub API call
     gh pr comment "$PR_NUMBER" --body-file /tmp/review_comment.md
-    
+
     # Clean up
     rm /tmp/review_comment.md
 ```
@@ -708,20 +710,20 @@ When creating long markdown content (like PR review comments), avoid YAML multi-
     # Create review content in temporary file to avoid YAML parsing issues
     cat > /tmp/review_comment.md << 'EOF'
     ## 🔍 PR Review Analysis
-    
+
     **Risk Assessment**: Low Risk ✅
     - File count: 3 files
     - Changes: +45 -0 lines
     - Type: Database schema updates
-    
+
     ### 📊 Review Criteria Met
     - [x] Automated tests passed
     - [x] Code follows project standards
     - [x] Changes are backwards compatible
-    
+
     **Recommendation**: APPROVED for merge 🚀
     EOF
-    
+
     # Use file content for GitHub API
     gh pr comment "$PR_NUMBER" --body-file /tmp/review_comment.md
     rm /tmp/review_comment.md
@@ -732,7 +734,7 @@ When creating long markdown content (like PR review comments), avoid YAML multi-
 Pattern for evaluating PR complexity and determining merge eligibility:
 
 ```yaml
-- name: 🎯 Advanced Risk Assessment  
+- name: 🎯 Advanced Risk Assessment
   id: risk_assessment
   run: |
     # Get comprehensive PR data
@@ -740,15 +742,15 @@ Pattern for evaluating PR complexity and determining merge eligibility:
     FILE_COUNT=$(echo "$FILES_JSON" | jq '.files | length')
     ADDITIONS=$(echo "$FILES_JSON" | jq '.files | map(.additions) | add // 0')
     DELETIONS=$(echo "$FILES_JSON" | jq '.files | map(.deletions) | add // 0')
-    
+
     # Get PR metadata
     PR_TITLE=$(gh pr view "$PR_NUMBER" --json title --jq '.title')
     PR_LABELS=$(gh pr view "$PR_NUMBER" --json labels --jq '.labels[].name' | tr '\n' ' ')
-    
+
     # Multi-criteria risk assessment
     RISK_LEVEL="high"
     RISK_REASONS=()
-    
+
     # Size-based assessment
     if [ "$FILE_COUNT" -le 5 ] && [ "$ADDITIONS" -le 100 ]; then
       # Check for AI agent labels (trust indicator)
@@ -770,11 +772,11 @@ Pattern for evaluating PR complexity and determining merge eligibility:
     else
       RISK_REASONS+=("Large changeset (>5 files or >100 additions)")
     fi
-    
+
     echo "🎯 Risk Assessment: $RISK_LEVEL"
     echo "📊 Files: $FILE_COUNT, Additions: $ADDITIONS, Deletions: $DELETIONS"
     echo "🔍 Reasons: ${RISK_REASONS[*]}"
-    
+
     # Set outputs for subsequent steps
     echo "risk_level=$RISK_LEVEL" >> $GITHUB_OUTPUT
     echo "file_count=$FILE_COUNT" >> $GITHUB_OUTPUT
@@ -792,24 +794,24 @@ Pattern for safe automated merging with full cleanup:
     echo "🚀 Low-risk PR - proceeding with auto-merge"
     echo "📊 Files: ${{ steps.risk_assessment.outputs.file_count }}"
     echo "📈 Additions: ${{ steps.risk_assessment.outputs.additions }}"
-    
+
     # Attempt merge with squash and branch deletion
     if gh pr merge "$PR_NUMBER" --squash --delete-branch; then
       echo "✅ PR merged and branch deleted successfully"
-      
+
       # Verify branch was actually deleted
       BRANCH_NAME=$(gh pr view "$PR_NUMBER" --json headRefName --jq '.headRefName')
       if git ls-remote --heads origin "$BRANCH_NAME" | grep -q "$BRANCH_NAME"; then
         echo "⚠️ Branch still exists remotely, attempting manual cleanup"
         git push origin --delete "$BRANCH_NAME" || echo "Manual deletion failed"
       fi
-      
+
     else
       echo "❌ Auto-merge failed - manual intervention required"
       # Post failure comment
       gh pr comment "$PR_NUMBER" --body "🚨 **Auto-merge Failed**
-      
-The Project Admin Agent attempted to auto-merge this low-risk PR but encountered an error. 
+
+The Project Admin Agent attempted to auto-merge this low-risk PR but encountered an error.
 Manual review and merge may be required.
 
 **Risk Assessment**: Low

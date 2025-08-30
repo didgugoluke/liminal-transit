@@ -163,7 +163,7 @@ jobs:
 # ✅ Correct JSON parsing
 FILE_COUNT=$(gh pr view "$PR_NUMBER" --json files --jq '.files | length')
 
-# ❌ Wrong - causes errors  
+# ❌ Wrong - causes errors
 FILE_COUNT=$(gh pr view "$PR_NUMBER" --json files --jq '.files.length')
 ```
 
@@ -177,7 +177,7 @@ FILE_COUNT=$(gh pr view "$PR_NUMBER" --json files --jq '.files.length')
   run: gh pr view "$PR_NUMBER" --json files
 
 # ✅ Merge operations - Use PROJECT_TOKEN
-- name: Merge PR  
+- name: Merge PR
   env:
     GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
   run: gh pr merge "$PR_NUMBER" --squash --delete-branch

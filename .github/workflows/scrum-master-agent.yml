@@ -117,7 +117,7 @@ jobs:
             STORY_KEYWORDS=$(echo "$STORY_TITLE" | sed 's/E2E//' | sed 's/[[:space:]]*$//')
             TASKS=$(gh issue list --search "$STORY_KEYWORDS" --json number,title --label epic-task)
           fi
-          
+
           TASK_COUNT=$(echo "$TASKS" | jq length)
           TASK_NUMBERS=$(echo "$TASKS" | jq -r '.[].number' | tr '\n' ',' | sed 's/,$//')
 
