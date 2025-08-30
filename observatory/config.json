@@ -1,10 +1,10 @@
 {
   "observatory": {
-    "name": "Liminal Transit AI Native Observatory",
+    "name": "NOVELI.SH AI Native Observatory",
     "version": "1.0.0",
     "hitm_interface": {
       "enabled": true,
-      "dashboard_url": "https://observatory.liminal-transit.com",
+      "dashboard_url": "https://observatory.noveli.com",
       "real_time_monitoring": true,
       "ai_agent_tracking": true
     },

@@ -1,4 +1,4 @@
-# Liminal Transit - AI Native Interactive Storytelling Platform
+# NOVELI.SH - AI Native Interactive Storytelling Platform
 
 > **100% AI-driven development and content generation** with autonomous GitHub Copilot orchestration, self-optimizing AWS architecture, and zero human scaffolding. Built on the **AWS Well-Architected Framework** for enterprise-grade compliance "by design".
 
@@ -64,7 +64,7 @@ Experience enterprise-grade cloud architecture with **zero human overhead manage
 
 Interactive storytelling platform where every story begins in the spaces between destinations.
 
-# Liminal Transit - AI Native Interactive Storytelling Platform
+# NOVELI.SH - AI Native Interactive Storytelling Platform
 
 > **100% AI-driven development and content generation** with autonomous GitHub Copilot orchestration, self-optimizing AWS architecture, and zero human scaffolding.
 
@@ -198,8 +198,8 @@ Begin in a **liminal transit space** (bus, train, waiting room) that launches in
 ### Quick Setup
 ```bash
 # Clone and bootstrap the environment
-git clone https://github.com/your-org/liminal-transit.git
-cd liminal-transit
+git clone https://github.com/your-org/noveli.git
+cd noveli
 
 # Run automated bootstrap (sets up AWS, GitHub, and security)
 ./scripts/bootstrap-secure-environment.sh
@@ -222,7 +222,7 @@ export OPENAI_API_KEY="your-key-here"
 
 ## 📊 HITM Dashboard
 
-Access your single pane of glass at: `https://observatory.liminal-transit.com`
+Access your single pane of glass at: `https://observatory.noveli.com`
 
 ### Real-Time Monitoring
 - **Agent Activities** - Live view of all AI agent tasks and coordination
@@ -640,4 +640,4 @@ For questions, issues, or contributions:
 
 ---
 
-*Liminal Transit: Every journey begins in the spaces between destinations.*
+*NOVELI.SH: Every journey begins in the spaces between destinations.*

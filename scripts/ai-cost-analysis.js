@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Liminal Transit - AI Cost Analysis
+ * NOVELI.SH - AI Cost Analysis
  * Tracks and analyzes AI operation costs for enterprise budgeting
  */
 

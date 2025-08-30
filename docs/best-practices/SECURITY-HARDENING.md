@@ -2,7 +2,7 @@
 
 ## Overview
 
-Comprehensive security hardening guidelines implementing defense-in-depth security for the Liminal Transit AI Native platform, ensuring zero-secret-exposure, automated threat response, and enterprise-grade compliance.
+Comprehensive security hardening guidelines implementing defense-in-depth security for the NOVELI.SH AI Native platform, ensuring zero-secret-exposure, automated threat response, and enterprise-grade compliance.
 
 ---
 
@@ -117,7 +117,7 @@ export class SecureAIProvider {
     
     // Refresh API key if expired or not cached
     if (!this.apiKey || (now - this.keyLastFetched) > this.KEY_REFRESH_INTERVAL) {
-      this.apiKey = await secretManager.getSecret('/liminal-transit/openai/api-key');
+      this.apiKey = await secretManager.getSecret('/noveli/openai/api-key');
       this.keyLastFetched = now;
     }
 
@@ -156,7 +156,7 @@ export class SecureAIProvider {
 ```hcl
 # KMS Key for encryption
 resource "aws_kms_key" "secrets_key" {
-  description             = "KMS key for Liminal Transit secrets"
+  description             = "KMS key for NOVELI.SH secrets"
   deletion_window_in_days = var.environment == "production" ? 30 : 7
   enable_key_rotation     = true
 
@@ -188,19 +188,19 @@ resource "aws_kms_key" "secrets_key" {
   })
 
   tags = {
-    Name = "liminal-transit-secrets-key-${var.environment}"
+    Name = "noveli-secrets-key-${var.environment}"
     Purpose = "secret-encryption"
   }
 }
 
 resource "aws_kms_alias" "secrets_key_alias" {
-  name          = "alias/liminal-transit-secrets-${var.environment}"
+  name          = "alias/noveli-secrets-${var.environment}"
   target_key_id = aws_kms_key.secrets_key.key_id
 }
 
 # Secure parameter store for API keys
 resource "aws_ssm_parameter" "openai_api_key" {
-  name        = "/liminal-transit/${var.environment}/openai/api-key"
+  name        = "/noveli/${var.environment}/openai/api-key"
   description = "OpenAI API key for story generation"
   type        = "SecureString"
   value       = var.openai_api_key
@@ -214,7 +214,7 @@ resource "aws_ssm_parameter" "openai_api_key" {
 }
 
 resource "aws_ssm_parameter" "anthropic_api_key" {
-  name        = "/liminal-transit/${var.environment}/anthropic/api-key"
+  name        = "/noveli/${var.environment}/anthropic/api-key"
   description = "Anthropic API key for story generation"
   type        = "SecureString"
   value       = var.anthropic_api_key
@@ -229,7 +229,7 @@ resource "aws_ssm_parameter" "anthropic_api_key" {
 
 # IAM policy for Lambda to access secrets
 resource "aws_iam_role_policy" "lambda_secrets_policy" {
-  name = "liminal-transit-lambda-secrets-policy-${var.environment}"
+  name = "noveli-lambda-secrets-policy-${var.environment}"
   role = aws_iam_role.lambda_execution_role.id
 
   policy = jsonencode({
@@ -242,7 +242,7 @@ resource "aws_iam_role_policy" "lambda_secrets_policy" {
           "ssm:GetParameters"
         ]
         Resource = [
-          "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current.account_id}:parameter/liminal-transit/${var.environment}/*"
+          "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current.account_id}:parameter/noveli/${var.environment}/*"
         ]
       },
       {
@@ -544,7 +544,7 @@ export function secureResponse(statusCode: number, body: any): any {
 ```hcl
 # Cognito User Pool
 resource "aws_cognito_user_pool" "main" {
-  name = "liminal-transit-users-${var.environment}"
+  name = "noveli-users-${var.environment}"
 
   # Password policy
   password_policy {
@@ -595,14 +595,14 @@ resource "aws_cognito_user_pool" "main" {
   }
 
   tags = {
-    Name = "liminal-transit-user-pool-${var.environment}"
+    Name = "noveli-user-pool-${var.environment}"
     Environment = var.environment
   }
 }
 
 # Cognito User Pool Client
 resource "aws_cognito_user_pool_client" "main" {
-  name         = "liminal-transit-client-${var.environment}"
+  name         = "noveli-client-${var.environment}"
   user_pool_id = aws_cognito_user_pool.main.id
 
   # OAuth configuration
@@ -639,7 +639,7 @@ resource "aws_cognito_user_pool_client" "main" {
 
 # Identity Pool for federated access
 resource "aws_cognito_identity_pool" "main" {
-  identity_pool_name               = "liminal-transit-identity-${var.environment}"
+  identity_pool_name               = "noveli-identity-${var.environment}"
   allow_unauthenticated_identities = false
 
   cognito_identity_providers {
@@ -658,7 +658,7 @@ resource "aws_cognito_identity_pool" "main" {
   }
 
   tags = {
-    Name = "liminal-transit-identity-pool-${var.environment}"
+    Name = "noveli-identity-pool-${var.environment}"
   }
 }
 ```
@@ -845,7 +845,7 @@ export class DataEncryption {
         KeyId: this.keyId,
         Plaintext: plaintext,
         EncryptionContext: {
-          service: 'liminal-transit',
+          service: 'noveli',
           environment: process.env.ENVIRONMENT!
         }
       }).promise();
@@ -866,7 +866,7 @@ export class DataEncryption {
       const result = await this.kms.decrypt({
         CiphertextBlob: Buffer.from(encryptedData, 'base64'),
         EncryptionContext: {
-          service: 'liminal-transit',
+          service: 'noveli',
           environment: process.env.ENVIRONMENT!
         }
       }).promise();
@@ -1229,7 +1229,7 @@ export class SecurityMonitor {
 ```hcl
 # CloudWatch Alarms for Security Events
 resource "aws_cloudwatch_metric_alarm" "security_events_high" {
-  alarm_name          = "liminal-transit-security-events-high-${var.environment}"
+  alarm_name          = "noveli-security-events-high-${var.environment}"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = "2"
   metric_name         = "SecurityEvents"
@@ -1248,7 +1248,7 @@ resource "aws_cloudwatch_metric_alarm" "security_events_high" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "authentication_failures" {
-  alarm_name          = "liminal-transit-auth-failures-${var.environment}"
+  alarm_name          = "noveli-auth-failures-${var.environment}"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = "3"
   metric_name         = "SecurityEvents"
@@ -1267,7 +1267,7 @@ resource "aws_cloudwatch_metric_alarm" "authentication_failures" {
 # Lambda function for automated incident response
 resource "aws_lambda_function" "incident_response" {
   filename         = "../lambda/incident-response.zip"
-  function_name    = "liminal-transit-incident-response-${var.environment}"
+  function_name    = "noveli-incident-response-${var.environment}"
   role            = aws_iam_role.incident_response_role.arn
   handler         = "index.handler"
   runtime         = "nodejs18.x"

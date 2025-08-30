@@ -2,7 +2,7 @@
 
 ## Overview
 
-Comprehensive testing and quality assurance framework for the AI Native Liminal Transit platform, implementing automated testing, AI-driven quality checks, and enterprise-grade QA processes to ensure 99.9% reliability and user satisfaction.
+Comprehensive testing and quality assurance framework for the AI Native NOVELI.SH platform, implementing automated testing, AI-driven quality checks, and enterprise-grade QA processes to ensure 99.9% reliability and user satisfaction.
 
 ---
 

@@ -1,0 +1,14 @@
+{
+  "issue_number": "6",
+  "title": "Chore: Complete Global Rebrand to NOVELI.SH",
+  "patterns": [],
+  "scope": {
+    "include": ["**/*.md", "**/*.json", "**/*.yml", "**/*.yaml", "**/*.js", "**/*.ts", "**/*.sh"],
+    "exclude": [".git/**", "node_modules/**", "**/.DS_Store"]
+  },
+  "validation": {
+    "dry_run": true,
+    "create_pr": true,
+    "auto_merge": false
+  }
+}

@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-This document defines how Liminal Transit implements the AWS Well-Architected Framework as the foundational design principle for enterprise-grade compliance "by design" with **zero human overhead management**. Every architectural decision, automation system, and AI agent operates within the six pillars while maintaining complete autonomy.
+This document defines how NOVELI.SH implements the AWS Well-Architected Framework as the foundational design principle for enterprise-grade compliance "by design" with **zero human overhead management**. Every architectural decision, automation system, and AI agent operates within the six pillars while maintaining complete autonomy.
 
 ## Strategic Business Value
 
@@ -319,7 +319,7 @@ interface ComplianceAutomation {
 
 ## Conclusion
 
-The AWS Well-Architected Framework integration transforms Liminal Transit into an enterprise-grade showcase of best-practice cloud architecture with complete automation. Every pillar operates autonomously while maintaining the highest standards of security, performance, and compliance.
+The AWS Well-Architected Framework integration transforms NOVELI.SH into an enterprise-grade showcase of best-practice cloud architecture with complete automation. Every pillar operates autonomously while maintaining the highest standards of security, performance, and compliance.
 
 This implementation demonstrates the power of AI Native development combined with AWS enterprise standards, delivering zero-overhead compliance and operational excellence that scales automatically with business growth.
 

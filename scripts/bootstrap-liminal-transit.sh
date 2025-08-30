@@ -1,15 +1,15 @@
 #!/bin/bash
 
 # =============================================================================
-# Liminal Transit - AI Native Bootstrap Script
+# NOVELI.SH - AI Native Bootstrap Script
 # Day 1, Hour Zero - Complete Environment Setup
 # =============================================================================
 
 set -euo pipefail
 
 # Configuration
-PROJECT_NAME="liminal-transit"
-REPO_NAME="liminal-transit"
+PROJECT_NAME="noveli"
+REPO_NAME="noveli"
 ORGANIZATION="" # Set your GitHub org if applicable
 BRANCH_MAIN="main"
 INITIAL_COMMIT_MESSAGE="🚀 Day 1, Hour Zero: AI Native Foundation with AWS Well-Architected Framework"
@@ -224,7 +224,7 @@ create_gitignore() {
     log_info "Creating comprehensive .gitignore..."
     
     cat > .gitignore << 'EOF'
-# Liminal Transit - AI Native .gitignore
+# NOVELI.SH - AI Native .gitignore
 
 # Private files (LinkedIn motivation, personal notes)
 .private-*
@@ -329,7 +329,7 @@ create_package_json() {
     
     cat > package.json << EOF
 {
-  "name": "liminal-transit",
+  "name": "noveli",
   "version": "1.0.0",
   "description": "AI Native Interactive Storytelling Platform with AWS Well-Architected Framework",
   "type": "module",
@@ -355,8 +355,8 @@ create_package_json() {
     "terraform:plan": "cd terraform && terraform plan",
     "terraform:apply": "cd terraform && terraform apply",
     "terraform:destroy": "cd terraform && terraform destroy",
-    "aws:deploy:dev": "npm run build && aws s3 sync dist/ s3://liminal-transit-dev --delete",
-    "aws:deploy:prod": "npm run build && aws s3 sync dist/ s3://liminal-transit-prod --delete",
+    "aws:deploy:dev": "npm run build && aws s3 sync dist/ s3://noveli-dev --delete",
+    "aws:deploy:prod": "npm run build && aws s3 sync dist/ s3://noveli-prod --delete",
     "observatory:start": "node scripts/observatory-monitor.js",
     "ai:health-check": "node scripts/ai-health-check.js",
     "ai:cost-report": "node scripts/ai-cost-analysis.js",
@@ -458,11 +458,11 @@ create_observatory_setup() {
     cat > observatory/config.json << 'EOF'
 {
   "observatory": {
-    "name": "Liminal Transit AI Native Observatory",
+    "name": "NOVELI.SH AI Native Observatory",
     "version": "1.0.0",
     "hitm_interface": {
       "enabled": true,
-      "dashboard_url": "https://observatory.liminal-transit.com",
+      "dashboard_url": "https://observatory.noveli.com",
       "real_time_monitoring": true,
       "ai_agent_tracking": true
     },
@@ -502,7 +502,7 @@ EOF
 #!/usr/bin/env node
 
 /**
- * Liminal Transit Observatory Monitor
+ * NOVELI.SH Observatory Monitor
  * Real-time AI Agent and Infrastructure Monitoring for HITM
  */
 
@@ -527,8 +527,8 @@ class ObservatoryMonitor {
   }
 
   start() {
-    console.log('🔭 Liminal Transit Observatory Starting...');
-    console.log('📊 HITM Dashboard: https://observatory.liminal-transit.com');
+    console.log('🔭 NOVELI.SH Observatory Starting...');
+    console.log('📊 HITM Dashboard: https://observatory.noveli.com');
     console.log('🤖 AI Agent Monitoring: ENABLED');
     console.log('🏗️  Infrastructure Tracking: ENABLED');
     console.log('🔐 Compliance Monitoring: ENABLED');
@@ -599,7 +599,7 @@ class ObservatoryMonitor {
       console.log('🔭 LIMINAL TRANSIT OBSERVATORY - HITM DASHBOARD');
       console.log('=' .repeat(60));
       console.log(`⏰ Uptime: ${this.getUptime()}`);
-      console.log(`📊 Dashboard: https://observatory.liminal-transit.com`);
+      console.log(`📊 Dashboard: https://observatory.noveli.com`);
       console.log('');
       
       // AI Agents Status
@@ -1087,7 +1087,7 @@ setup_github_projects() {
       mutation {
         createProjectV2(input: {
           ownerId: "'$(gh api user --jq '.node_id')'"
-          title: "Liminal Transit - AI Native Development"
+          title: "NOVELI.SH - AI Native Development"
           repositoryId: "'$(gh api repos/"$REPO_PATH" --jq '.node_id')'"
         }) {
           projectV2 {
@@ -1174,7 +1174,7 @@ create_post_bootstrap_script() {
 #!/bin/bash
 
 # =============================================================================
-# Liminal Transit - Post-Bootstrap Setup
+# NOVELI.SH - Post-Bootstrap Setup
 # Completes environment setup after initial repository creation
 # =============================================================================
 
@@ -1223,7 +1223,7 @@ pnpm ai:health-check
 # Start Observatory monitoring
 log_observatory "Observatory system ready!"
 log_observatory "Start monitoring with: pnpm observatory:start"
-log_observatory "Dashboard will be available at: https://observatory.liminal-transit.com"
+log_observatory "Dashboard will be available at: https://observatory.noveli.com"
 
 log_success "✅ Post-bootstrap setup complete!"
 log_success "🔗 Repository: https://github.com/$REPO_PATH"
@@ -1255,7 +1255,7 @@ display_final_status() {
     echo ""
     echo "🔭 LIMINAL TRANSIT OBSERVATORY STATUS"
     echo "====================================="
-    echo "📊 HITM Dashboard: https://observatory.liminal-transit.com"
+    echo "📊 HITM Dashboard: https://observatory.noveli.com"
     echo "🤖 AI Agent Network: Ready for activation"
     echo "🏗️  Infrastructure: AWS Well-Architected Foundation deployed"
     echo "🔐 Security: Enterprise compliance framework active"
@@ -1281,7 +1281,7 @@ display_final_status
 
 log_section "BOOTSTRAP COMPLETE - DAY 1, HOUR ZERO ACHIEVED"
 
-log_success "🎉 Liminal Transit AI Native Foundation Successfully Deployed!"
+log_success "🎉 NOVELI.SH AI Native Foundation Successfully Deployed!"
 log_success "🔗 Repository: https://github.com/$REPO_PATH"
 log_success "📊 Observatory: Ready for HITM engagement"
 log_success "🤖 AI Agents: Prepared for autonomous development"
@@ -1303,12 +1303,12 @@ echo "✅ CI/CD pipelines with quality gates"
 echo "✅ HITM interaction framework"
 echo ""
 echo "🎯 IMMEDIATE NEXT STEPS:"
-echo "1. cd liminal-transit"
+echo "1. cd noveli"
 echo "2. pnpm bootstrap:complete"
 echo "3. pnpm observatory:start"
 echo "4. pnpm dev"
 echo ""
-echo "🔭 Observatory Dashboard: https://observatory.liminal-transit.com"
+echo "🔭 Observatory Dashboard: https://observatory.noveli.com"
 echo "🤖 AI Native Development: READY TO BEGIN"
 echo ""
 echo "The future of AI-driven development starts now! 🚀"

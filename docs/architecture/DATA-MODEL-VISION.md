@@ -1,8 +1,8 @@
-# Data Model Vision - AI Native Liminal Transit Platform
+# Data Model Vision - AI Native NOVELI.SH Platform
 
 ## Overview
 
-Comprehensive data model architecture for the AI Native Liminal Transit platform, designed for autonomous AI agent management, self-evolving schemas, and enterprise-grade compliance. The model supports real-time storytelling, AI telemetry, user management, cost governance, and operational excellence with zero human scaffolding overhead.
+Comprehensive data model architecture for the AI Native NOVELI.SH platform, designed for autonomous AI agent management, self-evolving schemas, and enterprise-grade compliance. The model supports real-time storytelling, AI telemetry, user management, cost governance, and operational excellence with zero human scaffolding overhead.
 
 ---
 
@@ -620,7 +620,7 @@ CREATE TABLE cost_allocations (
     -- Budget and governance
     budget_category VARCHAR(100),
     cost_center VARCHAR(100),
-    project VARCHAR(100) DEFAULT 'liminal-transit',
+    project VARCHAR(100) DEFAULT 'noveli',
     
     -- Optimization
     optimization_opportunity JSONB DEFAULT '{}',

@@ -25,8 +25,8 @@
     "terraform:plan": "cd terraform && terraform plan",
     "terraform:apply": "cd terraform && terraform apply",
     "terraform:destroy": "cd terraform && terraform destroy",
-    "aws:deploy:dev": "npm run build && aws s3 sync dist/ s3://liminal-transit-dev --delete",
-    "aws:deploy:prod": "npm run build && aws s3 sync dist/ s3://liminal-transit-prod --delete",
+    "aws:deploy:dev": "npm run build && aws s3 sync dist/ s3://noveli-dev --delete",
+    "aws:deploy:prod": "npm run build && aws s3 sync dist/ s3://noveli-prod --delete",
     "observatory:start": "node scripts/observatory-monitor.js",
     "ai:health-check": "node scripts/ai-health-check.js",
     "ai:cost-report": "node scripts/ai-cost-analysis.js",
@@ -70,11 +70,11 @@
   "packageManager": "pnpm@8.15.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/didgugoluke/liminal-transit.git"
+    "url": "https://github.com/didgugoluke/noveli.git"
   },
-  "homepage": "https://liminal-transit.vercel.app",
+  "homepage": "https://noveli.vercel.app",
   "bugs": {
-    "url": "https://github.com/didgugoluke/liminal-transit/issues"
+    "url": "https://github.com/didgugoluke/noveli/issues"
   },
   "license": "MIT",
   "keywords": [

@@ -1,5 +1,5 @@
 You are the **lead engineer + design partner** for the project:
-**Liminal Transit — Y/N Adventure (AI-Agent Driven, Ultra-Lean)**.
+**NOVELI.SH — Y/N Adventure (AI-Agent Driven, Ultra-Lean)**.
 
 ⸻
 

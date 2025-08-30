@@ -2,7 +2,7 @@
 
 ## Overview
 
-Comprehensive deployment and operations framework for the AI Native Liminal Transit platform, implementing enterprise-grade DevOps practices, automated deployment pipelines, and self-optimizing operational procedures aligned with AWS Well-Architected principles.
+Comprehensive deployment and operations framework for the AI Native NOVELI.SH platform, implementing enterprise-grade DevOps practices, automated deployment pipelines, and self-optimizing operational procedures aligned with AWS Well-Architected principles.
 
 ---
 
@@ -26,7 +26,7 @@ on:
 
 env:
   AWS_REGION: us-east-1
-  ECR_REPOSITORY: liminal-transit
+  ECR_REPOSITORY: noveli
   NODE_VERSION: '18'
   TERRAFORM_VERSION: '1.6.0'
 
@@ -281,16 +281,16 @@ jobs:
         run: |
           # Update ECS service with new image
           aws ecs update-service \
-            --cluster liminal-transit-staging \
-            --service liminal-transit-api \
+            --cluster noveli-staging \
+            --service noveli-api \
             --force-new-deployment \
-            --task-definition liminal-transit-api:LATEST
+            --task-definition noveli-api:LATEST
 
       - name: Wait for deployment completion
         run: |
           aws ecs wait services-stable \
-            --cluster liminal-transit-staging \
-            --services liminal-transit-api
+            --cluster noveli-staging \
+            --services noveli-api
 
       - name: Run smoke tests
         run: |
@@ -449,11 +449,11 @@ terraform {
   }
 
   backend "s3" {
-    bucket         = "liminal-transit-terraform-state-prod"
+    bucket         = "noveli-terraform-state-prod"
     key            = "production/terraform.tfstate"
     region         = "us-east-1"
     encrypt        = true
-    dynamodb_table = "liminal-transit-terraform-locks"
+    dynamodb_table = "noveli-terraform-locks"
   }
 }
 
@@ -463,7 +463,7 @@ provider "aws" {
   default_tags {
     tags = {
       Environment = "production"
-      Project     = "liminal-transit"
+      Project     = "noveli"
       ManagedBy   = "terraform"
       Owner       = "ai-native-platform"
     }
@@ -474,7 +474,7 @@ provider "aws" {
 module "vpc" {
   source = "../modules/vpc"
   
-  name               = "liminal-transit-prod"
+  name               = "noveli-prod"
   cidr               = "10.0.0.0/16"
   availability_zones = ["us-east-1a", "us-east-1b", "us-east-1c"]
   
@@ -491,7 +491,7 @@ module "vpc" {
 module "ecs_cluster" {
   source = "../modules/ecs"
   
-  cluster_name = "liminal-transit-prod"
+  cluster_name = "noveli-prod"
   vpc_id       = module.vpc.vpc_id
   subnet_ids   = module.vpc.private_subnet_ids
   
@@ -519,7 +519,7 @@ module "ecs_cluster" {
 module "alb" {
   source = "../modules/alb"
   
-  name               = "liminal-transit-prod-alb"
+  name               = "noveli-prod-alb"
   vpc_id             = module.vpc.vpc_id
   subnet_ids         = module.vpc.public_subnet_ids
   certificate_arn    = aws_acm_certificate.main.arn
@@ -549,7 +549,7 @@ module "dynamodb" {
   
   tables = {
     stories = {
-      name           = "liminal-transit-stories-prod"
+      name           = "noveli-stories-prod"
       billing_mode   = "PAY_PER_REQUEST"
       hash_key       = "story_id"
       stream_enabled = true
@@ -577,7 +577,7 @@ module "dynamodb" {
     }
     
     users = {
-      name           = "liminal-transit-users-prod"
+      name           = "noveli-users-prod"
       billing_mode   = "PAY_PER_REQUEST"
       hash_key       = "user_id"
       stream_enabled = true
@@ -587,7 +587,7 @@ module "dynamodb" {
     }
     
     sessions = {
-      name         = "liminal-transit-sessions-prod"
+      name         = "noveli-sessions-prod"
       billing_mode = "PAY_PER_REQUEST"
       hash_key     = "session_id"
       ttl = {
@@ -608,7 +608,7 @@ module "lambda_ai" {
   
   functions = {
     story_generator = {
-      name         = "liminal-transit-story-generator-prod"
+      name         = "noveli-story-generator-prod"
       runtime      = "nodejs18.x"
       handler      = "src/handlers/story-generator.handler"
       timeout      = 300
@@ -630,7 +630,7 @@ module "lambda_ai" {
     }
     
     choice_processor = {
-      name         = "liminal-transit-choice-processor-prod"
+      name         = "noveli-choice-processor-prod"
       runtime      = "nodejs18.x"
       handler      = "src/handlers/choice-processor.handler"
       timeout      = 30
@@ -643,7 +643,7 @@ module "lambda_ai" {
     }
     
     meta_agent = {
-      name         = "liminal-transit-meta-agent-prod"
+      name         = "noveli-meta-agent-prod"
       runtime      = "nodejs18.x"
       handler      = "src/handlers/meta-agent.handler"
       timeout      = 900
@@ -665,8 +665,8 @@ module "lambda_ai" {
 module "api_gateway" {
   source = "../modules/api-gateway"
   
-  name        = "liminal-transit-api-prod"
-  description = "Liminal Transit AI Native API"
+  name        = "noveli-api-prod"
+  description = "NOVELI.SH AI Native API"
   
   # Caching configuration
   cache_cluster_enabled = true
@@ -700,7 +700,7 @@ module "cloudfront" {
   
   # Caching behavior
   default_cache_behavior = {
-    target_origin_id       = "ALB-liminal-transit-prod"
+    target_origin_id       = "ALB-noveli-prod"
     viewer_protocol_policy = "redirect-to-https"
     allowed_methods        = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
     cached_methods         = ["GET", "HEAD"]
@@ -726,7 +726,7 @@ module "cloudfront" {
 module "rds" {
   source = "../modules/rds"
   
-  identifier = "liminal-transit-analytics-prod"
+  identifier = "noveli-analytics-prod"
   engine     = "postgres"
   engine_version = "15.4"
   instance_class = "db.r6g.large"
@@ -748,11 +748,11 @@ module "rds" {
   # Read replicas for analytics workloads
   read_replicas = [
     {
-      identifier     = "liminal-transit-analytics-replica-1"
+      identifier     = "noveli-analytics-replica-1"
       instance_class = "db.r6g.large"
     },
     {
-      identifier     = "liminal-transit-analytics-replica-2"
+      identifier     = "noveli-analytics-replica-2"
       instance_class = "db.r6g.large"
     }
   ]
@@ -773,14 +773,14 @@ module "rds" {
 module "elasticache" {
   source = "../modules/elasticache"
   
-  cluster_id         = "liminal-transit-prod"
+  cluster_id         = "noveli-prod"
   engine             = "redis"
   engine_version     = "7.0"
   node_type          = "cache.r7g.large"
   num_cache_nodes    = 3
   
   # Multi-AZ with automatic failover
-  replication_group_description = "Liminal Transit production cache"
+  replication_group_description = "NOVELI.SH production cache"
   num_cache_clusters            = 3
   automatic_failover_enabled    = true
   multi_az_enabled             = true
@@ -809,7 +809,7 @@ module "monitoring" {
   # CloudWatch dashboards
   dashboards = {
     application = {
-      name = "liminal-transit-prod-application"
+      name = "noveli-prod-application"
       widgets = [
         {
           type = "metric"
@@ -829,7 +829,7 @@ module "monitoring" {
     }
     
     ai_performance = {
-      name = "liminal-transit-prod-ai"
+      name = "noveli-prod-ai"
       widgets = [
         {
           type = "metric"
@@ -852,7 +852,7 @@ module "monitoring" {
   # CloudWatch alarms
   alarms = {
     high_error_rate = {
-      name                = "liminal-transit-prod-high-error-rate"
+      name                = "noveli-prod-high-error-rate"
       description         = "High error rate detected"
       metric_name         = "HTTPCode_ELB_5XX_Count"
       namespace           = "AWS/ApplicationELB"
@@ -869,7 +869,7 @@ module "monitoring" {
     }
     
     high_response_time = {
-      name                = "liminal-transit-prod-high-response-time"
+      name                = "noveli-prod-high-response-time"
       description         = "High response time detected"
       metric_name         = "ResponseTime"
       namespace           = "AWS/ApplicationELB"
@@ -882,7 +882,7 @@ module "monitoring" {
     }
     
     ai_agent_failure = {
-      name                = "liminal-transit-prod-ai-agent-failure"
+      name                = "noveli-prod-ai-agent-failure"
       description         = "AI agent failure rate too high"
       metric_name         = "AIAgentFailures"
       namespace           = "LiminalTransit/AI"
@@ -902,7 +902,7 @@ module "monitoring" {
 
 # Auto Scaling Groups
 resource "aws_autoscaling_group" "app" {
-  name                = "liminal-transit-prod-asg"
+  name                = "noveli-prod-asg"
   vpc_zone_identifier = module.vpc.private_subnet_ids
   target_group_arns   = [module.alb.target_group_arn]
   health_check_type   = "ELB"
@@ -923,7 +923,7 @@ resource "aws_autoscaling_group" "app" {
   
   tag {
     key                 = "Name"
-    value               = "liminal-transit-prod"
+    value               = "noveli-prod"
     propagate_at_launch = true
   }
   
@@ -936,7 +936,7 @@ resource "aws_autoscaling_group" "app" {
 
 # Auto Scaling Policies
 resource "aws_autoscaling_policy" "scale_up" {
-  name                   = "liminal-transit-prod-scale-up"
+  name                   = "noveli-prod-scale-up"
   scaling_adjustment     = 2
   adjustment_type        = "ChangeInCapacity"
   cooldown              = 300
@@ -944,7 +944,7 @@ resource "aws_autoscaling_policy" "scale_up" {
 }
 
 resource "aws_autoscaling_policy" "scale_down" {
-  name                   = "liminal-transit-prod-scale-down"
+  name                   = "noveli-prod-scale-down"
   scaling_adjustment     = -1
   adjustment_type        = "ChangeInCapacity"
   cooldown              = 300
@@ -953,7 +953,7 @@ resource "aws_autoscaling_policy" "scale_down" {
 
 # CloudWatch alarms for auto scaling
 resource "aws_cloudwatch_metric_alarm" "cpu_high" {
-  alarm_name          = "liminal-transit-prod-cpu-high"
+  alarm_name          = "noveli-prod-cpu-high"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = "2"
   metric_name         = "CPUUtilization"
@@ -970,7 +970,7 @@ resource "aws_cloudwatch_metric_alarm" "cpu_high" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "cpu_low" {
-  alarm_name          = "liminal-transit-prod-cpu-low"
+  alarm_name          = "noveli-prod-cpu-low"
   comparison_operator = "LessThanThreshold"
   evaluation_periods  = "3"
   metric_name         = "CPUUtilization"

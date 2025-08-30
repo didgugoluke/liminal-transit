@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Liminal Transit - AI Health Check
+ * NOVELI.SH - AI Health Check
  * Monitors AI agent health and performance metrics
  */
 
