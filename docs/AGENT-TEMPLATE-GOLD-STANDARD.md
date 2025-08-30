@@ -696,6 +696,278 @@ A gold standard agent should achieve:
 
 This template represents the distilled wisdom from systematic analysis of all working agents in the NOVELI.SH ecosystem. Use it as the foundation for all new agent development.
 
+## 🆕 Development Agent Patterns (PROVEN IMPLEMENTATION)
+
+The following patterns were discovered and validated during the successful Scrum Master → Development Agent pipeline implementation:
+
+### **Git Commit Detection for New Files (CRITICAL)**
+
+The most critical learning: `git diff` only detects **modified** files, not **new untracked** files. Development agents that create new files must check for all change types:
+
+```yaml
+- name: 🔍 Enhanced Git Change Detection
+  run: |
+    # Check for any changes: modified files, staged files, OR untracked files
+    HAS_CHANGES=false
+    
+    if ! git diff --quiet; then
+      echo "🔍 Found unstaged changes"
+      HAS_CHANGES=true
+    fi
+    
+    if ! git diff --staged --quiet; then
+      echo "🔍 Found staged changes"
+      HAS_CHANGES=true
+    fi
+    
+    # CRITICAL: Check for untracked files (new file creation)
+    if [ -n "$(git status --porcelain | grep '^??')" ]; then
+      echo "🔍 Found untracked files"
+      git status --porcelain | grep '^??'
+      HAS_CHANGES=true
+    fi
+    
+    if [ "$HAS_CHANGES" = "true" ]; then
+      echo "✅ Changes detected, committing..."
+      git add .
+      git commit -m "Commit message"
+      git push origin "$BRANCH_NAME"
+    else
+      echo "⚠️ No changes to commit"
+    fi
+```
+
+**Why This Matters**: Without this pattern, agents create files successfully but fail to commit them, leading to "No changes to commit" errors and empty PRs.
+
+### **Action Flow Control for Multi-Phase Workflows**
+
+Pattern for implementing proper action sequencing (e.g., take_story → implement_tasks → complete_story):
+
+```yaml
+- name: 🎯 Core Agent Logic with Action Flow
+  id: execute
+  env:
+    GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+  run: |
+    ACTION="${{ github.event.inputs.action }}"
+    
+    # Set default action to avoid empty/null issues
+    if [ -z "$ACTION" ] || [ "$ACTION" = "null" ]; then
+      ACTION="take_story"
+      echo "🔄 No action specified, defaulting to: $ACTION"
+    fi
+    
+    echo "🎯 Executing action: $ACTION"
+    
+    case "$ACTION" in
+      "take_story")
+        echo "📋 Taking story and setting up context..."
+        # Implementation logic
+        echo "next_action=implement_tasks" >> $GITHUB_OUTPUT
+        ;;
+        
+      "implement_tasks")
+        echo "🔨 Implementing story tasks..."
+        # Task processing logic
+        echo "next_action=complete_story" >> $GITHUB_OUTPUT
+        ;;
+        
+      "complete_story")
+        echo "✅ Completing story and creating PR..."
+        # PR creation logic
+        # No next_action - workflow complete
+        ;;
+        
+      *)
+        echo "❌ Unknown action: $ACTION"
+        exit 1
+        ;;
+    esac
+
+- name: 🔄 Auto-Progress to Next Phase
+  if: steps.execute.outputs.next_action
+  env:
+    GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+  run: |
+    NEXT_ACTION="${{ steps.execute.outputs.next_action }}"
+    echo "⏭️ Auto-progressing to: $NEXT_ACTION"
+    
+    # Add delay to avoid race conditions
+    sleep 10
+    
+    gh workflow run development-agent.yml \
+      --field story_number="$STORY_NUMBER" \
+      --field action="$NEXT_ACTION"
+```
+
+### **External Script Integration for Modular Tasks**
+
+Pattern for including external task handlers for complex implementations:
+
+```yaml
+- name: 🔧 Load Task Handlers
+  run: |
+    # Download or source external task handlers
+    if [ ! -f "task_handlers.sh" ]; then
+      echo "📥 Task handlers not found, creating..."
+      # Could download from artifacts or create inline
+    fi
+    
+    # Make executable and source
+    chmod +x task_handlers.sh
+    source task_handlers.sh
+    
+    # Verify handler functions are available
+    if ! type detect_task_type >/dev/null 2>&1; then
+      echo "❌ Task handler functions not loaded"
+      exit 1
+    fi
+    
+    echo "✅ Task handlers loaded successfully"
+
+- name: 🔨 Process Tasks with Handlers
+  run: |
+    source task_handlers.sh
+    
+    for TASK_NUM in $TASK_NUMBERS; do
+      TASK_TITLE=$(gh issue view "$TASK_NUM" --json title --jq '.title')
+      TASK_BODY=$(gh issue view "$TASK_NUM" --json body --jq '.body')
+      
+      # Use external handler for task type detection
+      TASK_TYPE=$(detect_task_type "$TASK_TITLE" "$TASK_BODY")
+      echo "📋 Detected task type: $TASK_TYPE"
+      
+      # Route to appropriate handler
+      case "$TASK_TYPE" in
+        "database")
+          handle_database_task "$TASK_NUM" "$TASK_TITLE" "$TASK_BODY"
+          ;;
+        "frontend")
+          handle_frontend_task "$TASK_NUM" "$TASK_TITLE" "$TASK_BODY"
+          ;;
+        *)
+          handle_generic_task "$TASK_NUM" "$TASK_TITLE" "$TASK_BODY"
+          ;;
+      esac
+    done
+```
+
+### **Dynamic File Creation Based on Task Requirements**
+
+Pattern for parsing task requirements and creating appropriate files:
+
+```yaml
+- name: 📁 Dynamic File Creation
+  run: |
+    # Extract file path from task requirements (handle backticks)
+    FILE_PATH=$(echo "$TASK_BODY" | sed -n 's/.*Create[[:space:]]*`\([^`]*\)`.*/\1/p' | head -1)
+    
+    if [ -n "$FILE_PATH" ]; then
+      echo "📁 Creating file: $FILE_PATH"
+      
+      # Create directory structure
+      mkdir -p "$(dirname "$FILE_PATH")"
+      
+      # Generate content based on file extension
+      case "$FILE_PATH" in
+        *.ts|*.tsx)
+          echo "🔧 Generating TypeScript file"
+          cat > "$FILE_PATH" << EOF
+// NOVELI.SH - $TASK_TITLE  
+// AI Native Interactive Storytelling Platform
+// Generated by Enhanced Development Agent
+
+export interface Config {
+  environment: string;
+  debug: boolean;
+}
+
+export const config: Config = {
+  environment: process.env.NODE_ENV || "development",
+  debug: process.env.DEBUG === "true"
+};
+EOF
+          ;;
+          
+        *.md)
+          echo "📚 Generating Markdown documentation"
+          cat > "$FILE_PATH" << EOF
+# $(basename "$FILE_PATH" .md | tr '[:lower:]' '[:upper:]' | tr '-' ' ')
+
+> AI Native Interactive Storytelling Platform Documentation
+> Generated by Enhanced Development Agent
+
+## Overview
+
+Documentation for $TASK_TITLE implementation.
+EOF
+          ;;
+      esac
+      
+      echo "✅ File created: $FILE_PATH"
+    fi
+```
+
+### **Robust Branch Management with Cleanup**
+
+Pattern for clean branch creation and conflict resolution:
+
+```yaml
+- name: 🌿 Create Clean Feature Branch
+  run: |
+    BRANCH_NAME="story/$STORY_NUMBER"
+    
+    # Fetch latest remote state
+    git fetch origin
+    
+    # Clean up any existing branch for fresh start
+    if git show-ref --verify --quiet "refs/remotes/origin/$BRANCH_NAME"; then
+      echo "🔄 Remote branch $BRANCH_NAME exists, cleaning up..."
+      git push origin --delete "$BRANCH_NAME" 2>/dev/null || echo "✅ Remote cleanup complete"
+      git branch -D "$BRANCH_NAME" 2>/dev/null || echo "✅ Local cleanup complete"
+    fi
+    
+    # Create fresh branch from main
+    git checkout main
+    git pull origin main
+    git checkout -b "$BRANCH_NAME"
+    git push -u origin "$BRANCH_NAME"
+    
+    echo "✅ Created fresh branch: $BRANCH_NAME"
+    echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+```
+
+### **Comprehensive Debugging for Development Workflows**
+
+Pattern for debugging file creation and commit issues:
+
+```yaml
+- name: 🔍 Comprehensive Development Debugging
+  run: |
+    echo "🔍 DEBUG: Development agent status check"
+    echo "🔍 DEBUG: Current working directory: $(pwd)"
+    echo "🔍 DEBUG: Git branch: $(git branch --show-current)"
+    
+    echo "🔍 DEBUG: Created files:"
+    find . -name "*.ts" -o -name "*.md" | grep -v node_modules | head -10 | while read file; do
+      echo "  Found: $file (size: $(wc -c < "$file" 2>/dev/null || echo "0") bytes)"
+    done
+    
+    echo "🔍 DEBUG: Git status before commit:"
+    git status --porcelain
+    
+    echo "🔍 DEBUG: Git diff results:"
+    if git diff --quiet; then
+      echo "  git diff --quiet: TRUE (no unstaged changes)"
+    else
+      echo "  git diff --quiet: FALSE (unstaged changes found)"
+      git diff --name-only | head -5
+    fi
+    
+    echo "🔍 DEBUG: Untracked files:"
+    git status --porcelain | grep '^??' || echo "  No untracked files"
+```
+
 ## 🆕 Project Admin Agent Patterns (ADVANCED)
 
 The following patterns were discovered and validated during the creation of the Project Admin Agent:

@@ -140,6 +140,138 @@ jobs:
 ❌ **Multi-line YAML strings** for long markdown content (use file-based approach)
 ❌ **Incorrect JSON parsing** - use `jq '.files | length'` not `.files.length`
 ❌ **Wrong token for merge operations** - use PROJECT_TOKEN not GITHUB_TOKEN
+❌ **🚨 CRITICAL: Using `git diff` for new file detection** - must check untracked files too
+❌ **Missing default action handling** - always set default when action is null/empty
+❌ **Race conditions in auto-progression** - add delays between workflow triggers
+❌ **No branch cleanup** - clean existing branches before creating new ones
+❌ **Forgetting to source external scripts** - always verify function availability
+
+## 🆕 Development Agent Patterns (PROVEN)
+
+### Critical: Git Commit Detection for New Files
+
+```yaml
+# ✅ MANDATORY for agents that create files
+- name: 🔍 Enhanced Commit Detection
+  run: |
+    HAS_CHANGES=false
+    
+    if ! git diff --quiet; then
+      echo "🔍 Found unstaged changes"
+      HAS_CHANGES=true
+    fi
+    
+    if ! git diff --staged --quiet; then
+      echo "🔍 Found staged changes" 
+      HAS_CHANGES=true
+    fi
+    
+    # CRITICAL: Check for new untracked files
+    if [ -n "$(git status --porcelain | grep '^??')" ]; then
+      echo "🔍 Found untracked files"
+      git status --porcelain | grep '^??'
+      HAS_CHANGES=true
+    fi
+    
+    if [ "$HAS_CHANGES" = "true" ]; then
+      git add .
+      git commit -m "Your commit message"
+      git push origin "$BRANCH_NAME"
+    else
+      echo "⚠️ No changes to commit"
+    fi
+```
+
+### Action Flow Control (Multi-Phase Workflows)
+
+```yaml
+- name: 🎯 Action Flow Control
+  id: execute
+  run: |
+    ACTION="${{ github.event.inputs.action }}"
+    
+    # Default action to avoid null issues
+    if [ -z "$ACTION" ] || [ "$ACTION" = "null" ]; then
+      ACTION="take_story"
+    fi
+    
+    case "$ACTION" in
+      "take_story")
+        echo "📋 Taking story..."
+        echo "next_action=implement_tasks" >> $GITHUB_OUTPUT
+        ;;
+      "implement_tasks") 
+        echo "🔨 Implementing tasks..."
+        echo "next_action=complete_story" >> $GITHUB_OUTPUT
+        ;;
+      "complete_story")
+        echo "✅ Completing story..."
+        # No next_action - workflow complete
+        ;;
+    esac
+
+- name: 🔄 Auto-Progress
+  if: steps.execute.outputs.next_action
+  run: |
+    NEXT_ACTION="${{ steps.execute.outputs.next_action }}"
+    sleep 10  # Avoid race conditions
+    gh workflow run agent.yml --field action="$NEXT_ACTION"
+```
+
+### Dynamic File Creation
+
+```yaml
+- name: 📁 Create Files from Task Requirements
+  run: |
+    # Extract file path from task body
+    FILE_PATH=$(echo "$TASK_BODY" | sed -n 's/.*Create[[:space:]]*`\([^`]*\)`.*/\1/p' | head -1)
+    
+    if [ -n "$FILE_PATH" ]; then
+      mkdir -p "$(dirname "$FILE_PATH")"
+      
+      case "$FILE_PATH" in
+        *.ts|*.tsx)
+          cat > "$FILE_PATH" << 'EOF'
+// Generated TypeScript file
+export interface Config {
+  environment: string;
+}
+EOF
+          ;;
+        *.md)
+          cat > "$FILE_PATH" << 'EOF'
+# Documentation
+Generated documentation file.
+EOF
+          ;;
+      esac
+      
+      echo "✅ Created: $FILE_PATH"
+    fi
+```
+
+### Clean Branch Management
+
+```yaml
+- name: 🌿 Create Clean Branch
+  run: |
+    BRANCH_NAME="story/$STORY_NUMBER"
+    git fetch origin
+    
+    # Clean up existing branch
+    if git show-ref --verify --quiet "refs/remotes/origin/$BRANCH_NAME"; then
+      git push origin --delete "$BRANCH_NAME" 2>/dev/null || true
+      git branch -D "$BRANCH_NAME" 2>/dev/null || true
+    fi
+    
+    # Create fresh branch
+    git checkout main
+    git pull origin main  
+    git checkout -b "$BRANCH_NAME"
+    git push -u origin "$BRANCH_NAME"
+    
+    echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+```
 
 ## 🆕 Advanced Patterns (From Project Admin Agent)
 
@@ -183,6 +315,29 @@ FILE_COUNT=$(gh pr view "$PR_NUMBER" --json files --jq '.files.length')
   run: gh pr merge "$PR_NUMBER" --squash --delete-branch
 ```
 
+### Debug Pattern for Development Workflows
+
+```yaml
+- name: 🔍 Development Agent Debugging
+  run: |
+    echo "🔍 DEBUG: Agent status check"
+    echo "🔍 DEBUG: Working directory: $(pwd)"
+    echo "🔍 DEBUG: Git branch: $(git branch --show-current)"
+    
+    echo "🔍 DEBUG: Created files:"
+    find . -name "*.ts" -o -name "*.md" | head -10 | while read file; do
+      echo "  $file ($(wc -c < "$file" 2>/dev/null || echo "0") bytes)"
+    done
+    
+    echo "🔍 DEBUG: Git status:"
+    git status --porcelain
+    
+    echo "🔍 DEBUG: Change detection:"
+    echo "  Unstaged: $(git diff --quiet && echo "NONE" || echo "FOUND")"
+    echo "  Staged: $(git diff --staged --quiet && echo "NONE" || echo "FOUND")" 
+    echo "  Untracked: $(git status --porcelain | grep '^??' | wc -l) files"
+```
+
 ## ✅ Validation Checklist
 
 - [ ] Rate limiting with `GH_TOKEN` env var
@@ -191,6 +346,11 @@ FILE_COUNT=$(gh pr view "$PR_NUMBER" --json files --jq '.files.length')
 - [ ] Status updates with rate limiting
 - [ ] No hardcoded secrets
 - [ ] Proper error handling
+- [ ] **Git commit detection includes untracked files** (for file-creating agents)
+- [ ] **Default action handling** for null/empty action inputs
+- [ ] **Auto-progression delays** to avoid race conditions
+- [ ] **Branch cleanup** before creating new branches
+- [ ] **External script sourcing** with function verification
 
 ## 🚀 Agent Creation Steps
 
