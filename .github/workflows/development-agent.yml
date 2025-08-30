@@ -566,8 +566,8 @@ jobs:
               
               echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
 
-              # Get linked tasks for this story
-              TASK_NUMBERS=$(gh issue list --limit 100 --json number,body,title | jq -r --arg story "#$STORY_NUMBER" '.[] | select(.body | contains($story)) | .number')
+              # Get linked tasks for this story (including closed tasks)
+              TASK_NUMBERS=$(gh issue list --limit 100 --state all --json number,body,title | jq -r --arg story "#$STORY_NUMBER" '.[] | select(.body | contains($story)) | .number')
 
               if [ ! -z "$TASK_NUMBERS" ]; then
                 echo "📋 Found linked tasks: $TASK_NUMBERS"
