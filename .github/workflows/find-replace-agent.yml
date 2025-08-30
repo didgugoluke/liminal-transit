@@ -14,9 +14,10 @@ permissions:
 
 jobs:
   find-replace-orchestrator:
-    if: contains(github.event.issue.labels.*.name, 'find-replace') || contains(github.event.issue.labels.*.name, 'branding') || contains(github.event.issue.labels.*.name, 'refactor')
+    if: |
+      (contains(github.event.issue.labels.*.name, 'find-replace') || contains(github.event.issue.labels.*.name, 'branding') || contains(github.event.issue.labels.*.name, 'refactor')) &&
+      contains(github.event.comment.body, 'find replace agent')
     runs-on: ubuntu-latest
-
     steps:
       - name: 🤖 AI Agent Initialization
         uses: actions/checkout@v4

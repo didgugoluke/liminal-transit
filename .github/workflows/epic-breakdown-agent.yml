@@ -20,6 +20,46 @@ jobs:
       - name: 🏗️ Checkout Repository
         uses: actions/checkout@v4
 
+      - name: 🏷️ Intelligent Label Management
+        id: label_management
+        run: |
+          echo "🏷️ Setting up intelligent label management..."
+
+          # Function to ensure a label exists, create if missing
+          ensure_label_exists() {
+            local label_name="$1"
+            local label_color="${2:-0052CC}"  # Default blue
+            local label_description="${3:-AI Agent Label}"
+            
+            if ! gh label list | grep -q "^$label_name"; then
+              echo "📝 Creating missing label: $label_name"
+              if gh label create "$label_name" --color "$label_color" --description "$label_description" 2>/dev/null; then
+                echo "✅ Created label: $label_name"
+              else
+                echo "⚠️ Failed to create label: $label_name (will use fallback)"
+              fi
+            else
+              echo "✅ Label exists: $label_name"
+            fi
+          }
+
+          # Create essential AI agent labels
+          ensure_label_exists "ai-agent" "3B82F6" "Task for autonomous AI agent execution"
+          ensure_label_exists "epic-story" "0E8A16" "Epic Story - User story from Epic breakdown"
+          ensure_label_exists "epic-task" "1F75FE" "Epic Task - Technical task from Epic breakdown"
+          ensure_label_exists "P1" "D93F0B" "Priority 1 - Critical"
+          ensure_label_exists "P2" "FBCA04" "Priority 2 - High"
+          ensure_label_exists "P3" "0E8A16" "Priority 3 - Medium"
+          ensure_label_exists "P4" "F9D0C4" "Priority 4 - Low"
+          ensure_label_exists "test" "BFD4F2" "Test issue for workflow validation"
+          ensure_label_exists "ui-design" "FF6B6B" "UI/UX Design related"
+          ensure_label_exists "backend-api" "4ECDC4" "Backend API development"
+          ensure_label_exists "infrastructure" "95E1D3" "Infrastructure and DevOps"
+
+          echo "🏷️ Label management complete"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: 🧠 AI Native Epic Analysis
         id: epic_analysis
         run: |
