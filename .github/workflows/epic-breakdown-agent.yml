@@ -51,7 +51,6 @@ jobs:
           ensure_label_exists "P2" "FBCA04" "Priority 2 - High"
           ensure_label_exists "P3" "0E8A16" "Priority 3 - Medium"
           ensure_label_exists "P4" "F9D0C4" "Priority 4 - Low"
-          ensure_label_exists "test" "BFD4F2" "Test issue for workflow validation"
           ensure_label_exists "ui-design" "FF6B6B" "UI/UX Design related"
           ensure_label_exists "backend-api" "4ECDC4" "Backend API development"
           ensure_label_exists "infrastructure" "95E1D3" "Infrastructure and DevOps"
