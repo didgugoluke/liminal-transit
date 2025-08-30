@@ -51,6 +51,8 @@ jobs:
           fi
 
           echo "✅ Rate limits OK - proceeding with sprint management"
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
 
       - name: Sprint Management
         run: |
