@@ -201,8 +201,8 @@ jobs:
               
               # Trigger Development Agent workflow
               gh workflow run development-agent.yml \
-                --input story_number="$STORY_NUMBER" \
-                --input action="take_story" || echo "Development Agent workflow trigger may have failed"
+                -f story_number="$STORY_NUMBER" \
+                -f action="take_story" || echo "Development Agent workflow trigger may have failed"
               
               gh issue comment "$STORY_NUMBER" --body "🔄 Handoff to Development Agent. Story #$STORY_NUMBER transitioning from To Do to In Progress."
               
@@ -244,8 +244,8 @@ jobs:
             
             # Trigger Development Agent workflow
             gh workflow run development-agent.yml \
-              --input story_number="$STORY_NUMBER" \
-              --input action="take_story" || echo "Development Agent workflow may need manual trigger"
+              -f story_number="$STORY_NUMBER" \
+              -f action="take_story" || echo "Development Agent workflow may need manual trigger"
           fi
 
       - name: 📋 Generate Scrum Report
