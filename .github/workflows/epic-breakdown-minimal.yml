@@ -1,0 +1,38 @@
+name: 🧪 Epic Breakdown Agent Test - Minimal
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  epic-breakdown-minimal:
+    runs-on: ubuntu-latest
+    if: contains(github.event.comment.body, 'Epic breakdown agent') && contains(github.event.issue.labels.*.name, 'epic')
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      
+      - name: Test Epic Breakdown
+        run: |
+          echo "Epic Breakdown Agent activated!"
+          echo "Issue: ${{ github.event.issue.number }}"
+          echo "Title: ${{ github.event.issue.title }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Add Success Comment
+        run: |
+          gh issue comment ${{ github.event.issue.number }} --body "🧪 **Epic Breakdown Agent Test - WORKING**
+          
+          ✅ Workflow triggered successfully  
+          ✅ Epic detected: #${{ github.event.issue.number }}
+          ✅ Title: ${{ github.event.issue.title }}
+          
+          **Ready for full Epic breakdown implementation!**"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
