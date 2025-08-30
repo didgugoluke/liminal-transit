@@ -37,6 +37,8 @@ jobs:
           fi
 
           echo "✅ Rate limits OK - proceeding with Epic analysis"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: �🔍 Epic Analysis & Task Breakdown
         id: epic_analysis
