@@ -1,0 +1,265 @@
+name: 🧹 Project Cleanup Agent - Orphaned Items
+
+on:
+  issue_comment:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Run in dry-run mode (no actual deletions)'
+        required: false
+        default: true
+        type: boolean
+      project_id:
+        description: 'GitHub Project ID to clean'
+        required: false
+        default: '2'
+        type: string
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  project-cleanup:
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'workflow_dispatch') ||
+      (contains(github.event.comment.body, 'project cleanup agent') && 
+       (contains(github.event.issue.labels.*.name, 'ai-agent') || 
+        contains(github.event.issue.labels.*.name, 'chore') || 
+        contains(github.event.issue.labels.*.name, 'epic-task')))
+
+    steps:
+      - name: 🤖 AI Agent Initialization
+        uses: actions/checkout@v4
+
+      - name: 🔧 Configure Environment
+        run: |
+          echo "🧹 Project Cleanup Agent Starting..."
+          echo "Repository: ${{ github.repository }}"
+          echo "Trigger: ${{ github.event_name }}"
+          
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "DRY_RUN=${{ github.event.inputs.dry_run }}" >> $GITHUB_ENV
+            echo "PROJECT_ID=${{ github.event.inputs.project_id }}" >> $GITHUB_ENV
+          else
+            echo "DRY_RUN=true" >> $GITHUB_ENV
+            echo "PROJECT_ID=2" >> $GITHUB_ENV
+          fi
+
+      - name: 📊 Analyze Project Items
+        id: analyze
+        run: |
+          # Set project configuration
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            DRY_RUN="${{ github.event.inputs.dry_run }}"
+            PROJECT_ID="${{ github.event.inputs.project_id }}"
+          else
+            DRY_RUN="true"
+            PROJECT_ID="2"
+          fi
+          
+          echo "🔍 Scanning Noveli project for orphaned items..."
+          echo "Project ID: $PROJECT_ID"
+          echo "Mode: $([ "$DRY_RUN" = "true" ] && echo 'DRY RUN' || echo 'EXECUTION')"
+          
+          # Get all project items
+          PROJECT_ITEMS=$(gh project item-list "$PROJECT_ID" --owner "@me" --format json)
+          TOTAL_ITEMS=$(echo "$PROJECT_ITEMS" | jq '.items | length')
+          
+          echo "📈 Found $TOTAL_ITEMS total project items"
+          echo "total_items=$TOTAL_ITEMS" >> $GITHUB_OUTPUT
+          
+          # Initialize counters
+          VALID_ITEMS=0
+          ORPHANED_ITEMS=0
+          ORPHANED_LIST=""
+          
+          # Check each item
+          echo "$PROJECT_ITEMS" | jq -r '.items[] | @base64' | while IFS= read -r item; do
+            ITEM_DATA=$(echo "$item" | base64 --decode)
+            ITEM_TITLE=$(echo "$ITEM_DATA" | jq -r '.title // "No Title"')
+            ITEM_URL=$(echo "$ITEM_DATA" | jq -r '.content.url // ""')
+            
+            echo "🔍 Checking: $ITEM_TITLE"
+            
+            if [ -n "$ITEM_URL" ] && [[ "$ITEM_URL" == *"issues/"* ]]; then
+              # Extract issue number from URL
+              ISSUE_NUM=$(echo "$ITEM_URL" | grep -o '[0-9]*$')
+              
+              if [ -n "$ISSUE_NUM" ]; then
+                # Check if issue exists
+                if gh issue view "$ISSUE_NUM" >/dev/null 2>&1; then
+                  echo "  ✅ Valid - Issue #$ISSUE_NUM exists"
+                  VALID_ITEMS=$((VALID_ITEMS + 1))
+                else
+                  echo "  ❌ Orphaned - Issue #$ISSUE_NUM not found"
+                  ORPHANED_ITEMS=$((ORPHANED_ITEMS + 1))
+                  ORPHANED_LIST="${ORPHANED_LIST}${ITEM_TITLE} (Issue #${ISSUE_NUM})\n"
+                fi
+              else
+                echo "  ⚠️  No issue number found in URL: $ITEM_URL"
+              fi
+            else
+              echo "  ℹ️  Non-issue item (draft or other type)"
+              VALID_ITEMS=$((VALID_ITEMS + 1))
+            fi
+          done
+          
+          # Save results to temp file for next step
+          echo "$VALID_ITEMS" > /tmp/valid_count
+          echo "$ORPHANED_ITEMS" > /tmp/orphaned_count
+          echo -e "$ORPHANED_LIST" > /tmp/orphaned_list
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🧹 Execute Cleanup
+        id: cleanup
+        run: |
+          # Set project configuration
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            DRY_RUN="${{ github.event.inputs.dry_run }}"
+            PROJECT_ID="${{ github.event.inputs.project_id }}"
+          else
+            DRY_RUN="true"
+            PROJECT_ID="2"
+          fi
+          
+          VALID_ITEMS=$(cat /tmp/valid_count 2>/dev/null || echo "0")
+          ORPHANED_ITEMS=$(cat /tmp/orphaned_count 2>/dev/null || echo "0")
+          ORPHANED_LIST=$(cat /tmp/orphaned_list 2>/dev/null || echo "")
+          
+          echo "valid_items=$VALID_ITEMS" >> $GITHUB_OUTPUT
+          echo "orphaned_items=$ORPHANED_ITEMS" >> $GITHUB_OUTPUT
+          
+          echo "📊 Analysis Complete:"
+          echo "  ✅ Valid items: $VALID_ITEMS"
+          echo "  ❌ Orphaned items: $ORPHANED_ITEMS"
+          
+          if [ "$ORPHANED_ITEMS" -eq 0 ]; then
+            echo "🎉 No orphaned items found! Project is clean."
+            echo "cleanup_performed=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          echo "🗑️  Orphaned items found:"
+          echo -e "$ORPHANED_LIST"
+          
+          DELETED_COUNT=0
+          
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "🔍 DRY RUN MODE - No actual deletions performed"
+            echo "cleanup_performed=false" >> $GITHUB_OUTPUT
+          else
+            echo "🧹 EXECUTION MODE - Removing orphaned items..."
+            
+            # Re-scan and delete orphaned items
+            PROJECT_ITEMS=$(gh project item-list "$PROJECT_ID" --owner "@me" --format json)
+            
+            echo "$PROJECT_ITEMS" | jq -r '.items[] | @base64' | while IFS= read -r item; do
+              ITEM_DATA=$(echo "$item" | base64 --decode)
+              ITEM_TITLE=$(echo "$ITEM_DATA" | jq -r '.title // "No Title"')
+              ITEM_URL=$(echo "$ITEM_DATA" | jq -r '.content.url // ""')
+              ITEM_ID=$(echo "$ITEM_DATA" | jq -r '.id // ""')
+              
+              if [ -n "$ITEM_URL" ] && [[ "$ITEM_URL" == *"issues/"* ]]; then
+                ISSUE_NUM=$(echo "$ITEM_URL" | grep -o '[0-9]*$')
+                
+                if [ -n "$ISSUE_NUM" ] && ! gh issue view "$ISSUE_NUM" >/dev/null 2>&1; then
+                  echo "🗑️  Deleting orphaned item: $ITEM_TITLE"
+                  if [ -n "$ITEM_ID" ]; then
+                    gh project item-delete "$PROJECT_ID" --owner "@me" --id "$ITEM_ID" || echo "Failed to delete item $ITEM_ID"
+                    DELETED_COUNT=$((DELETED_COUNT + 1))
+                  fi
+                fi
+              fi
+            done
+            
+            echo "deleted_count=$DELETED_COUNT" >> $GITHUB_OUTPUT
+            echo "cleanup_performed=true" >> $GITHUB_OUTPUT
+            echo "✅ Cleanup complete - Deleted $DELETED_COUNT orphaned items"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 📊 Generate Report
+        run: |
+          # Set project configuration
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            DRY_RUN="${{ github.event.inputs.dry_run }}"
+            PROJECT_ID="${{ github.event.inputs.project_id }}"
+          else
+            DRY_RUN="true"
+            PROJECT_ID="2"
+          fi
+          
+          TOTAL_ITEMS=${{ steps.analyze.outputs.total_items }}
+          VALID_ITEMS=${{ steps.cleanup.outputs.valid_items }}
+          ORPHANED_ITEMS=${{ steps.cleanup.outputs.orphaned_items }}
+          CLEANUP_PERFORMED=${{ steps.cleanup.outputs.cleanup_performed }}
+          DELETED_COUNT=${{ steps.cleanup.outputs.deleted_count || '0' }}
+          
+          echo "📋 Project Cleanup Report"
+          echo "═══════════════════════════════════════"
+          echo "🕐 Timestamp: $(date)"
+          echo "🎯 Project: Noveli (ID: $PROJECT_ID)"
+          echo "🔧 Mode: $([ "$DRY_RUN" = "true" ] && echo 'DRY RUN' || echo 'EXECUTION')"
+          echo ""
+          echo "📊 Analysis Results:"
+          echo "  📁 Total items scanned: $TOTAL_ITEMS"
+          echo "  ✅ Valid items: $VALID_ITEMS"
+          echo "  ❌ Orphaned items found: $ORPHANED_ITEMS"
+          echo ""
+          
+          if [ "$CLEANUP_PERFORMED" = "true" ]; then
+            echo "🧹 Cleanup Actions:"
+            echo "  🗑️  Items deleted: $DELETED_COUNT"
+            echo "  📈 Final item count: $((TOTAL_ITEMS - DELETED_COUNT))"
+          else
+            if [ "$ORPHANED_ITEMS" -gt 0 ]; then
+              echo "🔍 DRY RUN - No changes made"
+              echo "  💡 Run with dry_run=false to execute cleanup"
+            else
+              echo "✨ Project already clean - no action needed"
+            fi
+          fi
+          
+          echo ""
+          echo "🎯 Project Health: $([ "$ORPHANED_ITEMS" -eq 0 ] && echo 'EXCELLENT ✅' || echo 'NEEDS CLEANUP ⚠️')"
+
+      - name: 💬 Comment on Trigger Issue
+        if: github.event_name == 'issue_comment'
+        run: |
+          TOTAL_ITEMS=${{ steps.analyze.outputs.total_items }}
+          VALID_ITEMS=${{ steps.cleanup.outputs.valid_items }}
+          ORPHANED_ITEMS=${{ steps.cleanup.outputs.orphaned_items }}
+          CLEANUP_PERFORMED=${{ steps.cleanup.outputs.cleanup_performed }}
+          DELETED_COUNT=${{ steps.cleanup.outputs.deleted_count || '0' }}
+          
+          SUMMARY="Project Cleanup Agent completed. Scanned: $TOTAL_ITEMS items, Valid: $VALID_ITEMS, Orphaned: $ORPHANED_ITEMS"
+          if [ "$CLEANUP_PERFORMED" = "true" ]; then
+            SUMMARY="$SUMMARY. Deleted: $DELETED_COUNT orphaned items."
+          else
+            SUMMARY="$SUMMARY. DRY RUN mode - no changes made."
+          fi
+          
+          gh issue comment ${{ github.event.issue.number }} --body "✅ **$SUMMARY**"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: ✅ Agent Completion
+        run: |
+          # Set project configuration  
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            DRY_RUN="${{ github.event.inputs.dry_run }}"
+          else
+            DRY_RUN="true"
+          fi
+          
+          echo "🤖 Project Cleanup Agent completed successfully"
+          echo "📊 Analysis performed on Noveli project"
+          echo "🧹 Cleanup actions $([ "$DRY_RUN" = "true" ] && echo 'simulated (DRY RUN)' || echo 'executed')"
+          echo "📋 Full report generated"
+          echo "🎯 Issue #61 implementation: Project Cleanup Agent operational ✅"
