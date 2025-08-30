@@ -167,23 +167,38 @@ jobs:
                 echo "✅ Story already in project"
               fi
               
-              # Move from No Status to To Do
+              # Move from No Status to Todo (using correct status name)
               if [ "$CURRENT_STATUS" = "No Status" ] || [ "$CURRENT_STATUS" = "null" ] || [ -z "$CURRENT_STATUS" ]; then
-                echo "📋 Moving story to To Do status..."
+                echo "📋 Moving story to Todo status..."
                 
-                # Use safe project status update with rate limiting
-                if scripts/github-rate-limit-manager.sh batch-status-update "$PROJECT_ID" "$STORY_TITLE" "To Do"; then
-                  echo "✅ Status updated successfully"
-                  
-                  # Add story management comment with rate limiting
-                  if scripts/github-rate-limit-manager.sh check-rest "story comment" 10; then
-                    gh issue comment "$STORY_NUMBER" --body "🏃‍♂️ Scrum Master Agent - Story Activated. Moved to To Do status. $TASK_COUNT tasks identified. Ready for Development Agent handoff."
+                # Get the item ID for this story
+                ITEM_ID=$(gh project item-list "$PROJECT_ID" --owner "didgugoluke" --format json | jq -r --arg title "$STORY_TITLE" '.items[] | select(.content.title == $title) | .id')
+                
+                if [ -n "$ITEM_ID" ] && [ "$ITEM_ID" != "null" ]; then
+                  echo "Found item ID: $ITEM_ID"
+                  if gh project item-edit --id "$ITEM_ID" --field-id "PVTSSF_lAHOCf5VHc4BB2AJzg0OtoQ" --single-select-option-id "f75ad846" --project-id "$PROJECT_ID"; then
+                    echo "✅ Status updated successfully"
+                    
+                    # Add story management comment with rate limiting
+                    if scripts/github-rate-limit-manager.sh check-rest "story comment" 10; then
+                      gh issue comment "$STORY_NUMBER" --body "🏃‍♂️ Scrum Master Agent - Story Activated. Moved to Todo status. $TASK_COUNT tasks identified. Ready for Development Agent handoff."
+                    else
+                      echo "⚠️ Skipping comment due to rate limits"
+                    fi
                   else
-                    echo "⚠️ Skipping comment due to rate limits"
+                    echo "❌ Failed to update story status to Todo"
+                    echo "action_result=status_update_failed" >> $GITHUB_OUTPUT
                   fi
-                  
+                else
+                  echo "❌ Could not find item ID for story: $STORY_TITLE"
+                  echo "action_result=item_not_found" >> $GITHUB_OUTPUT
+                fi
+                
+                # Set success action if we got this far
+                if [ -n "$ITEM_ID" ] && [ "$ITEM_ID" != "null" ]; then
                   echo "action_result=moved_to_todo" >> $GITHUB_OUTPUT
                   echo "next_action=handoff_to_dev" >> $GITHUB_OUTPUT
+                fi
                 else
                   echo "❌ Failed to update project status due to rate limits"
                   echo "action_result=rate_limited" >> $GITHUB_OUTPUT

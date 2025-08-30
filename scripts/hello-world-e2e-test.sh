@@ -113,7 +113,88 @@ wait_for_workflow() {
     done
 }
 
-# Function to check workflow outcome
+# Function to check project status of an issue
+check_project_status() {
+    local issue_number=$1
+    local issue_title=$(gh issue view "$issue_number" --json title --jq '.title')
+    
+    echo -e "${BLUE}📋 Checking project status for #${issue_number}...${NC}"
+    
+    # Get project item info
+    local project_item=$(gh project item-list "${PROJECT_ID}" --owner "${OWNER}" --format json 2>/dev/null | jq --arg title "$issue_title" '.items[] | select(.content.title == $title)' || echo "{}")
+    
+    if [ -n "$project_item" ] && [ "$project_item" != "{}" ]; then
+        local status=$(echo "$project_item" | jq -r '.status // "No Status"')
+        local item_id=$(echo "$project_item" | jq -r '.id')
+        echo "  Title: $issue_title"
+        echo "  Status: $status"
+        echo "  Item ID: $item_id"
+        echo "$status"
+    else
+        echo "  Issue not found in project"
+        echo "Not in project"
+    fi
+}
+
+# Function to check recent webhook deliveries (to diagnose workflow_dispatch issues)
+check_webhook_deliveries() {
+    echo -e "${BLUE}🔗 Checking recent webhook deliveries...${NC}"
+    
+    # Get recent workflow runs with timestamps
+    echo "Recent workflow runs in the last 5 minutes:"
+    local cutoff_time=$(date -d "5 minutes ago" '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || date -v-5M '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || echo "")
+    
+    if [ -n "$cutoff_time" ]; then
+        gh run list --limit=20 --json workflowName,createdAt,event,status,conclusion | \
+        jq --arg cutoff "$cutoff_time" '.[] | select(.createdAt > $cutoff) | "\(.workflowName) | \(.event) | \(.createdAt) | \(.status) | \(.conclusion // "null")"' -r | \
+        while read -r line; do
+            echo "  $line"
+        done
+    else
+        echo "  (Could not determine cutoff time, showing last 5 runs)"
+        gh run list --limit=5 --json workflowName,createdAt,event,status,conclusion | \
+        jq '.[] | "\(.workflowName) | \(.event) | \(.createdAt) | \(.status) | \(.conclusion // "null")"' -r | \
+        while read -r line; do
+            echo "  $line"
+        done
+    fi
+}
+
+# Function to monitor project status changes
+monitor_project_status() {
+    local story_number=$1
+    local timeout=${2:-60}
+    local start_time=$(date +%s)
+    
+    echo -e "${YELLOW}👀 Monitoring project status changes for Story #${story_number}...${NC}"
+    
+    local initial_status=$(check_project_status "$story_number")
+    echo "Initial status: $initial_status"
+    
+    while true; do
+        local current_time=$(date +%s)
+        local elapsed=$((current_time - start_time))
+        
+        if [ $elapsed -gt $timeout ]; then
+            echo -e "${RED}⏰ Timeout monitoring project status${NC}"
+            break
+        fi
+        
+        local current_status=$(check_project_status "$story_number")
+        if [ "$current_status" != "$initial_status" ]; then
+            echo -e "${GREEN}📊 Status changed: ${initial_status} → ${current_status}${NC}"
+            initial_status="$current_status"
+        else
+            echo -n "."
+        fi
+        
+        sleep 3  # Wait 3 seconds between checks to avoid API rate limiting
+        
+        sleep 5
+    done
+    
+    echo ""
+}
 check_workflow_outcome() {
     local workflow=$1
     echo -e "${BLUE}📊 Checking ${workflow} outcome...${NC}"
@@ -246,6 +327,12 @@ run_e2e_test() {
         return 1
     fi
     
+    echo -e "${GREEN}✅ Scrum Master completed${NC}"
+    
+    # Monitor project status transitions after Scrum Master completes
+    echo -e "${BLUE}⏱️ Monitoring project status transitions...${NC}"
+    monitor_project_status "${STORY_NUMBER}" 60 # Monitor for 1 minute
+    
     # Check if Development Agent was triggered
     echo -e "${BLUE}2️⃣ Checking if Development Agent was triggered...${NC}"
     
@@ -341,10 +428,28 @@ validate_outcomes() {
         success=false
     fi
     
-    # Check if story is in project
+    # Check if story is in project and its status
     echo -e "${BLUE}📋 Checking project status...${NC}"
-    if gh project item-list "${PROJECT_ID}" --owner "${OWNER}" | grep -q "Hello World E2E"; then
+    local project_status=$(check_project_status "${STORY_NUMBER}")
+    if [ "$project_status" != "Not in project" ]; then
         echo -e "${GREEN}✅ Story added to project${NC}"
+        echo "  Current status: $project_status"
+        
+        # Check if status progression is correct
+        case "$project_status" in
+            "No Status")
+                echo -e "${YELLOW}⚠️ Story is in 'No Status' - this might prevent Development Agent trigger${NC}"
+                ;;
+            "To Do")
+                echo -e "${GREEN}✅ Story correctly moved to 'To Do' status${NC}"
+                ;;
+            "In Progress")
+                echo -e "${GREEN}✅ Story moved to 'In Progress' status${NC}"
+                ;;
+            *)
+                echo -e "${YELLOW}ℹ️ Story status: $project_status${NC}"
+                ;;
+        esac
     else
         echo -e "${RED}❌ Story not in project${NC}"
         success=false
@@ -370,6 +475,9 @@ analyze_failures() {
     echo ""
     echo -e "${BLUE}📊 Recent Development Agent logs:${NC}"
     gh run view $(gh run list --workflow="development-agent.yml" --limit=1 --json databaseId --jq '.[0].databaseId') --log | grep -E "✅|❌|⚠️|Error|Failed|Found linked tasks|No linked tasks" | tail -10 || echo "No logs found"
+    
+    echo ""
+    check_webhook_deliveries
 }
 
 # Main execution
