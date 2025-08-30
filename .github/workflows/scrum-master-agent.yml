@@ -149,8 +149,25 @@ jobs:
             "start_story")
               echo "🏁 Starting Story Lifecycle Management..."
               
+              # First, ensure story is added to project
+              echo "📋 Ensuring story is in project..."
+              if ! gh project item-list "$PROJECT_ID" --owner "@me" --format json | jq -e --arg title "$STORY_TITLE" '.items[] | select(.content.title == $title)' > /dev/null; then
+                echo "➕ Adding story to project..."
+                if gh project item-add "$PROJECT_ID" --owner "@me" --url "https://github.com/didgugoluke/liminal-transit/issues/$STORY_NUMBER"; then
+                  echo "✅ Story added to project successfully"
+                  sleep 2  # Brief pause for project system to sync
+                else
+                  echo "❌ Failed to add story to project"
+                  echo "action_result=project_add_failed" >> $GITHUB_OUTPUT
+                  echo "next_action=retry_later" >> $GITHUB_OUTPUT
+                  exit 0
+                fi
+              else
+                echo "✅ Story already in project"
+              fi
+              
               # Move from No Status to To Do
-              if [ "$CURRENT_STATUS" = "No Status" ] || [ "$CURRENT_STATUS" = "null" ]; then
+              if [ "$CURRENT_STATUS" = "No Status" ] || [ "$CURRENT_STATUS" = "null" ] || [ -z "$CURRENT_STATUS" ]; then
                 echo "📋 Moving story to To Do status..."
                 
                 # Use safe project status update with rate limiting
