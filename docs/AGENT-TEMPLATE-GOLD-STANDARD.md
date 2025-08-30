@@ -177,7 +177,31 @@ jobs:
             echo "⚠️ Rate limit too low for issue comment - skipping status update"
           fi
 
-      - name: 🔄 Agent Handoff (Optional)
+      - name: � Create Pull Request
+        run: |
+          # Create PR first
+          PR_URL=$(gh pr create \
+            --title "PR Title" \
+            --body "$PR_BODY" \
+            --head "$BRANCH_NAME" \
+            --base main)
+          
+          # Add labels one by one with error handling
+          for label in "ai-agent" "automated"; do
+            if gh label list | grep -q "^$label"; then
+              if gh pr edit "$PR_URL" --add-label "$label" 2>/dev/null; then
+                echo "✅ Added label: $label"
+              else
+                echo "⚠️ Failed to add label: $label"
+              fi
+            else
+              echo "⚠️ Label not found: $label"
+            fi
+          done
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: �🔄 Agent Handoff (Optional)
         if: success()
         run: |
           echo "🔄 Initiating agent handoff..."
@@ -304,6 +328,35 @@ run: |
     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
+### 3. **Label Management** (RECOMMENDED)
+```yaml
+- name: 🏷️ Ensure Required Labels
+  run: |
+    # Function to ensure a label exists, create if missing
+    ensure_label_exists() {
+      local label_name="$1"
+      local label_color="${2:-0052CC}"  # Default blue
+      local label_description="${3:-AI Agent Label}"
+      
+      if ! gh label list | grep -q "^$label_name"; then
+        echo "📝 Creating missing label: $label_name"
+        if gh label create "$label_name" --color "$label_color" --description "$label_description" 2>/dev/null; then
+          echo "✅ Created label: $label_name"
+        else
+          echo "⚠️ Failed to create label: $label_name (will use fallback)"
+        fi
+      else
+        echo "✅ Label exists: $label_name"
+      fi
+    }
+    
+    # Create agent-specific labels
+    ensure_label_exists "ai-agent" "7B68EE" "Issues and PRs created by AI agents"
+    ensure_label_exists "automated" "00D084" "Automated processes and workflows"
+  env:
+    GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
+
 ### 3. **Context Analysis** (RECOMMENDED)
 ```yaml
 - name: 📊 Agent Context Analysis
@@ -330,13 +383,29 @@ run: |
     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-### 5. **Emergency Cleanup** (MANDATORY)
+### 5. **Robust PR Creation with Label Management** (RECOMMENDED)
 ```yaml
-- name: 🚨 Emergency Cleanup
-  if: failure()
+- name: � Create Pull Request
   run: |
-    echo "🚨 Agent failed - cleaning up..."
-    # Cleanup logic here
+    # Create PR first
+    PR_URL=$(gh pr create \
+      --title "PR Title" \
+      --body "$PR_BODY" \
+      --head "$BRANCH_NAME" \
+      --base main)
+    
+    # Add labels one by one with error handling
+    for label in "ai-agent" "automated"; do
+      if gh label list | grep -q "^$label"; then
+        if gh pr edit "$PR_URL" --add-label "$label" 2>/dev/null; then
+          echo "✅ Added label: $label"
+        else
+          echo "⚠️ Failed to add label: $label"
+        fi
+      else
+        echo "⚠️ Label not found: $label"
+      fi
+    done
   env:
     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
