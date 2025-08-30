@@ -666,7 +666,24 @@ jobs:
                   echo "  git diff --staged --quiet: FALSE (staged changes found)"
                   git diff --staged --name-only | head -5
                 fi
-                if ! git diff --quiet || ! git diff --staged --quiet; then
+                # Check for any changes: modified files, staged files, OR untracked files
+                HAS_CHANGES=false
+                if ! git diff --quiet; then
+                  echo "🔍 Found unstaged changes"
+                  HAS_CHANGES=true
+                fi
+                if ! git diff --staged --quiet; then
+                  echo "🔍 Found staged changes"
+                  HAS_CHANGES=true
+                fi
+                if [ -n "$(git status --porcelain | grep '^??')" ]; then
+                  echo "🔍 Found untracked files"
+                  git status --porcelain | grep '^??'
+                  HAS_CHANGES=true
+                fi
+                
+                if [ "$HAS_CHANGES" = "true" ]; then
+                  echo "✅ Changes detected, committing..."
                   git add .
                   git commit -m "🚀 Enhanced Development Agent: Implement tasks for Story #$STORY_NUMBER - $(echo "$TASK_NUMBERS" | wc -w) tasks processed with modular handlers - $STORY_TITLE"
                   
