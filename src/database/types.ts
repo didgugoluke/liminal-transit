@@ -7,7 +7,7 @@ export interface Story {
   title: string;
   description?: string;
   content: StoryContent;
-  status: 'draft' | 'published' | 'archived';
+  status: "draft" | "published" | "archived";
   created_at: Date;
   updated_at: Date;
   created_by?: string;
