@@ -29,12 +29,11 @@ jobs:
           git config --global user.name "AI Agent - Find/Replace Engine"
           git config --global user.email "ai-agent@noveli.sh"
           
-          # Verify GitHub CLI authentication
+          # Verify GitHub CLI authentication (it should work automatically with GH_TOKEN)
           echo "Verifying GitHub CLI authentication..."
           gh auth status
-          
-          # Set up authentication token
-          echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 📋 Parse Find/Replace Instructions
         id: parse_instructions
