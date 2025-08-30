@@ -862,9 +862,10 @@ jobs:
               if echo "$task_description" | grep -qi "database.*schema\|database.*design\|database.*infrastructure\|database.*migration\|sql.*schema"; then
                 context_labels="$context_labels database"
                 echo "🗄️ Database infrastructure task detected, adding database label"
-              elif find . -name "*.sql" -o -name "*migration*" -o -name "*schema*" | grep -q . 2>/dev/null; then
-                context_labels="$context_labels database"
-                echo "🗄️ Database migration/schema files detected, adding database label"
+              else
+                # Only check for new database files if this might be a database task
+                # Don't add database label just because database files exist from previous work
+                echo "� Hello World or non-database task - skipping database label even if database files exist"
               fi
               
               # Check if this is an enhancement (based on task description)
@@ -874,7 +875,7 @@ jobs:
               fi
               
               # Apply labels
-              all_labels="$base_labels$context_labels"
+              all_labels="$base_labels $context_labels"
               for label in $all_labels; do
                 if gh label list | grep -q "^$label"; then
                   if gh pr edit "$PR_URL" --add-label "$label" 2>/dev/null; then
