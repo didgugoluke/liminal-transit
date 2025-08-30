@@ -328,8 +328,8 @@ jobs:
             
             echo "🔧 Processing generic task: $TASK_TITLE"
             
-            # Extract file path from task requirements dynamically
-            FILE_PATH=$(echo "$TASK_BODY" | grep -o "Create\s\+[^[:space:]]\+\.[a-zA-Z]\+" | sed 's/Create[[:space:]]\+//' | head -1)
+            # Extract file path from task requirements dynamically (handle backticks)
+            FILE_PATH=$(echo "$TASK_BODY" | sed -n 's/.*Create[[:space:]]*`\([^`]*\)`.*/\1/p' | head -1)
             
             if [ -n "$FILE_PATH" ]; then
               echo "📁 Creating file: $FILE_PATH"
