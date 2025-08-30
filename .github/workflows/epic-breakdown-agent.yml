@@ -74,7 +74,7 @@ jobs:
           Ready for Task breakdown and AI agent execution." \
             --label "ai-agent,epic-story,P1")
           
-          STORY_1_ID=$(echo $STORY_1 | grep -o '#[0-9]*' | sed 's/#//')
+          STORY_1_ID=$(echo $STORY_1 | grep -o '[0-9]*$')
           
           # Story 2: Database Design & Models
           STORY_2=$(gh issue create \
@@ -110,7 +110,7 @@ jobs:
           Ready for Task breakdown and AI agent execution." \
             --label "ai-agent,epic-story,P1")
           
-          STORY_2_ID=$(echo $STORY_2 | grep -o '#[0-9]*' | sed 's/#//')
+          STORY_2_ID=$(echo $STORY_2 | grep -o '[0-9]*$')
           
           # Story 3: API Design & Core Endpoints  
           STORY_3=$(gh issue create \
@@ -146,7 +146,7 @@ jobs:
           Ready for Task breakdown and AI agent execution." \
             --label "ai-agent,epic-story,P1")
           
-          STORY_3_ID=$(echo $STORY_3 | grep -o '#[0-9]*' | sed 's/#//')
+          STORY_3_ID=$(echo $STORY_3 | grep -o '[0-9]*$')
           
           echo "Created Stories: #$STORY_1_ID, #$STORY_2_ID, #$STORY_3_ID"
           echo "story_ids=$STORY_1_ID,$STORY_2_ID,$STORY_3_ID" >> $GITHUB_OUTPUT
@@ -197,7 +197,7 @@ jobs:
           Ready for AI Agent autonomous execution." \
             --label "ai-agent,epic-task,P2")
           
-          TASK_1_1_ID=$(echo $TASK_1_1 | grep -o '#[0-9]*' | sed 's/#//')
+          TASK_1_1_ID=$(echo $TASK_1_1 | grep -o '[0-9]*$')
           ALL_TASK_IDS="$ALL_TASK_IDS,$TASK_1_1_ID"
           
           TASK_1_2=$(gh issue create \
@@ -231,7 +231,7 @@ jobs:
           Ready for AI Agent autonomous execution." \
             --label "ai-agent,epic-task,P2")
           
-          TASK_1_2_ID=$(echo $TASK_1_2 | grep -o '#[0-9]*' | sed 's/#//')
+          TASK_1_2_ID=$(echo $TASK_1_2 | grep -o '[0-9]*$')
           ALL_TASK_IDS="$ALL_TASK_IDS,$TASK_1_2_ID"
           
           # Tasks for Story 2: Database Design & Models
@@ -266,7 +266,7 @@ jobs:
           Ready for AI Agent autonomous execution." \
             --label "ai-agent,epic-task,P2")
           
-          TASK_2_1_ID=$(echo $TASK_2_1 | grep -o '#[0-9]*' | sed 's/#//')
+          TASK_2_1_ID=$(echo $TASK_2_1 | grep -o '[0-9]*$')
           ALL_TASK_IDS="$ALL_TASK_IDS,$TASK_2_1_ID"
           
           # Tasks for Story 3: API Design & Core Endpoints
@@ -301,7 +301,7 @@ jobs:
           Ready for AI Agent autonomous execution." \
             --label "ai-agent,epic-task,P2")
           
-          TASK_3_1_ID=$(echo $TASK_3_1 | grep -o '#[0-9]*' | sed 's/#//')
+          TASK_3_1_ID=$(echo $TASK_3_1 | grep -o '[0-9]*$')
           ALL_TASK_IDS="$ALL_TASK_IDS,$TASK_3_1_ID"
           
           # Remove leading comma
