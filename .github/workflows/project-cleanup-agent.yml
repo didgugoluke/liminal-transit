@@ -6,14 +6,14 @@ on:
   workflow_dispatch:
     inputs:
       dry_run:
-        description: 'Run in dry-run mode (no actual deletions)'
+        description: "Run in dry-run mode (no actual deletions)"
         required: false
         default: true
         type: boolean
       project_id:
-        description: 'GitHub Project ID to clean'
+        description: "GitHub Project ID to clean"
         required: false
-        default: '2'
+        default: "2"
         type: string
 
 permissions:
@@ -40,7 +40,7 @@ jobs:
           echo "🧹 Project Cleanup Agent Starting..."
           echo "Repository: ${{ github.repository }}"
           echo "Trigger: ${{ github.event_name }}"
-          
+
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "DRY_RUN=${{ github.event.inputs.dry_run }}" >> $GITHUB_ENV
             echo "PROJECT_ID=${{ github.event.inputs.project_id }}" >> $GITHUB_ENV
@@ -60,25 +60,25 @@ jobs:
             DRY_RUN="true"
             PROJECT_ID="2"
           fi
-          
+
           echo "🔍 Scanning Noveli project for orphaned items..."
           echo "Project ID: $PROJECT_ID"
           echo "Mode: $([ "$DRY_RUN" = "true" ] && echo 'DRY RUN' || echo 'EXECUTION')"
-          
+
           # Get all project items
           PROJECT_ITEMS=$(gh project item-list "$PROJECT_ID" --owner "@me" --format json)
           TOTAL_ITEMS=$(echo "$PROJECT_ITEMS" | jq '.items | length')
-          
+
           echo "📈 Found $TOTAL_ITEMS total project items"
           echo "total_items=$TOTAL_ITEMS" >> $GITHUB_OUTPUT
-          
+
           # Initialize counters
           VALID_ITEMS=0
           ORPHANED_ITEMS=0
           ORPHANED_LIST=""
           
-          # Check each item
-          echo "$PROJECT_ITEMS" | jq -r '.items[] | @base64' | while IFS= read -r item; do
+          # Process items in a way that preserves variable changes
+          while IFS= read -r item; do
             ITEM_DATA=$(echo "$item" | base64 --decode)
             ITEM_TITLE=$(echo "$ITEM_DATA" | jq -r '.title // "No Title"')
             ITEM_URL=$(echo "$ITEM_DATA" | jq -r '.content.url // ""')
@@ -106,9 +106,7 @@ jobs:
               echo "  ℹ️  Non-issue item (draft or other type)"
               VALID_ITEMS=$((VALID_ITEMS + 1))
             fi
-          done
-          
-          # Save results to temp file for next step
+          done < <(echo "$PROJECT_ITEMS" | jq -r '.items[] | @base64')          # Save results to temp file for next step
           echo "$VALID_ITEMS" > /tmp/valid_count
           echo "$ORPHANED_ITEMS" > /tmp/orphaned_count
           echo -e "$ORPHANED_LIST" > /tmp/orphaned_list
@@ -126,29 +124,29 @@ jobs:
             DRY_RUN="true"
             PROJECT_ID="2"
           fi
-          
+
           VALID_ITEMS=$(cat /tmp/valid_count 2>/dev/null || echo "0")
           ORPHANED_ITEMS=$(cat /tmp/orphaned_count 2>/dev/null || echo "0")
           ORPHANED_LIST=$(cat /tmp/orphaned_list 2>/dev/null || echo "")
-          
+
           echo "valid_items=$VALID_ITEMS" >> $GITHUB_OUTPUT
           echo "orphaned_items=$ORPHANED_ITEMS" >> $GITHUB_OUTPUT
-          
+
           echo "📊 Analysis Complete:"
           echo "  ✅ Valid items: $VALID_ITEMS"
           echo "  ❌ Orphaned items: $ORPHANED_ITEMS"
-          
+
           if [ "$ORPHANED_ITEMS" -eq 0 ]; then
             echo "🎉 No orphaned items found! Project is clean."
             echo "cleanup_performed=false" >> $GITHUB_OUTPUT
             exit 0
           fi
-          
+
           echo "🗑️  Orphaned items found:"
           echo -e "$ORPHANED_LIST"
-          
+
           DELETED_COUNT=0
-          
+
           if [ "$DRY_RUN" = "true" ]; then
             echo "🔍 DRY RUN MODE - No actual deletions performed"
             echo "cleanup_performed=false" >> $GITHUB_OUTPUT
@@ -194,13 +192,13 @@ jobs:
             DRY_RUN="true"
             PROJECT_ID="2"
           fi
-          
+
           TOTAL_ITEMS=${{ steps.analyze.outputs.total_items }}
           VALID_ITEMS=${{ steps.cleanup.outputs.valid_items }}
           ORPHANED_ITEMS=${{ steps.cleanup.outputs.orphaned_items }}
           CLEANUP_PERFORMED=${{ steps.cleanup.outputs.cleanup_performed }}
           DELETED_COUNT=${{ steps.cleanup.outputs.deleted_count || '0' }}
-          
+
           echo "📋 Project Cleanup Report"
           echo "═══════════════════════════════════════"
           echo "🕐 Timestamp: $(date)"
@@ -212,7 +210,7 @@ jobs:
           echo "  ✅ Valid items: $VALID_ITEMS"
           echo "  ❌ Orphaned items found: $ORPHANED_ITEMS"
           echo ""
-          
+
           if [ "$CLEANUP_PERFORMED" = "true" ]; then
             echo "🧹 Cleanup Actions:"
             echo "  🗑️  Items deleted: $DELETED_COUNT"
@@ -225,7 +223,7 @@ jobs:
               echo "✨ Project already clean - no action needed"
             fi
           fi
-          
+
           echo ""
           echo "🎯 Project Health: $([ "$ORPHANED_ITEMS" -eq 0 ] && echo 'EXCELLENT ✅' || echo 'NEEDS CLEANUP ⚠️')"
 
@@ -237,14 +235,14 @@ jobs:
           ORPHANED_ITEMS=${{ steps.cleanup.outputs.orphaned_items }}
           CLEANUP_PERFORMED=${{ steps.cleanup.outputs.cleanup_performed }}
           DELETED_COUNT=${{ steps.cleanup.outputs.deleted_count || '0' }}
-          
+
           SUMMARY="Project Cleanup Agent completed. Scanned: $TOTAL_ITEMS items, Valid: $VALID_ITEMS, Orphaned: $ORPHANED_ITEMS"
           if [ "$CLEANUP_PERFORMED" = "true" ]; then
             SUMMARY="$SUMMARY. Deleted: $DELETED_COUNT orphaned items."
           else
             SUMMARY="$SUMMARY. DRY RUN mode - no changes made."
           fi
-          
+
           gh issue comment ${{ github.event.issue.number }} --body "✅ **$SUMMARY**"
         env:
           GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
@@ -257,7 +255,7 @@ jobs:
           else
             DRY_RUN="true"
           fi
-          
+
           echo "🤖 Project Cleanup Agent completed successfully"
           echo "📊 Analysis performed on Noveli project"
           echo "🧹 Cleanup actions $([ "$DRY_RUN" = "true" ] && echo 'simulated (DRY RUN)' || echo 'executed')"
