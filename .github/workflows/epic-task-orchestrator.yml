@@ -148,18 +148,18 @@ jobs:
         run: |
           echo "Adding tasks to GitHub Project..."
 
-          PROJECT_ID="PVT_kwHOCf5VHc4BB1Po"
+          PROJECT_ID="2"
           EPIC_NUMBER="${{ steps.epic_analysis.outputs.epic_number }}"
           CREATED_ISSUES="${{ steps.create_tasks.outputs.created_issues }}"
 
           # Add Epic issue to project first
-          gh project item-add $PROJECT_ID --owner didgugoluke --url "https://github.com/didgugoluke/liminal-transit/issues/$EPIC_NUMBER"
+          GH_TOKEN="${{ secrets.PROJECT_TOKEN }}" gh project item-add $PROJECT_ID --owner "@me" --url "https://github.com/didgugoluke/liminal-transit/issues/$EPIC_NUMBER"
 
           # Add each task issue to project
           IFS=',' read -ra ISSUE_ARRAY <<< "$CREATED_ISSUES"
           for issue_id in "${ISSUE_ARRAY[@]}"; do
             if [ -n "$issue_id" ]; then
-              gh project item-add $PROJECT_ID --owner didgugoluke --url "https://github.com/didgugoluke/liminal-transit/issues/$issue_id"
+              GH_TOKEN="${{ secrets.PROJECT_TOKEN }}" gh project item-add $PROJECT_ID --owner "@me" --url "https://github.com/didgugoluke/liminal-transit/issues/$issue_id"
               echo "Added issue #$issue_id to project"
             fi
           done
