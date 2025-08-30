@@ -30,16 +30,37 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Check if project is scaffolded
+        id: check-scaffold
+        run: |
+          if [ -d "src" ]; then
+            echo "scaffolded=true" >> $GITHUB_OUTPUT
+          else
+            echo "scaffolded=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: TypeScript type checking
+        if: steps.check-scaffold.outputs.scaffolded == 'true'
         run: pnpm typecheck
 
       - name: ESLint code quality
+        if: steps.check-scaffold.outputs.scaffolded == 'true'
         run: pnpm lint
 
       - name: Prettier formatting
+        if: steps.check-scaffold.outputs.scaffolded == 'true'
         run: pnpm format:check
 
+      - name: Project not scaffolded notification
+        if: steps.check-scaffold.outputs.scaffolded == 'false'
+        run: |
+          echo "🏗️ Project not yet scaffolded - skipping code quality checks"
+          echo "📋 Foundation steps completed:"
+          echo "  ✅ Dependencies installed successfully"
+          echo "  ✅ Ready for Epic 1: Core Platform Foundation"
+
       - name: AI Health Check
+        if: steps.check-scaffold.outputs.scaffolded == 'true'
         run: pnpm ai:health-check
 
   # =============================================================================
@@ -63,18 +84,36 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Check if project is scaffolded
+        id: check-scaffold
+        run: |
+          if [ -d "src" ]; then
+            echo "scaffolded=true" >> $GITHUB_OUTPUT
+          else
+            echo "scaffolded=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Unit Tests
+        if: steps.check-scaffold.outputs.scaffolded == 'true'
         run: pnpm test:run --coverage
 
       - name: Upload coverage reports
+        if: steps.check-scaffold.outputs.scaffolded == 'true'
         uses: codecov/codecov-action@v3
         with:
           file: ./coverage/lcov.info
 
       - name: E2E Tests
+        if: steps.check-scaffold.outputs.scaffolded == 'true'
         run: pnpm test:e2e
         env:
           PLAYWRIGHT_BROWSERS_PATH: 0
+
+      - name: Skip tests - project not scaffolded
+        if: steps.check-scaffold.outputs.scaffolded == 'false'
+        run: |
+          echo "🧪 Skipping tests - project not yet scaffolded"
+          echo "📋 Tests will run after Epic 1: Core Platform Foundation"
 
   # =============================================================================
   # SECURITY SCANNING
@@ -122,10 +161,21 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Check if project is scaffolded
+        id: check-scaffold
+        run: |
+          if [ -d "src" ]; then
+            echo "scaffolded=true" >> $GITHUB_OUTPUT
+          else
+            echo "scaffolded=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Build application
+        if: steps.check-scaffold.outputs.scaffolded == 'true'
         run: pnpm build
 
       - name: Upload build artifacts
+        if: steps.check-scaffold.outputs.scaffolded == 'true'
         uses: actions/upload-artifact@v3
         with:
           name: build-files
@@ -133,10 +183,26 @@ jobs:
           retention-days: 7
 
       - name: Post-build validation
+        if: steps.check-scaffold.outputs.scaffolded == 'true'
         run: |
           echo "✅ Build completed successfully"
           echo "📦 Artifacts uploaded for future deployment"
           echo "🚀 Ready for deployment when infrastructure is prepared"
+
+      - name: Foundation ready notification
+        if: steps.check-scaffold.outputs.scaffolded == 'false'
+        run: |
+          echo "🏗️ Foundation Setup Complete"
+          echo "📋 Infrastructure Status:"
+          echo "  ✅ GitHub Actions workflows configured"
+          echo "  ✅ Dependencies and package.json ready"
+          echo "  ✅ Project structure prepared for scaffolding"
+          echo "🚀 Ready for Epic 1: Core Platform Foundation"
+          echo ""
+          echo "Next Steps:"
+          echo "  1. Run Epic Breakdown Agent for Epic 1"
+          echo "  2. Scaffold Vite + React + TypeScript structure"
+          echo "  3. Implement AI Native patterns"
 
   # =============================================================================
   # OBSERVATORY NOTIFICATION
