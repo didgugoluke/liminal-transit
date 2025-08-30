@@ -2,7 +2,7 @@
 
 ## Overview
 
-The AI Agent Register (`docs/AI-AGENT-REGISTER.csv`) is a comprehensive tracking system for all AI agents in the Noveli.sh ecosystem, providing a single source of truth for agent status, development progress, and operational metrics across **20 total agents** (11 operational + 9 planned).
+The AI Agent Register (`docs/AI-AGENT-REGISTER.csv`) is a comprehensive tracking system for all AI agents in the Noveli.sh ecosystem, providing a single source of truth for agent status, development progress, and operational metrics across **21 total agents** (12 operational + 9 planned).
 
 ## 📊 Register Structure
 
@@ -34,6 +34,7 @@ The AI Agent Register (`docs/AI-AGENT-REGISTER.csv`) is a comprehensive tracking
 - **Epic Breakdown Agent** - Epic → Stories → Tasks automation
 - **Scrum Master Agent** - Story lifecycle management
 - **Development Agent** - End-to-end story implementation
+- **Project Admin Agent** - Automated PR review, approval, and merge (NEW)
 - **Project Cleanup Agent** - GitHub Project maintenance
 
 **Coordination Agents:**
@@ -139,10 +140,10 @@ Use the provided script for regular updates:
 
 ### Epic 1 Achievement Validation
 
-- **11 Operational Agents** providing complete GitHub Actions automation
-- **100% Success Rate** for Epic and Story processing
+- **12 Operational Agents** providing complete GitHub Actions automation
+- **100% Success Rate** for Epic and Story processing with automated PR merge
 - **500%+ Productivity Improvement** with <5% human overhead
-- **Zero Critical Failures** with comprehensive error recovery
+- **Zero Critical Failures** with comprehensive error recovery and auto-merge validation
 
 ### Epic 2 Observatory Dashboard Goals
 

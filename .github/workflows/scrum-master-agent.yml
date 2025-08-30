@@ -106,7 +106,18 @@ jobs:
           echo "current_status=$CURRENT_STATUS" >> $GITHUB_OUTPUT
 
           # Check if story has associated tasks
-          TASKS=$(gh issue list --search "Epic.*$(echo "$STORY_TITLE" | grep -o 'Story [0-9]*')" --json number,title --label epic-task)
+          # Try multiple search patterns for different story types
+          if [[ "$STORY_TITLE" =~ Story[[:space:]]+[0-9]+ ]]; then
+            # Epic story pattern: "Epic.*Story X"
+            STORY_PATTERN=$(echo "$STORY_TITLE" | grep -o 'Story [0-9]*')
+            TASKS=$(gh issue list --search "Epic.*$STORY_PATTERN" --json number,title --label epic-task)
+          else
+            # Non-Epic story pattern: search for tasks that reference the story
+            # For "Hello World E2E", search for tasks containing "Hello World"
+            STORY_KEYWORDS=$(echo "$STORY_TITLE" | sed 's/E2E//' | sed 's/[[:space:]]*$//')
+            TASKS=$(gh issue list --search "$STORY_KEYWORDS" --json number,title --label epic-task)
+          fi
+          
           TASK_COUNT=$(echo "$TASKS" | jq length)
           TASK_NUMBERS=$(echo "$TASKS" | jq -r '.[].number' | tr '\n' ',' | sed 's/,$//')
 
