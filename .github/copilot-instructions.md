@@ -151,6 +151,7 @@ scripts/
 ## Development Guidelines
 
 - **AI-First Development**: All features begin with AI agent analysis and implementation
+- **Agent Template**: Use `docs/AGENT-TEMPLATE-GOLD-STANDARD.md` for all new GitHub Actions agents
 - **Code Quality**: strict TS, ESLint, Prettier, no `any`, comprehensive testing
 - **Autonomous Testing**: AI-generated unit, integration, E2E, and accessibility tests
 - **Self-Documenting**: AI-generated documentation, JSDoc, and architectural diagrams

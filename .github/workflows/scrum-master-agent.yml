@@ -60,17 +60,22 @@ jobs:
           echo "Repository: ${{ github.repository }}"
           echo "Trigger: ${{ github.event_name }}"
 
-          # Set story number and action based on trigger
+          # Set story number and action based on trigger with proper defaults
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            STORY_NUMBER="${{ github.event.inputs.story_number }}"
-            ACTION="${{ github.event.inputs.action }}"
+            STORY_NUMBER="${{ github.event.inputs.story_number || '54' }}"
+            ACTION="${{ github.event.inputs.action || 'start_story' }}"
           else
             # Extract story number from issue or comment context
-            if [ "${{ github.event.issue.number }}" ]; then
-              STORY_NUMBER="${{ github.event.issue.number }}"
-            else
-              STORY_NUMBER="54"  # Default to our test story
-            fi
+            STORY_NUMBER="${{ github.event.issue.number || '54' }}"
+            ACTION="start_story"
+          fi
+
+          # Validate inputs before setting environment
+          if [ -z "$STORY_NUMBER" ] || [ "$STORY_NUMBER" = "null" ]; then
+            STORY_NUMBER="54"
+          fi
+          
+          if [ -z "$ACTION" ] || [ "$ACTION" = "null" ]; then
             ACTION="start_story"
           fi
 
@@ -84,9 +89,6 @@ jobs:
       - name: 📊 Analyze Story State
         id: analyze
         run: |
-          STORY_NUMBER="${{ env.STORY_NUMBER }}"
-          PROJECT_ID="${{ env.PROJECT_ID }}"
-
           echo "🔍 Analyzing Story #$STORY_NUMBER current state..."
 
           # Get story details
@@ -194,12 +196,17 @@ jobs:
           esac
         env:
           GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+          ACTION: ${{ env.ACTION }}
+          STORY_NUMBER: ${{ env.STORY_NUMBER }}
+          PROJECT_ID: ${{ env.PROJECT_ID }}
 
       - name: 🎯 Schedule Next Actions
         if: steps.execute.outputs.next_action
+        env:
+          STORY_NUMBER: ${{ env.STORY_NUMBER }}
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
         run: |
           NEXT_ACTION="${{ steps.execute.outputs.next_action }}"
-          STORY_NUMBER="${{ env.STORY_NUMBER }}"
 
           echo "⏰ Scheduling next action: $NEXT_ACTION"
 
@@ -212,13 +219,13 @@ jobs:
               --field story_number="$STORY_NUMBER" \
               --field action="take_story" || echo "Development Agent workflow may need manual trigger"
           fi
-        env:
-          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
 
       - name: 📋 Generate Scrum Report
+        env:
+          STORY_NUMBER: ${{ env.STORY_NUMBER }}
+          ACTION: ${{ env.ACTION }}
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
         run: |
-          STORY_NUMBER="${{ env.STORY_NUMBER }}"
-          ACTION="${{ env.ACTION }}"
           ACTION_RESULT="${{ steps.execute.outputs.action_result }}"
           STORY_TITLE="${{ steps.analyze.outputs.story_title }}"
           CURRENT_STATUS="${{ steps.analyze.outputs.current_status }}"
@@ -238,12 +245,14 @@ jobs:
 
       - name: 💬 Update Test Case Issue
         if: env.STORY_NUMBER == '54'
+        env:
+          STORY_NUMBER: ${{ env.STORY_NUMBER }}
+          ACTION: ${{ env.ACTION }}
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
         run: |
           ACTION_RESULT="${{ steps.execute.outputs.action_result }}"
 
-          gh issue comment 62 --body "🏃‍♂️ Scrum Master Agent Update. Test Story #54. Action: ${{ env.ACTION }}. Result: $ACTION_RESULT. Timestamp: $(date). End-to-end test progressing."
-        env:
-          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+          gh issue comment 62 --body "🏃‍♂️ Scrum Master Agent Update. Test Story #54. Action: $ACTION. Result: $ACTION_RESULT. Timestamp: $(date). End-to-end test progressing."
 
       - name: ✅ Scrum Master Completion
         run: |
