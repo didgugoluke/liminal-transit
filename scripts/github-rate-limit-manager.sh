@@ -242,24 +242,8 @@ safe_project_item_list() {
     fi
     
     log_rate_info "Fetching fresh project data"
-    local temp_file="/tmp/project_${project_id}_temp.json"
-    
-    # Fetch to temp file first and validate JSON
-    if GH_TOKEN="${GH_TOKEN:-$GITHUB_TOKEN}" gh project item-list "$project_id" --owner "@me" --format json > "$temp_file" 2>/dev/null; then
-        # Validate that it's proper JSON
-        if jq empty "$temp_file" 2>/dev/null; then
-            mv "$temp_file" "$cache_file"
-            cat "$cache_file"
-        else
-            log_rate_error "Invalid JSON returned from project item-list"
-            rm -f "$temp_file"
-            return 1
-        fi
-    else
-        log_rate_error "Failed to fetch project data"
-        rm -f "$temp_file"
-        return 1
-    fi
+    GH_TOKEN="${GH_TOKEN:-$GITHUB_TOKEN}" gh project item-list "$project_id" --owner "@me" --format json > "$cache_file"
+    cat "$cache_file"
 }
 
 # Safe project item edit with rate limiting
@@ -290,16 +274,8 @@ batch_project_status_update() {
     local project_items
     project_items=$(safe_project_item_list "$project_id")
     
-    if [ $? -ne 0 ] || [ -z "$project_items" ]; then
+    if [ $? -ne 0 ]; then
         log_rate_error "Failed to get project items"
-        return 1
-    fi
-    
-    # Validate JSON before processing
-    if ! echo "$project_items" | jq empty 2>/dev/null; then
-        log_rate_error "Invalid JSON in project items response"
-        # Clear potentially corrupted cache
-        rm -f "/tmp/project_${project_id}_cache.json" "/tmp/project_${project_id}_temp.json"
         return 1
     fi
     
