@@ -481,16 +481,17 @@ jobs:
           echo "📋 Story: #$STORY_NUMBER - $STORY_TITLE"
           echo "🏷️ Labels: $STORY_LABELS"
 
-          # Set environment variables for subsequent steps
+          # Set environment variables for subsequent steps (avoid large markdown content)
           echo "STORY_NUMBER=$STORY_NUMBER" >> $GITHUB_ENV
           echo "STORY_TITLE=$STORY_TITLE" >> $GITHUB_ENV
-          echo "STORY_BODY=$STORY_BODY" >> $GITHUB_ENV
           echo "STORY_LABELS=$STORY_LABELS" >> $GITHUB_ENV
 
-          # Export for step outputs (alternative access pattern)
+          # Save story body to file to avoid GitHub Actions parsing issues
+          echo "$STORY_BODY" > /tmp/story_body.md
+
+          # Export for step outputs (minimal data only)
           echo "story_number=$STORY_NUMBER" >> $GITHUB_OUTPUT
           echo "story_title=$STORY_TITLE" >> $GITHUB_OUTPUT
-          echo "story_body=$STORY_BODY" >> $GITHUB_OUTPUT
           echo "story_labels=$STORY_LABELS" >> $GITHUB_OUTPUT
 
       - name: 🎯 Enhanced Development Execution
@@ -499,7 +500,6 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           STORY_NUMBER: ${{ env.STORY_NUMBER }}
           STORY_TITLE: ${{ env.STORY_TITLE }}
-          STORY_BODY: ${{ env.STORY_BODY }}
           STORY_LABELS: ${{ env.STORY_LABELS }}
         run: |
           echo "🚀 Executing enhanced development workflow..."
