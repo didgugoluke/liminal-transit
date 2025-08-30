@@ -131,9 +131,9 @@ jobs:
         run: |
           echo "Analyzing file scope for transformations..."
           
-          # Find all files that match our scope
+          # Find all files that match our scope (exclude workflows)
           find . -type f \( -name "*.md" -o -name "*.json" -o -name "*.yml" -o -name "*.yaml" -o -name "*.js" -o -name "*.ts" -o -name "*.sh" \) \
-            ! -path "./.git/*" ! -path "./node_modules/*" ! -name ".DS_Store" > target_files.txt
+            ! -path "./.git/*" ! -path "./node_modules/*" ! -path "./.github/workflows/*" ! -name ".DS_Store" > target_files.txt
           
           FILE_COUNT=$(wc -l < target_files.txt)
           echo "Found $FILE_COUNT files in scope"
@@ -225,9 +225,9 @@ jobs:
             if [ -n "$find_pattern" ] && [ -n "$replace_pattern" ]; then
               echo "Replacing: $find_pattern → $replace_pattern"
               
-              # Execute find/replace on target files
+              # Execute find/replace on target files (exclude workflows)
               find . -type f \( -name "*.md" -o -name "*.json" -o -name "*.yml" -o -name "*.yaml" -o -name "*.js" -o -name "*.ts" -o -name "*.sh" \) \
-                ! -path "./.git/*" ! -path "./node_modules/*" ! -name ".DS_Store" \
+                ! -path "./.git/*" ! -path "./node_modules/*" ! -path "./.github/workflows/*" ! -name ".DS_Store" \
                 -exec sed -i.bak "s|$find_pattern|$replace_pattern|g" {} \;
               
               # Clean up backup files
