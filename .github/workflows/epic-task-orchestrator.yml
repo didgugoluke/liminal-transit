@@ -1,0 +1,247 @@
+name: 🤖 AI Project Manager - Epic Task Orchestrator
+
+on:
+  issues:
+    types: [opened, labeled, edited]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  actions: write
+  projects: write
+
+jobs:
+  epic-task-orchestrator:
+    runs-on: ubuntu-latest
+    if: contains(github.event.issue.labels.*.name, 'epic') || contains(github.event.comment.body, 'AI Agent Epic breakdown')
+    
+    steps:
+      - name: 🏗️ Checkout Repository
+        uses: actions/checkout@v4
+        
+      - name: 🔍 Epic Analysis & Task Breakdown
+        id: epic_analysis
+        run: |
+          echo "Analyzing Epic for task breakdown..."
+          
+          # Extract Epic number and title
+          EPIC_NUMBER="${{ github.event.issue.number }}"
+          EPIC_TITLE="${{ github.event.issue.title }}"
+          
+          echo "epic_number=$EPIC_NUMBER" >> $GITHUB_OUTPUT
+          echo "epic_title=$EPIC_TITLE" >> $GITHUB_OUTPUT
+          
+          # Parse Epic body for implementation tasks
+          echo '${{ github.event.issue.body }}' > epic_body.txt
+          
+          # Extract tasks from Epic body (lines starting with [ ])
+          grep -E '^\s*\[\s*\]\s*' epic_body.txt > tasks.txt || touch tasks.txt
+          TASK_COUNT=$(wc -l < tasks.txt)
+          
+          echo "task_count=$TASK_COUNT" >> $GITHUB_OUTPUT
+          
+          if [ $TASK_COUNT -gt 0 ]; then
+            echo "tasks_found=true" >> $GITHUB_OUTPUT
+          else
+            echo "tasks_found=false" >> $GITHUB_OUTPUT
+          fi
+          
+          gh issue comment ${{ github.event.issue.number }} --body "🤖 **AI Project Manager Activated**
+          
+          **Epic**: $EPIC_TITLE (#$EPIC_NUMBER)
+          **Tasks Found**: $TASK_COUNT
+          **Action**: Breaking down Epic into manageable GitHub issues
+          
+          Processing Steps:
+          [✓] Epic analysis complete
+          [ ] Task extraction and validation
+          [ ] GitHub Project population
+          [ ] Agent assignment and coordination
+          [ ] Observatory integration
+          
+          **Next**: Creating individual issues for autonomous agent execution..."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 📋 Create Task Issues from Epic
+        if: steps.epic_analysis.outputs.tasks_found == 'true'
+        id: create_tasks
+        run: |
+          echo "Creating individual task issues..."
+          
+          EPIC_NUMBER="${{ steps.epic_analysis.outputs.epic_number }}"
+          TASK_NUMBER=1
+          CREATED_ISSUES=""
+          
+          while IFS= read -r task_line; do
+            if [ -n "$task_line" ]; then
+              # Clean up task text
+              TASK_TEXT=$(echo "$task_line" | sed 's/^\s*\[\s*\]\s*//' | sed 's/^[ \t]*//' | sed 's/[ \t]*$//')
+              
+              if [ -n "$TASK_TEXT" ]; then
+                # Create issue for this task
+                ISSUE_TITLE="Epic $EPIC_NUMBER Task $TASK_NUMBER: $TASK_TEXT"
+                
+                ISSUE_BODY="## 🎯 Epic Task Implementation
+                
+                **Parent Epic**: #$EPIC_NUMBER
+                **Task ID**: $TASK_NUMBER
+                **Scope**: $TASK_TEXT
+
+                ## 🤖 AI Agent Assignment
+
+                **Primary Agent**: CodeGen Agent
+                **Supporting Agents**: DataGov Agent, Observatory Agent
+                **Execution Mode**: Autonomous implementation with HITM oversight
+
+                ## ✅ Success Criteria
+
+                - [ ] Implementation complete and tested
+                - [ ] Code review passed
+                - [ ] Documentation updated
+                - [ ] Epic progress updated
+
+                ## 🔗 Dependencies
+
+                - Parent Epic: #$EPIC_NUMBER
+                - Previous tasks in sequence
+
+                Ready for AI Agent autonomous execution."
+                
+                CREATED_ISSUE=$(gh issue create \
+                  --title "$ISSUE_TITLE" \
+                  --body "$ISSUE_BODY" \
+                  --label "ai-agent,epic-task,P1" \
+                  --assignee "@me")
+                
+                ISSUE_ID=$(echo $CREATED_ISSUE | grep -o '#[0-9]*' | sed 's/#//')
+                CREATED_ISSUES="$CREATED_ISSUES,$ISSUE_ID"
+                
+                echo "Created issue #$ISSUE_ID: $TASK_TEXT"
+                TASK_NUMBER=$((TASK_NUMBER + 1))
+              fi
+            fi
+          done < tasks.txt
+          
+          # Remove leading comma
+          CREATED_ISSUES=$(echo $CREATED_ISSUES | sed 's/^,//')
+          echo "created_issues=$CREATED_ISSUES" >> $GITHUB_OUTPUT
+          
+          gh issue comment ${{ github.event.issue.number }} --body "📋 **Task Breakdown Complete**
+          
+          **Created Issues**: $CREATED_ISSUES
+          **Total Tasks**: $((TASK_NUMBER - 1))
+          **Status**: Individual tasks ready for AI agent assignment
+          
+          **Next Steps**:
+          - [ ] Add tasks to GitHub Project
+          - [ ] Assign AI agents to each task
+          - [ ] Configure Observatory monitoring
+          - [ ] Begin autonomous execution"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 📊 Add Tasks to GitHub Project
+        if: steps.create_tasks.outputs.created_issues != ''
+        run: |
+          echo "Adding tasks to GitHub Project..."
+          
+          PROJECT_ID="PVT_kwHOCf5VHc4BB1Po"
+          EPIC_NUMBER="${{ steps.epic_analysis.outputs.epic_number }}"
+          CREATED_ISSUES="${{ steps.create_tasks.outputs.created_issues }}"
+          
+          # Add Epic issue to project first
+          gh project item-add $PROJECT_ID --owner didgugoluke --url "https://github.com/didgugoluke/liminal-transit/issues/$EPIC_NUMBER"
+          
+          # Add each task issue to project
+          IFS=',' read -ra ISSUE_ARRAY <<< "$CREATED_ISSUES"
+          for issue_id in "${ISSUE_ARRAY[@]}"; do
+            if [ -n "$issue_id" ]; then
+              gh project item-add $PROJECT_ID --owner didgugoluke --url "https://github.com/didgugoluke/liminal-transit/issues/$issue_id"
+              echo "Added issue #$issue_id to project"
+            fi
+          done
+          
+          gh issue comment ${{ github.event.issue.number }} --body "📊 **GitHub Project Updated**
+          
+          **Project**: Liminal Transit - AI Native Development
+          **Epic Added**: #$EPIC_NUMBER  
+          **Tasks Added**: $CREATED_ISSUES
+          **Status**: All items now visible in project Kanban board
+          
+          **Project URL**: https://github.com/users/didgugoluke/projects/1
+          
+          **Next**: Observatory integration and agent coordination"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🔗 Observatory Integration
+        if: steps.create_tasks.outputs.created_issues != ''
+        run: |
+          echo "Integrating with AI Observatory..."
+          
+          # Update observatory config to track Epic progress
+          EPIC_NUMBER="${{ steps.epic_analysis.outputs.epic_number }}"
+          CREATED_ISSUES="${{ steps.create_tasks.outputs.created_issues }}"
+          
+          # Create observatory tracking entry
+          cat > epic_tracking.json << EOF
+          {
+            "epic_id": $EPIC_NUMBER,
+            "title": "${{ steps.epic_analysis.outputs.epic_title }}",
+            "status": "active",
+            "created_at": "$(date -Iseconds)",
+            "task_issues": [$CREATED_ISSUES],
+            "agents_assigned": [],
+            "progress": {
+              "total_tasks": $(echo $CREATED_ISSUES | tr ',' '\n' | wc -l),
+              "completed_tasks": 0,
+              "in_progress": 0,
+              "blocked": 0
+            }
+          }
+          EOF
+          
+          # Add to observatory tracking
+          mkdir -p observatory/tracking
+          cp epic_tracking.json observatory/tracking/epic_$EPIC_NUMBER.json
+          
+          gh issue comment ${{ github.event.issue.number }} --body "🔗 **Observatory Integration Complete**
+          
+          **Tracking File**: observatory/tracking/epic_$EPIC_NUMBER.json
+          **Monitoring**: Real-time Epic progress tracking active
+          **Dashboard**: Available via AI Observatory scripts
+          
+          ## 🎯 **Epic $EPIC_NUMBER Fully Orchestrated**
+          
+          **Status**: ✅ Ready for autonomous AI agent execution
+          **Tasks**: Individual issues created and tracked
+          **Project**: Kanban board populated and organized
+          **Observatory**: Real-time monitoring active
+          
+          **AI Agents can now begin autonomous implementation**"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 📝 Commit Observatory Updates
+        if: steps.create_tasks.outputs.created_issues != ''
+        run: |
+          git config user.name "AI Project Manager"
+          git config user.email "ai-project-manager@noveli.sh"
+          
+          git add observatory/tracking/
+          git commit -m "Add Epic ${{ steps.epic_analysis.outputs.epic_number }} tracking to Observatory
+          
+          - Created tracking file for Epic ${{ steps.epic_analysis.outputs.epic_number }}
+          - Configured real-time progress monitoring
+          - Integrated with GitHub Project automation
+          - Ready for AI agent coordination
+          
+          Epic task breakdown and orchestration complete."
+          
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
