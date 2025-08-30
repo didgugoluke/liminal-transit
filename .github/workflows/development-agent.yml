@@ -518,6 +518,21 @@ jobs:
               # Update story status to "In Progress"
               gh issue edit "$STORY_NUMBER" --add-label "in-progress"
               
+              # Update project status from Todo to In Progress
+              echo "📋 Moving story to In Progress status..."
+              ITEM_ID=$(gh project item-list "2" --owner "didgugoluke" --format json | jq -r --arg title "$STORY_TITLE" '.items[] | select(.content.title == $title) | .id')
+              
+              if [ -n "$ITEM_ID" ] && [ "$ITEM_ID" != "null" ]; then
+                echo "Found item ID: $ITEM_ID"
+                if gh project item-edit --id "$ITEM_ID" --field-id "PVTSSF_lAHOCf5VHc4BB2AJzg0OtoQ" --single-select-option-id "47fc9ee4" --project-id "PVT_kwHOCf5VHc4BB2AJ"; then
+                  echo "✅ Story moved to In Progress status"
+                else
+                  echo "⚠️ Failed to update project status to In Progress"
+                fi
+              else
+                echo "⚠️ Could not find item ID for story: $STORY_TITLE"
+              fi
+              
               # Create status comment using printf approach
               printf '%s\n' \
                 '🚀 **Enhanced Development Agent started**' \
