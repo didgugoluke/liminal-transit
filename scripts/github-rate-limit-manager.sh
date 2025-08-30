@@ -14,10 +14,10 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-# Rate limit thresholds
-GRAPHQL_MIN_REMAINING=200
-REST_MIN_REMAINING=500
-SEARCH_MIN_REMAINING=10
+# Rate limit thresholds - more reasonable for agent operations
+GRAPHQL_MIN_REMAINING=50
+REST_MIN_REMAINING=100
+SEARCH_MIN_REMAINING=5
 
 # Logging functions
 log_rate_info() {
@@ -44,8 +44,21 @@ log_rate_success() {
 check_all_rate_limits() {
     log_rate_info "Checking GitHub API rate limits..."
     
+    # Test if GitHub CLI is working
+    if ! gh api rate_limit >/dev/null 2>&1; then
+        log_rate_error "GitHub CLI not working or not authenticated"
+        echo "RATE_LIMIT_STATUS=ERROR"
+        return 1
+    fi
+    
     local rate_data
-    rate_data=$(gh api rate_limit 2>/dev/null || echo '{"resources":{"core":{"remaining":0},"graphql":{"remaining":0},"search":{"remaining":0}}}')
+    rate_data=$(gh api rate_limit 2>/dev/null)
+    
+    if [ -z "$rate_data" ]; then
+        log_rate_error "Failed to fetch rate limit data"
+        echo "RATE_LIMIT_STATUS=ERROR"
+        return 1
+    fi
     
     local graphql_remaining
     local rest_remaining
@@ -54,13 +67,33 @@ check_all_rate_limits() {
     local rest_reset
     local search_reset
     
-    graphql_remaining=$(echo "$rate_data" | jq -r '.resources.graphql.remaining // 0')
-    rest_remaining=$(echo "$rate_data" | jq -r '.resources.core.remaining // 0')
-    search_remaining=$(echo "$rate_data" | jq -r '.resources.search.remaining // 0')
+    # Use jq with fallback to grep/sed if jq is not available
+    if command -v jq >/dev/null 2>&1; then
+        graphql_remaining=$(echo "$rate_data" | jq -r '.resources.graphql.remaining // 0')
+        rest_remaining=$(echo "$rate_data" | jq -r '.resources.core.remaining // 0')
+        search_remaining=$(echo "$rate_data" | jq -r '.resources.search.remaining // 0')
+        
+        graphql_reset=$(echo "$rate_data" | jq -r '.resources.graphql.reset // 0')
+        rest_reset=$(echo "$rate_data" | jq -r '.resources.core.reset // 0')
+        search_reset=$(echo "$rate_data" | jq -r '.resources.search.reset // 0')
+    else
+        # Fallback parsing without jq
+        log_rate_warning "jq not available, using fallback parsing"
+        graphql_remaining=$(echo "$rate_data" | grep -o '"graphql":{[^}]*"remaining":[^,]*' | grep -o '[0-9]*' | tail -1 || echo "0")
+        rest_remaining=$(echo "$rate_data" | grep -o '"core":{[^}]*"remaining":[^,]*' | grep -o '[0-9]*' | tail -1 || echo "0")
+        search_remaining=$(echo "$rate_data" | grep -o '"search":{[^}]*"remaining":[^,]*' | grep -o '[0-9]*' | tail -1 || echo "0")
+        
+        graphql_reset=$(echo "$rate_data" | grep -o '"graphql":{[^}]*"reset":[^,}]*' | grep -o '[0-9]*' | tail -1 || echo "0")
+        rest_reset=$(echo "$rate_data" | grep -o '"core":{[^}]*"reset":[^,}]*' | grep -o '[0-9]*' | tail -1 || echo "0")
+        search_reset=$(echo "$rate_data" | grep -o '"search":{[^}]*"reset":[^,}]*' | grep -o '[0-9]*' | tail -1 || echo "0")
+    fi
     
-    graphql_reset=$(echo "$rate_data" | jq -r '.resources.graphql.reset // 0')
-    rest_reset=$(echo "$rate_data" | jq -r '.resources.core.reset // 0')
-    search_reset=$(echo "$rate_data" | jq -r '.resources.search.reset // 0')
+    # Validate that we got numbers
+    if ! [[ "$graphql_remaining" =~ ^[0-9]+$ ]] || ! [[ "$rest_remaining" =~ ^[0-9]+$ ]] || ! [[ "$search_remaining" =~ ^[0-9]+$ ]]; then
+        log_rate_error "Failed to parse rate limit numbers: GraphQL=$graphql_remaining, REST=$rest_remaining, Search=$search_remaining"
+        echo "RATE_LIMIT_STATUS=ERROR"
+        return 1
+    fi
     
     echo "GRAPHQL_REMAINING=$graphql_remaining"
     echo "REST_REMAINING=$rest_remaining"
