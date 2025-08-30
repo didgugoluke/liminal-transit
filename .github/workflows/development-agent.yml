@@ -776,11 +776,23 @@ jobs:
                   # Auto-format code files before committing
                   if [ -f "package.json" ] && grep -q '"prettier"' package.json; then
                     echo "🎨 Auto-formatting code with Prettier..."
+                    
+                    # Ensure dependencies are installed
                     if command -v pnpm >/dev/null 2>&1; then
-                      pnpm format 2>/dev/null || echo "⚠️ Prettier formatting failed, continuing..."
+                      echo "📦 Installing dependencies with pnpm..."
+                      pnpm install --silent
+                      echo "🎨 Running Prettier format..."
+                      pnpm format || echo "⚠️ Prettier formatting failed, continuing..."
                     elif command -v npm >/dev/null 2>&1; then
-                      npm run format 2>/dev/null || echo "⚠️ Prettier formatting failed, continuing..."
+                      echo "📦 Installing dependencies with npm..."
+                      npm install --silent
+                      echo "🎨 Running Prettier format..."
+                      npm run format || echo "⚠️ Prettier formatting failed, continuing..."
+                    else
+                      echo "⚠️ No package manager found, skipping formatting"
                     fi
+                  else
+                    echo "📝 No Prettier config found, skipping formatting"
                   fi
                   
                   git add .
