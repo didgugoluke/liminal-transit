@@ -21,9 +21,20 @@ jobs:
     steps:
       - name: 🤖 AI Agent Initialization
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0
+
+      - name: Setup Rate Limiting
+        run: |
+          echo "Setting up rate limiting for workflow..."
+          chmod +x scripts/github-rate-limit-manager.sh
+
+          # Check initial rate limits
+          if ! scripts/github-rate-limit-manager.sh check; then
+            echo "❌ Rate limits too low for workflow operations"
+            scripts/github-rate-limit-manager.sh emergency "find-replace-agent.yml"
+            exit 1
+          fi
+
+          echo "✅ Rate limits OK - proceeding with operations"
 
       - name: ⚙️ Configure Git and GitHub CLI
         run: |
