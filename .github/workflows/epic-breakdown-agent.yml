@@ -771,7 +771,7 @@ jobs:
           IFS=',' read -ra STORIES <<< "$STORY_IDS"
           for story_id in "${STORIES[@]}"; do
             if [ -n "$story_id" ]; then
-              if GH_TOKEN="${{ secrets.PROJECT_TOKEN }}" gh project item-add https://github.com/users/didgugoluke/projects/2 --url "https://github.com/didgugoluke/liminal-transit/issues/$story_id" 2>/dev/null; then
+              if GH_TOKEN="${{ secrets.PROJECT_TOKEN }}" gh project item-add PVT_kwHOCf5VHc4BB2AJ --url "https://github.com/didgugoluke/liminal-transit/issues/$story_id" 2>/dev/null; then
                 echo "✅ Added Story #$story_id to Noveli Project"
                 ADDED_STORIES=$((ADDED_STORIES + 1))
               else
@@ -785,7 +785,7 @@ jobs:
           IFS=',' read -ra TASKS <<< "$TASK_IDS"
           for task_id in "${TASKS[@]}"; do
             if [ -n "$task_id" ]; then
-              if GH_TOKEN="${{ secrets.PROJECT_TOKEN }}" gh project item-add https://github.com/users/didgugoluke/projects/2 --url "https://github.com/didgugoluke/liminal-transit/issues/$task_id" 2>/dev/null; then
+              if GH_TOKEN="${{ secrets.PROJECT_TOKEN }}" gh project item-add PVT_kwHOCf5VHc4BB2AJ --url "https://github.com/didgugoluke/liminal-transit/issues/$task_id" 2>/dev/null; then
                 echo "✅ Added Task #$task_id to Noveli Project"
                 ADDED_TASKS=$((ADDED_TASKS + 1))
               else
