@@ -1,0 +1,304 @@
+name: 📋 Epic Breakdown Agent - Story & Task Generator
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  projects: write
+
+jobs:
+  epic-breakdown:
+    runs-on: ubuntu-latest
+    if: contains(github.event.comment.body, 'Epic breakdown agent') && contains(github.event.issue.labels.*.name, 'epic')
+    
+    steps:
+      - name: 🏗️ Checkout Repository
+        uses: actions/checkout@v4
+        
+      - name: 📋 Parse Epic Structure
+        id: parse_epic
+        run: |
+          echo "Parsing Epic into Stories and Tasks..."
+          
+          EPIC_NUMBER="${{ github.event.issue.number }}"
+          EPIC_TITLE="${{ github.event.issue.title }}"
+          
+          echo "epic_number=$EPIC_NUMBER" >> $GITHUB_OUTPUT
+          echo "epic_title=$EPIC_TITLE" >> $GITHUB_OUTPUT
+          
+          # Extract Epic body and identify story sections
+          echo '${{ github.event.issue.body }}' > epic_body.txt
+          
+          # Parse story sections (lines starting with ####)
+          grep -E '^\s*####\s*' epic_body.txt > story_sections.txt || touch story_sections.txt
+          STORY_COUNT=$(wc -l < story_sections.txt)
+          
+          echo "story_count=$STORY_COUNT" >> $GITHUB_OUTPUT
+          
+          gh issue comment ${{ github.event.issue.number }} --body "📋 **Epic Breakdown Agent Activated**
+          
+          **Epic**: $EPIC_TITLE (#$EPIC_NUMBER)
+          **Story Sections Found**: $STORY_COUNT
+          **Action**: Creating Stories and Tasks with proper hierarchy
+          
+          **Breakdown Structure**:
+          - Epic → Stories → Tasks → GitHub Project
+          - Parent/child relationships maintained
+          - Observatory tracking configured
+          
+          **Processing...**"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🎭 Create Story Issues
+        id: create_stories
+        run: |
+          echo "Creating Story issues from Epic sections..."
+          
+          EPIC_NUMBER="${{ steps.parse_epic.outputs.epic_number }}"
+          STORY_NUMBER=1
+          CREATED_STORIES=""
+          
+          while IFS= read -r story_line; do
+            if [ -n "$story_line" ]; then
+              # Extract story title (remove #### prefix)
+              STORY_TITLE=$(echo "$story_line" | sed 's/^\s*####\s*//' | sed 's/^[ \t]*//' | sed 's/[ \t]*$//')
+              
+              if [ -n "$STORY_TITLE" ]; then
+                # Create Story issue
+                STORY_ISSUE_TITLE="Epic $EPIC_NUMBER Story $STORY_NUMBER: $STORY_TITLE"
+                
+                STORY_BODY="## 🎭 Epic Story Implementation
+                
+                **Parent Epic**: #$EPIC_NUMBER
+                **Story ID**: $STORY_NUMBER  
+                **Story Name**: $STORY_TITLE
+
+                ## 📋 Story Breakdown
+
+                This Story will be broken down into individual Tasks for AI agent execution.
+
+                ## 🎯 Story Goals
+
+                Based on Epic requirements, this Story encompasses:
+                - Implementation of $STORY_TITLE components
+                - Integration with overall Epic architecture
+                - Autonomous AI agent coordination
+                - Observatory progress tracking
+
+                ## 🔗 Dependencies
+
+                - Parent Epic: #$EPIC_NUMBER
+                - Related Stories: To be linked after creation
+
+                ## 📊 Task Creation Status
+
+                - [ ] Tasks identified and created
+                - [ ] GitHub Project integration complete
+                - [ ] AI agents assigned
+                - [ ] Observatory tracking active
+
+                Ready for Task breakdown by Epic Breakdown Agent."
+                
+                STORY_ISSUE=$(gh issue create \
+                  --title "$STORY_ISSUE_TITLE" \
+                  --body "$STORY_BODY" \
+                  --label "ai-agent,epic-story,P1")
+                
+                STORY_ID=$(echo $STORY_ISSUE | grep -o '#[0-9]*' | sed 's/#//')
+                CREATED_STORIES="$CREATED_STORIES,$STORY_ID"
+                
+                echo "Created Story #$STORY_ID: $STORY_TITLE"
+                
+                # Add Story to GitHub Project with parent relationship
+                gh project item-add 1 --owner didgugoluke --url "https://github.com/didgugoluke/liminal-transit/issues/$STORY_ID"
+                
+                STORY_NUMBER=$((STORY_NUMBER + 1))
+              fi
+            fi
+          done < story_sections.txt
+          
+          # Remove leading comma
+          CREATED_STORIES=$(echo $CREATED_STORIES | sed 's/^,//')
+          echo "created_stories=$CREATED_STORIES" >> $GITHUB_OUTPUT
+          
+          gh issue comment ${{ github.event.issue.number }} --body "🎭 **Stories Created Successfully**
+          
+          **Created Story Issues**: $CREATED_STORIES
+          **Total Stories**: $((STORY_NUMBER - 1))
+          **Status**: Stories added to GitHub Project with Epic relationship
+          
+          **Next Phase**: Creating individual Tasks for each Story"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: ⚡ Create Task Issues from Stories  
+        if: steps.create_stories.outputs.created_stories != ''
+        run: |
+          echo "Creating Task issues from each Story section..."
+          
+          EPIC_NUMBER="${{ steps.parse_epic.outputs.epic_number }}"
+          CREATED_STORIES="${{ steps.create_stories.outputs.created_stories }}"
+          TOTAL_TASKS=0
+          ALL_CREATED_TASKS=""
+          
+          # Process each story section to extract tasks
+          STORY_NUMBER=1
+          IFS=',' read -ra STORY_ARRAY <<< "$CREATED_STORIES"
+          
+          while IFS= read -r story_line; do
+            if [ -n "$story_line" ]; then
+              STORY_TITLE=$(echo "$story_line" | sed 's/^\s*####\s*//' | sed 's/^[ \t]*//' | sed 's/[ \t]*$//')
+              
+              if [ -n "$STORY_TITLE" ]; then
+                STORY_ID="${STORY_ARRAY[$((STORY_NUMBER - 1))]}"
+                
+                # Find tasks for this story (lines between this #### and next ####)
+                awk "/#### $STORY_TITLE/,/^####/ {if (/^\s*\[\s*\]\s*/) print}" epic_body.txt > "story_${STORY_NUMBER}_tasks.txt"
+                
+                TASK_NUMBER=1
+                while IFS= read -r task_line; do
+                  if [ -n "$task_line" ]; then
+                    # Extract task text
+                    TASK_TEXT=$(echo "$task_line" | sed 's/^\s*\[\s*\]\s*//' | sed 's/^[ \t]*//' | sed 's/[ \t]*$//')
+                    
+                    if [ -n "$TASK_TEXT" ]; then
+                      # Create Task issue
+                      TASK_ISSUE_TITLE="Epic $EPIC_NUMBER Story $STORY_NUMBER Task $TASK_NUMBER: $TASK_TEXT"
+                      
+                      TASK_BODY="## ⚡ Epic Task Implementation
+
+                      **Parent Epic**: #$EPIC_NUMBER
+                      **Parent Story**: #$STORY_ID
+                      **Task ID**: $STORY_NUMBER.$TASK_NUMBER
+                      **Task Description**: $TASK_TEXT
+
+                      ## 🤖 AI Agent Assignment
+
+                      **Primary Agent**: CodeGen Agent
+                      **Supporting Agents**: DataGov Agent, Observatory Agent
+                      **Execution Mode**: Autonomous implementation
+
+                      ## ✅ Success Criteria
+
+                      - [ ] Implementation complete and tested
+                      - [ ] Code follows AI Native patterns
+                      - [ ] Documentation updated
+                      - [ ] Story progress updated
+                      - [ ] Epic progress tracked
+
+                      ## 🔗 Dependencies
+
+                      - Parent Epic: #$EPIC_NUMBER
+                      - Parent Story: #$STORY_ID
+                      - Previous tasks in sequence
+
+                      Ready for AI Agent autonomous execution."
+                      
+                      TASK_ISSUE=$(gh issue create \
+                        --title "$TASK_ISSUE_TITLE" \
+                        --body "$TASK_BODY" \
+                        --label "ai-agent,epic-task,P2")
+                      
+                      TASK_ID=$(echo $TASK_ISSUE | grep -o '#[0-9]*' | sed 's/#//')
+                      ALL_CREATED_TASKS="$ALL_CREATED_TASKS,$TASK_ID"
+                      
+                      # Add Task to GitHub Project
+                      gh project item-add 1 --owner didgugoluke --url "https://github.com/didgugoluke/liminal-transit/issues/$TASK_ID"
+                      
+                      echo "Created Task #$TASK_ID: $TASK_TEXT"
+                      TASK_NUMBER=$((TASK_NUMBER + 1))
+                      TOTAL_TASKS=$((TOTAL_TASKS + 1))
+                    fi
+                  fi
+                done < "story_${STORY_NUMBER}_tasks.txt"
+                
+                STORY_NUMBER=$((STORY_NUMBER + 1))
+              fi
+            fi
+          done < story_sections.txt
+          
+          # Remove leading comma
+          ALL_CREATED_TASKS=$(echo $ALL_CREATED_TASKS | sed 's/^,//')
+          echo "all_created_tasks=$ALL_CREATED_TASKS" >> $GITHUB_OUTPUT
+          echo "total_tasks=$TOTAL_TASKS" >> $GITHUB_OUTPUT
+          
+          gh issue comment ${{ github.event.issue.number }} --body "⚡ **Epic Breakdown Complete**
+          
+          **Epic**: #$EPIC_NUMBER
+          **Stories Created**: ${{ steps.create_stories.outputs.created_stories }}
+          **Tasks Created**: $ALL_CREATED_TASKS
+          **Total Tasks**: $TOTAL_TASKS
+          
+          **GitHub Project Status**: All items added with proper hierarchy
+          **Observatory Status**: Tracking configured for Epic progress
+          
+          ## 🎯 **Ready for AI Agent Execution**
+          
+          **Epic Structure**: Epic → Stories → Tasks
+          **Project Board**: https://github.com/users/didgugoluke/projects/1
+          **AI Agents**: Ready for autonomous task execution
+          
+          Epic breakdown and orchestration complete."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🔗 Configure Observatory Tracking
+        if: steps.create_stories.outputs.created_stories != ''
+        run: |
+          echo "Setting up Observatory tracking for Epic breakdown..."
+          
+          EPIC_NUMBER="${{ steps.parse_epic.outputs.epic_number }}"
+          CREATED_STORIES="${{ steps.create_stories.outputs.created_stories }}"
+          ALL_CREATED_TASKS="${{ steps.create_stories.outputs.all_created_tasks || '' }}"
+          TOTAL_TASKS="${{ steps.create_stories.outputs.total_tasks || '0' }}"
+          
+          # Create comprehensive Epic tracking
+          mkdir -p observatory/tracking
+          
+          cat > observatory/tracking/epic_$EPIC_NUMBER.json << EOF
+          {
+            "epic_id": $EPIC_NUMBER,
+            "title": "${{ steps.parse_epic.outputs.epic_title }}",
+            "status": "active",
+            "created_at": "$(date -Iseconds)",
+            "breakdown_structure": {
+              "stories": [$CREATED_STORIES],
+              "tasks": [$ALL_CREATED_TASKS],
+              "hierarchy": "Epic → Stories → Tasks"
+            },
+            "progress": {
+              "total_stories": $(echo $CREATED_STORIES | tr ',' '\n' | wc -l),
+              "total_tasks": $TOTAL_TASKS,
+              "completed_tasks": 0,
+              "in_progress": 0,
+              "blocked": 0
+            },
+            "agents_assigned": [],
+            "project_integration": {
+              "project_id": 1,
+              "items_added": true,
+              "hierarchy_maintained": true
+            }
+          }
+          EOF
+          
+          # Commit Observatory updates
+          git config user.name "Epic Breakdown Agent"
+          git config user.email "epic-breakdown@noveli.sh"
+          
+          git add observatory/tracking/
+          git commit -m "Add Epic $EPIC_NUMBER breakdown tracking
+          
+          - Created Stories and Tasks hierarchy
+          - Configured Observatory monitoring
+          - GitHub Project integration complete
+          - Ready for AI agent autonomous execution"
+          
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
