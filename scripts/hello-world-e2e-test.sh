@@ -27,13 +27,36 @@ echo "Tasks: #${TASK_NUMBERS[@]}"
 echo "Project: ${PROJECT_ID}"
 echo ""
 
-# Function to wait for workflow completion
+# Function to wait for workflow completion with live monitoring
 wait_for_workflow() {
     local workflow=$1
     local timeout=${2:-120}
     local start_time=$(date +%s)
+    local last_log_line=""
+    local run_id=""
     
-    echo -e "${YELLOW}⏳ Waiting for ${workflow} to complete...${NC}"
+    echo -e "${YELLOW}⏳ Waiting for ${workflow} to start...${NC}"
+    
+    # Wait for workflow to start and get run ID
+    local attempts=0
+    while [ $attempts -lt 12 ]; do  # 60 seconds max wait for start
+        run_id=$(gh run list --workflow="${workflow}" --limit=1 --json databaseId,status --jq 'if .[0].status == "in_progress" or .[0].status == "queued" then .[0].databaseId else empty end' 2>/dev/null || echo "")
+        if [ -n "$run_id" ]; then
+            break
+        fi
+        echo -n "."
+        sleep 5
+        attempts=$((attempts + 1))
+    done
+    
+    if [ -z "$run_id" ]; then
+        echo -e "${RED}❌ ${workflow} did not start within expected time${NC}"
+        return 1
+    fi
+    
+    echo ""
+    echo -e "${BLUE}📋 Monitoring ${workflow} (Run ID: ${run_id})${NC}"
+    echo "=============================="
     
     while true; do
         local status=$(gh run list --workflow="${workflow}" --limit=1 --json status --jq '.[0].status' 2>/dev/null || echo "unknown")
@@ -42,6 +65,8 @@ wait_for_workflow() {
         
         if [ "$status" = "completed" ]; then
             local conclusion=$(gh run list --workflow="${workflow}" --limit=1 --json conclusion --jq '.[0].conclusion')
+            echo ""
+            echo "=============================="
             if [ "$conclusion" = "success" ]; then
                 echo -e "${GREEN}✅ ${workflow} completed successfully${NC}"
                 return 0
@@ -50,8 +75,32 @@ wait_for_workflow() {
                 return 1
             fi
         elif [ "$status" = "in_progress" ] || [ "$status" = "queued" ]; then
-            echo -n "."
-            sleep 5
+            # Get recent logs and show new lines
+            local recent_logs=$(gh run view "${run_id}" --log 2>/dev/null | tail -5 | grep -v "^$" || echo "")
+            if [ -n "$recent_logs" ] && [ "$recent_logs" != "$last_log_line" ]; then
+                echo "$recent_logs" | while IFS= read -r line; do
+                    if [ -n "$line" ]; then
+                        # Clean up the log line for better display
+                        local clean_line=$(echo "$line" | sed 's/^.*[0-9][0-9]:[0-9][0-9]:[0-9][0-9]\.[0-9]*Z[[:space:]]*//' | sed 's/^[[:space:]]*//')
+                        if [ -n "$clean_line" ] && [[ ! "$clean_line" =~ ^(shell:|env:|\|\||##\[) ]]; then
+                            # Color code different types of messages
+                            if [[ "$clean_line" =~ ✅|✓|SUCCESS|completed.successfully ]]; then
+                                echo -e "${GREEN}${clean_line}${NC}"
+                            elif [[ "$clean_line" =~ ❌|✗|ERROR|FAILED|Failed|failed ]]; then
+                                echo -e "${RED}${clean_line}${NC}"
+                            elif [[ "$clean_line" =~ ⚠️|WARNING|warning ]]; then
+                                echo -e "${YELLOW}${clean_line}${NC}"
+                            elif [[ "$clean_line" =~ 🔄|🚀|📋|Starting|Triggering ]]; then
+                                echo -e "${BLUE}${clean_line}${NC}"
+                            else
+                                echo "${clean_line}"
+                            fi
+                        fi
+                    fi
+                done
+                last_log_line="$recent_logs"
+            fi
+            sleep 3
         else
             echo -e "${RED}❌ ${workflow} status: ${status}${NC}"
             return 1
@@ -199,18 +248,48 @@ run_e2e_test() {
     
     # Check if Development Agent was triggered
     echo -e "${BLUE}2️⃣ Checking if Development Agent was triggered...${NC}"
-    sleep 10  # Give time for trigger
     
-    local dev_agent_runs_before=$(gh run list --workflow="development-agent.yml" --limit=5 --json createdAt --jq 'length')
-    sleep 20  # Wait for potential new run
-    local dev_agent_runs_after=$(gh run list --workflow="development-agent.yml" --limit=5 --json createdAt --jq 'length')
+    # Wait a moment for the trigger to happen
+    echo "Waiting for Development Agent trigger..."
+    sleep 15
     
-    if [ "$dev_agent_runs_after" -gt "$dev_agent_runs_before" ] || gh run list --workflow="development-agent.yml" --limit=1 --json status --jq '.[0].status' | grep -q "in_progress\|queued"; then
-        echo -e "${GREEN}✅ Development Agent was triggered${NC}"
+    # Look for a recent Development Agent run
+    local latest_dev_run=$(gh run list --workflow="development-agent.yml" --limit=1 --json createdAt,status,databaseId --jq '.[0]' 2>/dev/null || echo "{}")
+    local dev_created_at=$(echo "$latest_dev_run" | jq -r '.createdAt // empty')
+    local dev_status=$(echo "$latest_dev_run" | jq -r '.status // empty')
+    local dev_run_id=$(echo "$latest_dev_run" | jq -r '.databaseId // empty')
+    
+    # Check if there's a recent run (within last 2 minutes)
+    if [ -n "$dev_created_at" ]; then
+        local dev_timestamp=$(date -d "$dev_created_at" +%s 2>/dev/null || date -j -f "%Y-%m-%dT%H:%M:%SZ" "$dev_created_at" +%s 2>/dev/null || echo "0")
+        local current_timestamp=$(date +%s)
+        local time_diff=$((current_timestamp - dev_timestamp))
         
-        if ! wait_for_workflow "development-agent.yml" 180; then
-            echo -e "${RED}❌ Development Agent failed${NC}"
-            check_workflow_outcome "development-agent.yml"
+        if [ $time_diff -lt 180 ]; then  # Less than 3 minutes old
+            echo -e "${GREEN}✅ Development Agent was triggered (Run ID: ${dev_run_id})${NC}"
+            echo "Status: ${dev_status}"
+            
+            if [ "$dev_status" = "in_progress" ] || [ "$dev_status" = "queued" ]; then
+                echo ""
+                if ! wait_for_workflow "development-agent.yml" 240; then
+                    echo -e "${RED}❌ Development Agent failed${NC}"
+                    check_workflow_outcome "development-agent.yml"
+                    return 1
+                fi
+            elif [ "$dev_status" = "completed" ]; then
+                local dev_conclusion=$(gh run list --workflow="development-agent.yml" --limit=1 --json conclusion --jq '.[0].conclusion')
+                if [ "$dev_conclusion" = "success" ]; then
+                    echo -e "${GREEN}✅ Development Agent completed successfully${NC}"
+                else
+                    echo -e "${RED}❌ Development Agent failed${NC}"
+                    check_workflow_outcome "development-agent.yml"
+                    return 1
+                fi
+            fi
+        else
+            echo -e "${RED}❌ No recent Development Agent run found${NC}"
+            echo "Latest run was $(($time_diff / 60)) minutes ago"
+            check_workflow_outcome "scrum-master-agent.yml"
             return 1
         fi
     else

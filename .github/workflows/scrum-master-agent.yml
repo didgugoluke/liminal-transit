@@ -23,6 +23,7 @@ permissions:
   contents: write
   issues: write
   pull-requests: write
+  actions: write
 
 jobs:
   scrum-master:
@@ -199,8 +200,8 @@ jobs:
             "handoff_to_dev")
               echo "🔄 Handing off to Development Agent..."
               
-              # Trigger Development Agent workflow
-              gh workflow run development-agent.yml \
+              # Trigger Development Agent workflow (using GITHUB_TOKEN for workflow triggers)
+              GH_TOKEN="${{ secrets.GITHUB_TOKEN }}" gh workflow run development-agent.yml \
                 -f story_number="$STORY_NUMBER" \
                 -f action="take_story" || echo "Development Agent workflow trigger may have failed"
               
@@ -232,7 +233,7 @@ jobs:
         if: steps.execute.outputs.next_action
         env:
           STORY_NUMBER: ${{ env.STORY_NUMBER }}
-          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           NEXT_ACTION="${{ steps.execute.outputs.next_action }}"
 
@@ -242,8 +243,8 @@ jobs:
             echo "🚀 Triggering Development Agent in 30 seconds..."
             sleep 30
             
-            # Trigger Development Agent workflow
-            gh workflow run development-agent.yml \
+            # Trigger Development Agent workflow (using GITHUB_TOKEN for workflow triggers)
+            GH_TOKEN="${{ secrets.GITHUB_TOKEN }}" gh workflow run development-agent.yml \
               -f story_number="$STORY_NUMBER" \
               -f action="take_story" || echo "Development Agent workflow may need manual trigger"
           fi
