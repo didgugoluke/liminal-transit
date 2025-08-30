@@ -24,6 +24,18 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
+      - name: ⚙️ Configure Git and GitHub CLI
+        run: |
+          git config --global user.name "AI Agent - Find/Replace Engine"
+          git config --global user.email "ai-agent@noveli.sh"
+          
+          # Verify GitHub CLI authentication
+          echo "Verifying GitHub CLI authentication..."
+          gh auth status
+          
+          # Set up authentication token
+          echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+
       - name: 📋 Parse Find/Replace Instructions
         id: parse_instructions
         run: |
@@ -252,6 +264,9 @@ jobs:
         if: steps.execute_transformations.outputs.changes_made == '1'
         run: |
           BRANCH_NAME="ai-agent/find-replace-${{ github.event.issue.number }}"
+          
+          # Create and switch to new branch
+          git checkout -b "$BRANCH_NAME"
           
           # Push branch
           git push origin "$BRANCH_NAME"
