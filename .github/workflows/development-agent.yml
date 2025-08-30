@@ -762,7 +762,11 @@ jobs:
                 fi
               done
 
-              # Update story to "Done" (proven working pattern from v1)
+              # Extract PR number for Project Admin handoff
+              PR_NUMBER=$(echo "$PR_URL" | grep -o '[0-9]*$')
+              echo "🔍 Extracted PR number: $PR_NUMBER"
+              
+              # Update story status (but leave open for Project Admin to close)
               printf '%s\n' \
                 "✅ **Enhanced Development Agent completed Story #$STORY_NUMBER**" \
                 '' \
@@ -772,18 +776,21 @@ jobs:
                 '- ✅ Pull request created with comprehensive documentation' \
                 '- ✅ Ready for Project Admin Agent review and auto-merge' \
                 '' \
-                "**PR**: $PR_URL" \
+                "**PR**: $PR_URL (#$PR_NUMBER)" \
                 "**Branch**: $BRANCH_NAME" \
-                '**Status**: Implementation complete, ready for review' \
+                '**Status**: Implementation complete, handing off to Project Admin Agent' \
+                '' \
+                '🤖 **Next Step**: Project Admin Agent will review, approve, and merge this PR automatically' \
                 > /tmp/completion_comment.md
               
               gh issue comment "$STORY_NUMBER" --body-file /tmp/completion_comment.md
               rm /tmp/completion_comment.md
 
-              # Close the story
-              gh issue close "$STORY_NUMBER" --reason completed
+              # Store PR number for Project Admin handoff
+              echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
+              echo "PR_URL=$PR_URL" >> $GITHUB_ENV
               
-              echo "✅ Story completed successfully!"
+              echo "✅ Development completed - ready for Project Admin review"
               ;;
           esac
 
@@ -813,6 +820,29 @@ jobs:
                 --field action="complete_story"
               ;;
           esac
+
+      - name: 🤖 Project Admin Agent Handoff
+        if: success() && env.PR_NUMBER != ''
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+          PR_NUMBER: ${{ env.PR_NUMBER }}
+          PR_URL: ${{ env.PR_URL }}
+          STORY_NUMBER: ${{ env.STORY_NUMBER }}
+        run: |
+          echo "🔄 Handing off to Project Admin Agent..."
+          echo "📋 PR: #$PR_NUMBER ($PR_URL)"
+          echo "📋 Story: #$STORY_NUMBER"
+          
+          # Add small delay to ensure PR is fully created and labels are applied
+          sleep 15
+          
+          echo "🚀 Triggering Project Admin Agent for PR review and merge..."
+          gh workflow run project-admin-agent.yml \
+            --field pr_number="$PR_NUMBER" \
+            --field action="review_and_merge"
+          
+          echo "✅ Project Admin Agent triggered successfully"
+          echo "🎯 Workflow complete - Project Admin will handle approval, merge, and story closure"
 
       - name: 🚨 Emergency Cleanup
         if: failure()
