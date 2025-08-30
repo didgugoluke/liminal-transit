@@ -771,7 +771,18 @@ jobs:
                 fi
                 
                 if [ "$HAS_CHANGES" = "true" ]; then
-                  echo "✅ Changes detected, committing..."
+                  echo "✅ Changes detected, formatting and committing..."
+                  
+                  # Auto-format code files before committing
+                  if [ -f "package.json" ] && grep -q '"prettier"' package.json; then
+                    echo "🎨 Auto-formatting code with Prettier..."
+                    if command -v pnpm >/dev/null 2>&1; then
+                      pnpm format 2>/dev/null || echo "⚠️ Prettier formatting failed, continuing..."
+                    elif command -v npm >/dev/null 2>&1; then
+                      npm run format 2>/dev/null || echo "⚠️ Prettier formatting failed, continuing..."
+                    fi
+                  fi
+                  
                   git add .
                   git commit -m "🚀 Enhanced Development Agent: Implement tasks for Story #$STORY_NUMBER - $(echo "$TASK_NUMBERS" | wc -w) tasks processed with modular handlers - $STORY_TITLE"
                   
