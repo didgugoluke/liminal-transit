@@ -8,7 +8,6 @@ permissions:
   contents: write
   issues: write
   pull-requests: write
-  projects: write
 
 jobs:
   epic-breakdown:
@@ -768,26 +767,26 @@ jobs:
           ADDED_TASKS=0
           FAILED_TASKS=0
 
-          # Add Stories to project
+          # Add Stories to Noveli project
           IFS=',' read -ra STORIES <<< "$STORY_IDS"
           for story_id in "${STORIES[@]}"; do
             if [ -n "$story_id" ]; then
-              if gh project item-add 1 --owner didgugoluke --url "https://github.com/didgugoluke/liminal-transit/issues/$story_id" 2>/dev/null; then
-                echo "✅ Added Story #$story_id to GitHub Project"
+              if GH_TOKEN="${{ secrets.PROJECT_TOKEN }}" gh project item-add 2 --owner didgugoluke --url "https://github.com/didgugoluke/liminal-transit/issues/$story_id" 2>/dev/null; then
+                echo "✅ Added Story #$story_id to Noveli Project"
                 ADDED_STORIES=$((ADDED_STORIES + 1))
               else
-                echo "❌ Failed to add Story #$story_id to GitHub Project"
+                echo "❌ Failed to add Story #$story_id to Noveli Project"
                 FAILED_STORIES=$((FAILED_STORIES + 1))
               fi
             fi
           done
 
-          # Add Tasks to project  
+          # Add Tasks to Noveli project  
           IFS=',' read -ra TASKS <<< "$TASK_IDS"
           for task_id in "${TASKS[@]}"; do
             if [ -n "$task_id" ]; then
-              if gh project item-add 1 --owner didgugoluke --url "https://github.com/didgugoluke/liminal-transit/issues/$task_id" 2>/dev/null; then
-                echo "✅ Added Task #$task_id to GitHub Project"
+              if GH_TOKEN="${{ secrets.PROJECT_TOKEN }}" gh project item-add 2 --owner didgugoluke --url "https://github.com/didgugoluke/liminal-transit/issues/$task_id" 2>/dev/null; then
+                echo "✅ Added Task #$task_id to Noveli Project"
                 ADDED_TASKS=$((ADDED_TASKS + 1))
               else
                 echo "❌ Failed to add Task #$task_id to GitHub Project"
