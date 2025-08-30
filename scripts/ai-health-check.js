@@ -5,9 +5,14 @@
  * Monitors AI agent health and performance metrics
  */
 
-const https = require('https');
-const fs = require('fs');
-const path = require('path');
+import https from 'https';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// ES module equivalent of __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 class AIHealthChecker {
   constructor() {
@@ -120,7 +125,7 @@ class AIHealthChecker {
 }
 
 // Run health check if called directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   const checker = new AIHealthChecker();
   checker.runHealthCheck().then(() => {
     console.log('\n🔭 Health check complete - results logged to logs/ai-health.log');
@@ -130,4 +135,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = AIHealthChecker;
+export default AIHealthChecker;

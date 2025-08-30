@@ -5,8 +5,13 @@
  * Tracks and analyzes AI operation costs for enterprise budgeting
  */
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// ES module equivalent of __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 class AICostAnalyzer {
   constructor() {
@@ -183,7 +188,7 @@ class AICostAnalyzer {
 }
 
 // Run cost analysis if called directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   const analyzer = new AICostAnalyzer();
   const results = analyzer.generateCostReport();
   
@@ -199,4 +204,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = AICostAnalyzer;
+export default AICostAnalyzer;
