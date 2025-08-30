@@ -555,13 +555,6 @@ jobs:
               rm /tmp/status_comment.md
 
               echo "next_action=implement_tasks" >> $GITHUB_OUTPUT
-              
-              # Continue to implement_tasks
-              echo "🔄 Triggering implement_tasks phase..."
-              sleep 5
-              gh workflow run development-agent.yml \
-                --field story_number="$STORY_NUMBER" \
-                --field action="implement_tasks"
               ;;
 
             "implement_tasks")
@@ -693,13 +686,6 @@ jobs:
               fi
 
               echo "next_action=complete_story" >> $GITHUB_OUTPUT
-              
-              # Continue to complete_story
-              echo "🔄 Triggering complete_story phase..."
-              sleep 5
-              gh workflow run development-agent.yml \
-                --field story_number="$STORY_NUMBER" \
-                --field action="complete_story"
               ;;
 
             "complete_story")
