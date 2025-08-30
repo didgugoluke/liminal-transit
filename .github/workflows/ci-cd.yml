@@ -46,7 +46,14 @@ jobs:
 
       - name: TypeScript type checking
         if: steps.check-scaffold.outputs.scaffolded == 'true'
-        run: pnpm typecheck
+        run: |
+          # Check if any TypeScript files exist before running typecheck
+          if find src -name "*.ts" -o -name "*.tsx" | grep -q .; then
+            echo "Found TypeScript files, running type check..."
+            pnpm typecheck
+          else
+            echo "No TypeScript files found, skipping type check..."
+          fi
 
       - name: ESLint code quality
         if: steps.check-scaffold.outputs.scaffolded == 'true'

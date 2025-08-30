@@ -239,6 +239,65 @@ jobs:
 
             echo "✅ Database schema files created successfully"
             
+            # Ensure TypeScript configuration exists for CI compliance
+            if [ ! -f "tsconfig.json" ]; then
+              echo "📝 Creating TypeScript configuration for CI compliance..."
+              
+              # Create main tsconfig.json
+              printf '%s\n' \
+                '{' \
+                '  "compilerOptions": {' \
+                '    "target": "ES2020",' \
+                '    "useDefineForClassFields": true,' \
+                '    "lib": ["ES2020", "DOM", "DOM.Iterable"],' \
+                '    "types": ["node"],' \
+                '    "module": "ESNext",' \
+                '    "skipLibCheck": true,' \
+                '    "moduleResolution": "bundler",' \
+                '    "allowImportingTsExtensions": true,' \
+                '    "resolveJsonModule": true,' \
+                '    "isolatedModules": true,' \
+                '    "noEmit": true,' \
+                '    "jsx": "react-jsx",' \
+                '    "strict": true,' \
+                '    "noUnusedLocals": true,' \
+                '    "noUnusedParameters": true,' \
+                '    "noFallthroughCasesInSwitch": true' \
+                '  },' \
+                '  "include": ["src/**/*.ts", "src/**/*.tsx"]' \
+                '}' \
+                > tsconfig.json
+              
+              # Create tsconfig.node.json
+              printf '%s\n' \
+                '{' \
+                '  "compilerOptions": {' \
+                '    "composite": true,' \
+                '    "skipLibCheck": true,' \
+                '    "module": "ESNext",' \
+                '    "moduleResolution": "bundler",' \
+                '    "allowSyntheticDefaultImports": true,' \
+                '    "strict": true,' \
+                '    "types": ["node"]' \
+                '  },' \
+                '  "include": ["vite.config.ts"]' \
+                '}' \
+                > tsconfig.node.json
+              
+              # Ensure @types/node is in package.json
+              if [ -f "package.json" ] && ! grep -q "@types/node" package.json; then
+                echo "📦 Adding @types/node to package.json..."
+                # This is a basic approach - in a real scenario, we'd use proper JSON manipulation
+                if command -v jq >/dev/null 2>&1; then
+                  jq '.devDependencies["@types/node"] = "^24.3.0"' package.json > package.json.tmp && mv package.json.tmp package.json
+                fi
+              fi
+              
+              echo "✅ TypeScript configuration created for CI compliance"
+            else
+              echo "ℹ️ TypeScript configuration already exists"
+            fi
+            
             # Update task with completion
             gh issue comment "$TASK_NUM" --body "✅ Enhanced Development Agent completed database schema design. Files created: schema.sql, types.ts, config.ts. Task ready for review."
             
@@ -749,8 +808,31 @@ jobs:
 
               echo "✅ Pull request created: $PR_URL"
 
-              # Add labels one by one with error handling (proven pattern)
-              for label in "ai-agent" "automated" "development" "database" "enhanced"; do
+              # Add appropriate labels based on task content
+              echo "📊 Determining appropriate labels based on task content..."
+              
+              # Base labels for all Development Agent tasks
+              base_labels="ai-agent automated development"
+              
+              # Context-specific labels based on file changes and task description
+              context_labels=""
+              
+              # Check if database-related files were created or modified
+              if find . -name "*.sql" -o -path "*/database/*" -o -name "*database*" | grep -q . 2>/dev/null; then
+                context_labels="$context_labels database"
+                echo "🗄️ Database-related files detected, adding database label"
+              fi
+              
+              # Check if this is an enhancement (based on task description)
+              task_description=$(gh issue view "$STORY_NUMBER" --json body --jq '.body')
+              if echo "$task_description" | grep -qi "enhance\|improvement\|optimize\|upgrade"; then
+                context_labels="$context_labels enhanced"
+                echo "⚡ Enhancement detected, adding enhanced label"
+              fi
+              
+              # Apply labels
+              all_labels="$base_labels$context_labels"
+              for label in $all_labels; do
                 if gh label list | grep -q "^$label"; then
                   if gh pr edit "$PR_URL" --add-label "$label" 2>/dev/null; then
                     echo "✅ Added label: $label"
@@ -832,15 +914,15 @@ jobs:
           echo "🔄 Handing off to Project Admin Agent..."
           echo "📋 PR: #$PR_NUMBER ($PR_URL)"
           echo "📋 Story: #$STORY_NUMBER"
-          
+
           # Add small delay to ensure PR is fully created and labels are applied
           sleep 15
-          
+
           echo "🚀 Triggering Project Admin Agent for PR review and merge..."
           gh workflow run project-admin-agent.yml \
             --field pr_number="$PR_NUMBER" \
             --field action="review_and_merge"
-          
+
           echo "✅ Project Admin Agent triggered successfully"
           echo "🎯 Workflow complete - Project Admin will handle approval, merge, and story closure"
 
