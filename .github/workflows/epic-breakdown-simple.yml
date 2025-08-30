@@ -42,7 +42,7 @@ jobs:
 
           # Add to Noveli project (project 2) using PROJECT_TOKEN
           echo "Adding story #$STORY_1_ID to Noveli project..."
-          GH_TOKEN="${{ secrets.PROJECT_TOKEN }}" gh project item-add 2 --owner didgugoluke --url "https://github.com/didgugoluke/liminal-transit/issues/$STORY_1_ID" || echo "Project integration failed - check PROJECT_TOKEN permissions"
+          GH_TOKEN="${{ secrets.PROJECT_TOKEN }}" gh project item-add https://github.com/users/didgugoluke/projects/2 --url "https://github.com/didgugoluke/liminal-transit/issues/$STORY_1_ID" || echo "Project integration failed - check PROJECT_TOKEN permissions"
 
           # Comment success
           gh issue comment ${{ github.event.issue.number }} --body "✅ **Simple Epic Breakdown Test Complete**
