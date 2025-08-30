@@ -50,7 +50,8 @@
     },
     {
       "label": "🚀 Launch Observatory (Recommended)",
-      "dependsOn": ["🤖 Simple AI Observatory"],
+      "dependsOn": ["🔍 Rate Limit Status", "🤖 Simple AI Observatory"],
+      "dependsOrder": "sequence",
       "group": "test",
       "presentation": {
         "echo": true,
@@ -62,7 +63,23 @@
       }
     },
     {
-      "label": "🛠️ Install Observatory Dependencies",
+      "label": "� Rate Limit Status",
+      "type": "shell",
+      "command": "./scripts/github-rate-limit-manager.sh",
+      "args": ["status"],
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "dedicated",
+        "showReuseMessage": false,
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "�🛠️ Install Observatory Dependencies",
       "type": "shell",
       "command": "bash",
       "args": ["-c", "echo '✅ Dependencies Check:' && which gh && which jq && echo '✅ All dependencies installed!'"],

@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# Compact AI Observatory - Clean and Simple with Rate Limiting
+# Simple AI Observatory - No Dependencies
 clear
 
 # Setup rate limiting
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 RATE_LIMIT_SCRIPT="$SCRIPT_DIR/github-rate-limit-manager.sh"
 
-echo "🤖 COMPACT AI OBSERVATORY - NOVELI.SH"
+echo "🤖 SIMPLE AI OBSERVATORY - NOVELI.SH"
 echo "$(date)"
 echo "═══════════════════════════════════════"
 
@@ -20,16 +20,9 @@ while true; do
         echo "⚠️  Rate limits low - showing cached data"
         echo "   Run 'scripts/github-rate-limit-manager.sh status' for details"
     else
-        # Safe GitHub API call with rate limiting protection and jq fallback
-        if command -v jq >/dev/null 2>&1; then
-            if ! gh issue list --state open --limit 3 --json number,title 2>/dev/null | jq -r '.[] | "#\(.number) \(.title)"'; then
-                echo "⚠️  GitHub API unavailable - check rate limits"
-            fi
-        else
-            # Fallback without jq
-            if ! gh issue list --state open --limit 3 2>/dev/null; then
-                echo "⚠️  GitHub API unavailable - check rate limits"
-            fi
+        # Safe GitHub API call with rate limiting protection
+        if ! gh issue list --state open --limit 3 2>/dev/null; then
+            echo "⚠️  GitHub API unavailable - check rate limits"
         fi
     fi
     
@@ -38,14 +31,15 @@ while true; do
     git log --oneline -2
     
     echo ""
-    echo "📊 STATS: $(find . -name '*.md' -o -name '*.ts' -o -name '*.js' | wc -l | tr -d ' ') files"
+    file_count=$(find . -name '*.md' -o -name '*.ts' -o -name '*.js' | wc -l | tr -d ' ')
+    echo "📊 FILES: $file_count"
     
     echo ""
-    echo "🕐 $(date '+%H:%M:%S') - Refreshing in 8s..."
-    sleep 8
+    echo "🕐 $(date '+%H:%M:%S') - Refreshing in 10s..."
+    sleep 10
     
     clear
-    echo "🤖 COMPACT AI OBSERVATORY - NOVELI.SH"
+    echo "🤖 SIMPLE AI OBSERVATORY - NOVELI.SH"
     echo "$(date)"
     echo "═══════════════════════════════════════"
 done
