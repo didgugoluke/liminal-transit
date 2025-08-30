@@ -405,12 +405,10 @@ run: |
       else
         echo "⚠️ Label not found: $label"
       fi
-    done
-  env:
-    GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-```
-
-## 🎨 Agent Naming Conventions
+          done
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+```## 🎨 Agent Naming Conventions
 
 - **File**: `[agent-purpose]-agent.yml` (e.g., `story-generation-agent.yml`)
 - **Name**: `🤖 [Purpose] Agent` (e.g., `🤖 Story Generation Agent`)
