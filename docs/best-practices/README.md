@@ -1,6 +1,6 @@
 # Best Practices Documentation Index
 
-This directory contains comprehensive best practices documentation for the Liminal Transit AI Native platform, covering enterprise-grade design patterns, development standards, and operational excellence.
+This directory contains comprehensive best practices documentation for the NOVELI.SH AI Native platform, covering enterprise-grade design patterns, development standards, and operational excellence.
 
 ## 📚 Documentation Structure
 

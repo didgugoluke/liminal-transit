@@ -1,4 +1,4 @@
-# Design Document: Liminal Transit
+# Design Document: NOVELI.SH
 ## AI-Native Interactive Storytelling with Autonomous UX Optimization
 
 ## Core Concept

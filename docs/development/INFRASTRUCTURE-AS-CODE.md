@@ -2,7 +2,7 @@
 
 ## Overview
 
-Comprehensive Infrastructure as Code patterns for the AI Native Liminal Transit platform using Terraform, featuring modular AWS Well-Architected infrastructure, automated deployment pipelines, multi-environment management, and self-optimizing resource configurations with AI-driven cost optimization.
+Comprehensive Infrastructure as Code patterns for the AI Native NOVELI.SH platform using Terraform, featuring modular AWS Well-Architected infrastructure, automated deployment pipelines, multi-environment management, and self-optimizing resource configurations with AI-driven cost optimization.
 
 ---
 
@@ -1027,11 +1027,11 @@ resource "aws_cloudwatch_metric_alarm" "lambda_duration" {
 
 terraform {
   backend "s3" {
-    bucket         = "liminal-transit-terraform-state"
+    bucket         = "noveli-terraform-state"
     key            = "dev/terraform.tfstate"
     region         = "us-east-1"
     encrypt        = true
-    dynamodb_table = "liminal-transit-terraform-locks"
+    dynamodb_table = "noveli-terraform-locks"
   }
 }
 
@@ -1041,7 +1041,7 @@ provider "aws" {
   default_tags {
     tags = {
       Environment = "dev"
-      Project     = "liminal-transit"
+      Project     = "noveli"
       ManagedBy   = "terraform"
       Owner       = "ai-native-development"
     }
@@ -1050,7 +1050,7 @@ provider "aws" {
 
 locals {
   environment = "dev"
-  project     = "liminal-transit"
+  project     = "noveli"
   
   common_tags = {
     Environment = local.environment
@@ -1098,7 +1098,7 @@ module "api_gateway" {
   environment        = local.environment
   project           = local.project
   lambda_function_arn = module.ai_infrastructure.ai_orchestrator_arn
-  domain_name       = "dev-api.liminal-transit.local"
+  domain_name       = "dev-api.noveli.local"
   
   tags = local.common_tags
 }
@@ -1133,17 +1133,17 @@ module "monitoring" {
 
 terraform {
   backend "s3" {
-    bucket         = "liminal-transit-terraform-state"
+    bucket         = "noveli-terraform-state"
     key            = "production/terraform.tfstate"
     region         = "us-east-1"
     encrypt        = true
-    dynamodb_table = "liminal-transit-terraform-locks"
+    dynamodb_table = "noveli-terraform-locks"
   }
 }
 
 locals {
   environment = "production"
-  project     = "liminal-transit"
+  project     = "noveli"
   
   common_tags = {
     Environment = local.environment
@@ -1274,7 +1274,7 @@ usage() {
     cat << EOF
 Usage: $0 [OPTIONS] ENVIRONMENT
 
-Deploy Terraform infrastructure for Liminal Transit
+Deploy Terraform infrastructure for NOVELI.SH
 
 ARGUMENTS:
     ENVIRONMENT    Target environment (dev, staging, production)
@@ -1342,11 +1342,11 @@ terraform_init() {
     
     # Initialize with backend configuration
     terraform init \
-        -backend-config="bucket=liminal-transit-terraform-state" \
+        -backend-config="bucket=noveli-terraform-state" \
         -backend-config="key=$env_dir/terraform.tfstate" \
         -backend-config="region=us-east-1" \
         -backend-config="encrypt=true" \
-        -backend-config="dynamodb_table=liminal-transit-terraform-locks"
+        -backend-config="dynamodb_table=noveli-terraform-locks"
     
     log_success "Terraform initialized"
 }
@@ -1564,8 +1564,8 @@ deploy "$ENVIRONMENT" "$PLAN_ONLY" "$DESTROY" "$AUTO_APPROVE" "$VERBOSE"
 set -euo pipefail
 
 # Configuration
-TERRAFORM_BUCKET="liminal-transit-terraform-state"
-TERRAFORM_LOCK_TABLE="liminal-transit-terraform-locks"
+TERRAFORM_BUCKET="noveli-terraform-state"
+TERRAFORM_LOCK_TABLE="noveli-terraform-locks"
 AWS_REGION="us-east-1"
 
 # Setup Terraform backend resources
@@ -1780,4 +1780,4 @@ resource "aws_ce_anomaly_subscription" "cost_alerts" {
 
 ---
 
-This comprehensive Infrastructure as Code framework provides enterprise-grade Terraform patterns with AWS Well-Architected principles, automated deployment pipelines, multi-environment management, and intelligent cost optimization for the AI Native Liminal Transit platform.
+This comprehensive Infrastructure as Code framework provides enterprise-grade Terraform patterns with AWS Well-Architected principles, automated deployment pipelines, multi-environment management, and intelligent cost optimization for the AI Native NOVELI.SH platform.

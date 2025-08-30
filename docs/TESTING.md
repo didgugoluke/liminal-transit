@@ -1,4 +1,4 @@
-# Testing Strategy for Liminal Transit
+# Testing Strategy for NOVELI.SH
 
 ## Overview
 Comprehensive testing strategy ensuring reliability, performance, and quality of AI-driven interactive storytelling. Covers unit testing, integration testing, end-to-end testing, and specialized AI narrative quality assurance.

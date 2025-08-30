@@ -2,7 +2,7 @@
 
 ## Overview
 
-Comprehensive self-documentation framework for the AI Native Liminal Transit platform, implementing automated documentation generation, continuous improvement cycles, knowledge management, and intelligent documentation maintenance to ensure perpetual system understanding and optimization.
+Comprehensive self-documentation framework for the AI Native NOVELI.SH platform, implementing automated documentation generation, continuous improvement cycles, knowledge management, and intelligent documentation maintenance to ensure perpetual system understanding and optimization.
 
 ---
 

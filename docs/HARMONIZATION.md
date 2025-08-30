@@ -69,7 +69,7 @@
 ## File Structure Consistency
 
 ```
-liminal-transit/
+noveli/
 ├── docs/
 │   ├── HITM-INTERACTION-FRAMEWORK.md  # Three-point engagement system
 │   ├── AI-NATIVE-DESIGN.md            # Complete AI orchestration architecture

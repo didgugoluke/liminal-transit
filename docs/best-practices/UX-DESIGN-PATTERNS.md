@@ -2,7 +2,7 @@
 
 ## Overview
 
-Typography-first design patterns for Liminal Transit that prioritize readability, accessibility, and immersive storytelling experiences. These patterns embrace restraint and whitespace to create dramatic impact while maintaining enterprise-grade usability standards.
+Typography-first design patterns for NOVELI.SH that prioritize readability, accessibility, and immersive storytelling experiences. These patterns embrace restraint and whitespace to create dramatic impact while maintaining enterprise-grade usability standards.
 
 ---
 
@@ -511,7 +511,7 @@ const ChoiceButtons: React.FC<ChoiceButtonsProps> = ({
 <main role="main" aria-label="Interactive Story">
   <article class="story-container">
     <header class="story-header">
-      <h1 class="sr-only">Liminal Transit - Interactive Story</h1>
+      <h1 class="sr-only">NOVELI.SH - Interactive Story</h1>
       <div class="story-progress" role="progressbar" aria-valuenow="3" aria-valuemax="10">
         <span class="sr-only">Story progress: 3 of 10 beats completed</span>
       </div>

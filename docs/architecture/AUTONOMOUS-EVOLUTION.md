@@ -2,7 +2,7 @@
 *AI Agents Making and Executing Strategic Platform Decisions*
 
 ## Overview
-The **Liminal Transit platform** features **autonomous architectural decision-making** where AI agents continuously analyze system metrics, code complexity, and business requirements to make strategic decisions about platform evolution—including repository splitting, microservice extraction, and infrastructure optimization.
+The **NOVELI.SH platform** features **autonomous architectural decision-making** where AI agents continuously analyze system metrics, code complexity, and business requirements to make strategic decisions about platform evolution—including repository splitting, microservice extraction, and infrastructure optimization.
 
 ## 🤖 **The Librarian Agent & Architectural Intelligence**
 

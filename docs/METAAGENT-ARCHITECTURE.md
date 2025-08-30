@@ -2,7 +2,7 @@
 
 ## Overview
 
-The MetaAgent serves as the master orchestrator and supervisor for all AI agents in the Liminal Transit platform. Its primary responsibility is monitoring, quality assurance, and intervention when agents encounter issues, infinite loops, or performance degradation.
+The MetaAgent serves as the master orchestrator and supervisor for all AI agents in the NOVELI.SH platform. Its primary responsibility is monitoring, quality assurance, and intervention when agents encounter issues, infinite loops, or performance degradation.
 
 ---
 

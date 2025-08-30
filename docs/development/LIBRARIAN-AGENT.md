@@ -2,7 +2,7 @@
 
 ## Overview
 
-The **Librarian Agent** is an autonomous AI system responsible for maintaining perfect project organization, cataloguing, documentation hygiene, and continuous optimization of the AI Native Liminal Transit repository. It ensures enterprise-grade compliance, real-time organization monitoring, and self-optimizing project structure with zero human overhead.
+The **Librarian Agent** is an autonomous AI system responsible for maintaining perfect project organization, cataloguing, documentation hygiene, and continuous optimization of the AI Native NOVELI.SH repository. It ensures enterprise-grade compliance, real-time organization monitoring, and self-optimizing project structure with zero human overhead.
 
 ---
 
@@ -486,7 +486,7 @@ export class LibrarianAgent {
   // Helper methods for analysis
   private buildDecisionPrompt(context: DecisionContext): string {
     return `
-As the Librarian Agent for the AI Native Liminal Transit platform, analyze the following organizational decision context and provide a structured recommendation.
+As the Librarian Agent for the AI Native NOVELI.SH platform, analyze the following organizational decision context and provide a structured recommendation.
 
 Context:
 ${JSON.stringify(context, null, 2)}
@@ -654,17 +654,17 @@ export class LibrarianWorkflows {
   async setupVSCodeIntegration(): Promise<void> {
     await this.vscodeExtension.registerCommands([
       {
-        command: 'liminal-transit.librarian.analyze',
+        command: 'noveli.librarian.analyze',
         title: 'Analyze Repository Organization',
         callback: () => this.librarianAgent.performRepositoryAnalysis()
       },
       {
-        command: 'liminal-transit.librarian.optimize',
+        command: 'noveli.librarian.optimize',
         title: 'Optimize Repository Structure',
         callback: () => this.performOptimization()
       },
       {
-        command: 'liminal-transit.librarian.report',
+        command: 'noveli.librarian.report',
         title: 'Generate Organization Report',
         callback: () => this.generateReport()
       }
@@ -1035,4 +1035,4 @@ echo "   • Run 'pnpm librarian:analyze' to perform initial analysis"
 echo "   • Check GitHub Actions tab for automated workflows"
 ```
 
-This comprehensive **Librarian Agent** provides autonomous repository organization, documentation maintenance, compliance monitoring, and continuous optimization with zero human overhead, ensuring the AI Native Liminal Transit platform maintains enterprise-grade organization standards at all times.
+This comprehensive **Librarian Agent** provides autonomous repository organization, documentation maintenance, compliance monitoring, and continuous optimization with zero human overhead, ensuring the AI Native NOVELI.SH platform maintains enterprise-grade organization standards at all times.

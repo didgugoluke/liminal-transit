@@ -1,7 +1,7 @@
 # Infrastructure & Deployment - AWS Native
 
 ## Overview
-Liminal Transit uses a 100% AWS cloud-native architecture with Infrastructure as Code (Terraform) and GitHub Actions for CI/CD. The solution features modular AI service integration supporting OpenAI, Anthropic Claude, AWS Bedrock, and future AI providers through a pluggable architecture.
+NOVELI.SH uses a 100% AWS cloud-native architecture with Infrastructure as Code (Terraform) and GitHub Actions for CI/CD. The solution features modular AI service integration supporting OpenAI, Anthropic Claude, AWS Bedrock, and future AI providers through a pluggable architecture.
 
 ## AWS Architecture Diagram
 
@@ -109,7 +109,7 @@ terraform/
 #### 1. Static Website Hosting (modules/s3-website/)
 ```hcl
 resource "aws_s3_bucket" "website" {
-  bucket = "${var.environment}-liminal-transit-${random_string.suffix.result}"
+  bucket = "${var.environment}-noveli-${random_string.suffix.result}"
 }
 
 resource "aws_s3_bucket_website_configuration" "website" {
@@ -178,7 +178,7 @@ resource "aws_cloudfront_distribution" "website" {
 ```hcl
 resource "aws_api_gateway_rest_api" "ai_proxy" {
   name        = "${var.environment}-liminal-ai-proxy"
-  description = "AI service proxy for Liminal Transit"
+  description = "AI service proxy for NOVELI.SH"
 
   endpoint_configuration {
     types = ["REGIONAL"]
@@ -492,7 +492,7 @@ jobs:
           terraform apply tfplan
         env:
           TF_VAR_environment: staging
-          TF_VAR_domain_name: staging.liminal-transit.com
+          TF_VAR_domain_name: staging.noveli.com
       
       - name: Deploy application to S3
         run: |
@@ -501,7 +501,7 @@ jobs:
       
       - name: Run E2E tests against staging
         run: |
-          PLAYWRIGHT_BASE_URL=https://staging.liminal-transit.com pnpm test:e2e
+          PLAYWRIGHT_BASE_URL=https://staging.noveli.com pnpm test:e2e
       
       - name: Notify deployment status
         uses: 8398a7/action-slack@v3
@@ -550,7 +550,7 @@ jobs:
           terraform apply tfplan
         env:
           TF_VAR_environment: production
-          TF_VAR_domain_name: liminal-transit.com
+          TF_VAR_domain_name: noveli.com
       
       - name: Deploy application to S3
         run: |
@@ -559,7 +559,7 @@ jobs:
       
       - name: Smoke tests
         run: |
-          PLAYWRIGHT_BASE_URL=https://liminal-transit.com pnpm test:smoke
+          PLAYWRIGHT_BASE_URL=https://noveli.com pnpm test:smoke
       
       - name: Update monitoring dashboards
         run: |
@@ -692,7 +692,7 @@ jobs:
     "ai:benchmark": "pnpm test:ai --benchmark",
     
     "logs:cloudwatch": "aws logs tail /aws/lambda/liminal-ai-router --follow",
-    "logs:access": "aws logs tail /aws/cloudfront/liminal-transit --follow",
+    "logs:access": "aws logs tail /aws/cloudfront/noveli --follow",
     
     "clean": "rm -rf dist node_modules/.cache .terraform",
     "reset": "pnpm clean && pnpm install && pnpm terraform:init",
@@ -708,7 +708,7 @@ jobs:
 #!/bin/bash
 set -e
 
-echo "🚀 Setting up Liminal Transit development environment..."
+echo "🚀 Setting up NOVELI.SH development environment..."
 
 # Check prerequisites
 command -v node >/dev/null 2>&1 || { echo "Node.js is required but not installed."; exit 1; }
@@ -758,7 +758,7 @@ set -e
 ENVIRONMENT=${1:-staging}
 VERSION=${2:-$(git rev-parse --short HEAD)}
 
-echo "🚀 Deploying Liminal Transit to $ENVIRONMENT (version: $VERSION)..."
+echo "🚀 Deploying NOVELI.SH to $ENVIRONMENT (version: $VERSION)..."
 
 # Validate environment
 if [[ ! "$ENVIRONMENT" =~ ^(dev|staging|production)$ ]]; then

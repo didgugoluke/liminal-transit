@@ -2,7 +2,7 @@
 
 ## Overview
 
-Enterprise-grade AWS deployment patterns that implement the Well-Architected Framework with serverless-first architecture, automated compliance, and AI-optimized infrastructure for the Liminal Transit platform.
+Enterprise-grade AWS deployment patterns that implement the Well-Architected Framework with serverless-first architecture, automated compliance, and AI-optimized infrastructure for the NOVELI.SH platform.
 
 ---
 
@@ -19,7 +19,7 @@ provider "aws" {
   
   default_tags {
     tags = {
-      Project     = "liminal-transit"
+      Project     = "noveli"
       Environment = var.environment
       ManagedBy   = "terraform"
       CostCenter  = "ai-native-development"
@@ -30,7 +30,7 @@ provider "aws" {
 
 # DynamoDB for Story Persistence
 resource "aws_dynamodb_table" "story_sessions" {
-  name           = "liminal-transit-story-sessions-${var.environment}"
+  name           = "noveli-story-sessions-${var.environment}"
   billing_mode   = "PAY_PER_REQUEST"  # Cost-optimized
   hash_key       = "session_id"
   range_key      = "timestamp"
@@ -83,7 +83,7 @@ resource "aws_dynamodb_table" "story_sessions" {
 # Lambda Function for AI Story Generation
 resource "aws_lambda_function" "story_generator" {
   filename         = "../lambda/story-generator.zip"
-  function_name    = "liminal-transit-story-generator-${var.environment}"
+  function_name    = "noveli-story-generator-${var.environment}"
   role            = aws_iam_role.lambda_execution_role.arn
   handler         = "index.handler"
   runtime         = "nodejs18.x"
@@ -122,7 +122,7 @@ resource "aws_lambda_function" "story_generator" {
 
 # API Gateway for RESTful API
 resource "aws_api_gateway_rest_api" "story_api" {
-  name        = "liminal-transit-api-${var.environment}"
+  name        = "noveli-api-${var.environment}"
   description = "AI Native Story Generation API"
   
   endpoint_configuration {
@@ -150,11 +150,11 @@ resource "aws_api_gateway_rest_api" "story_api" {
 
 # EventBridge for Event-Driven Architecture
 resource "aws_cloudwatch_event_rule" "story_events" {
-  name        = "liminal-transit-story-events-${var.environment}"
+  name        = "noveli-story-events-${var.environment}"
   description = "Story generation and processing events"
   
   event_pattern = jsonencode({
-    source      = ["liminal-transit"]
+    source      = ["noveli"]
     detail-type = [
       "Story Generation Requested",
       "Story Beat Generated", 
@@ -322,7 +322,7 @@ class AIProviderManager {
 ```hcl
 # environments/dev/main.tf
 module "liminal_transit_dev" {
-  source = "../../modules/liminal-transit"
+  source = "../../modules/noveli"
   
   environment = "dev"
   aws_region  = "us-east-1"
@@ -347,7 +347,7 @@ module "liminal_transit_dev" {
 
 # environments/staging/main.tf
 module "liminal_transit_staging" {
-  source = "../../modules/liminal-transit"
+  source = "../../modules/noveli"
   
   environment = "staging"
   aws_region  = "us-east-1"
@@ -372,7 +372,7 @@ module "liminal_transit_staging" {
 
 # environments/production/main.tf
 module "liminal_transit_production" {
-  source = "../../modules/liminal-transit"
+  source = "../../modules/noveli"
   
   environment = "production"
   aws_region  = "us-east-1"
@@ -510,7 +510,7 @@ resource "aws_appautoscaling_policy" "dynamodb_table_read_policy" {
 
 # CloudWatch Alarms for Auto-scaling triggers
 resource "aws_cloudwatch_metric_alarm" "lambda_duration" {
-  alarm_name          = "liminal-transit-lambda-duration-${var.environment}"
+  alarm_name          = "noveli-lambda-duration-${var.environment}"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = "2"
   metric_name         = "Duration"
@@ -537,7 +537,7 @@ resource "aws_cloudwatch_metric_alarm" "lambda_duration" {
 # WAF for API Gateway protection
 resource "aws_wafv2_web_acl" "api_protection" {
   count = var.enable_waf ? 1 : 0
-  name  = "liminal-transit-waf-${var.environment}"
+  name  = "noveli-waf-${var.environment}"
   scope = "REGIONAL"
 
   default_action {
@@ -597,7 +597,7 @@ resource "aws_wafv2_web_acl" "api_protection" {
 
 # KMS Key for encryption
 resource "aws_kms_key" "main" {
-  description             = "KMS key for Liminal Transit ${var.environment}"
+  description             = "KMS key for NOVELI.SH ${var.environment}"
   deletion_window_in_days = var.environment == "production" ? 30 : 7
   enable_key_rotation     = true
 
@@ -617,7 +617,7 @@ resource "aws_kms_key" "main" {
   })
 
   tags = {
-    Name = "liminal-transit-key-${var.environment}"
+    Name = "noveli-key-${var.environment}"
   }
 }
 
@@ -629,7 +629,7 @@ resource "aws_vpc" "main" {
   enable_dns_support   = true
 
   tags = {
-    Name = "liminal-transit-vpc-${var.environment}"
+    Name = "noveli-vpc-${var.environment}"
   }
 }
 
@@ -641,7 +641,7 @@ resource "aws_subnet" "private" {
   availability_zone = data.aws_availability_zones.available.names[count.index]
 
   tags = {
-    Name = "liminal-transit-private-${count.index + 1}-${var.environment}"
+    Name = "noveli-private-${count.index + 1}-${var.environment}"
     Type = "private"
   }
 }
@@ -649,7 +649,7 @@ resource "aws_subnet" "private" {
 # Security groups
 resource "aws_security_group" "lambda_sg" {
   count       = var.enable_vpc ? 1 : 0
-  name_prefix = "liminal-transit-lambda-${var.environment}"
+  name_prefix = "noveli-lambda-${var.environment}"
   vpc_id      = aws_vpc.main[0].id
 
   egress {
@@ -669,7 +669,7 @@ resource "aws_security_group" "lambda_sg" {
   }
 
   tags = {
-    Name = "liminal-transit-lambda-sg-${var.environment}"
+    Name = "noveli-lambda-sg-${var.environment}"
   }
 }
 ```
@@ -679,7 +679,7 @@ resource "aws_security_group" "lambda_sg" {
 ```hcl
 # Lambda execution role with minimal permissions
 resource "aws_iam_role" "lambda_execution_role" {
-  name = "liminal-transit-lambda-role-${var.environment}"
+  name = "noveli-lambda-role-${var.environment}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -697,7 +697,7 @@ resource "aws_iam_role" "lambda_execution_role" {
 
 # Lambda execution policy
 resource "aws_iam_role_policy" "lambda_execution_policy" {
-  name = "liminal-transit-lambda-policy-${var.environment}"
+  name = "noveli-lambda-policy-${var.environment}"
   role = aws_iam_role.lambda_execution_role.id
 
   policy = jsonencode({
@@ -710,7 +710,7 @@ resource "aws_iam_role_policy" "lambda_execution_policy" {
           "logs:CreateLogStream",
           "logs:PutLogEvents"
         ]
-        Resource = "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/liminal-transit-*"
+        Resource = "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/noveli-*"
       },
       {
         Effect = "Allow"
@@ -822,7 +822,7 @@ resource "aws_cloudwatch_dashboard" "main" {
 
 # CloudWatch Alarms
 resource "aws_cloudwatch_metric_alarm" "lambda_errors" {
-  alarm_name          = "liminal-transit-lambda-errors-${var.environment}"
+  alarm_name          = "noveli-lambda-errors-${var.environment}"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = "2"
   metric_name         = "Errors"
@@ -839,7 +839,7 @@ resource "aws_cloudwatch_metric_alarm" "lambda_errors" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "dynamodb_throttles" {
-  alarm_name          = "liminal-transit-dynamodb-throttles-${var.environment}"
+  alarm_name          = "noveli-dynamodb-throttles-${var.environment}"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = "2"
   metric_name         = "ThrottledRequests"
@@ -857,7 +857,7 @@ resource "aws_cloudwatch_metric_alarm" "dynamodb_throttles" {
 
 # SNS Topic for alerts
 resource "aws_sns_topic" "alerts" {
-  name = "liminal-transit-alerts-${var.environment}"
+  name = "noveli-alerts-${var.environment}"
   
   kms_master_key_id = aws_kms_key.main.id
 }
@@ -1034,7 +1034,7 @@ resource "aws_dynamodb_table" "story_sessions" {
 ```hcl
 # Cost anomaly detection
 resource "aws_ce_anomaly_detector" "service_monitor" {
-  name         = "liminal-transit-cost-anomaly-${var.environment}"
+  name         = "noveli-cost-anomaly-${var.environment}"
   monitor_type = "DIMENSIONAL"
 
   specification = jsonencode({
@@ -1045,7 +1045,7 @@ resource "aws_ce_anomaly_detector" "service_monitor" {
 }
 
 resource "aws_ce_anomaly_subscription" "cost_alerts" {
-  name      = "liminal-transit-cost-alerts-${var.environment}"
+  name      = "noveli-cost-alerts-${var.environment}"
   frequency = "DAILY"
   
   monitor_arn_list = [
@@ -1070,7 +1070,7 @@ resource "aws_ce_anomaly_subscription" "cost_alerts" {
 
 # Budget alerts
 resource "aws_budgets_budget" "liminal_transit_budget" {
-  name       = "liminal-transit-budget-${var.environment}"
+  name       = "noveli-budget-${var.environment}"
   budget_type = "COST"
   limit_amount = var.monthly_budget_limit
   limit_unit   = "USD"
@@ -1084,7 +1084,7 @@ resource "aws_budgets_budget" "liminal_transit_budget" {
       "Amazon Bedrock"
     ]
     Tag = {
-      Project = ["liminal-transit"]
+      Project = ["noveli"]
     }
   }
   
@@ -1117,7 +1117,7 @@ resource "aws_budgets_budget" "liminal_transit_budget" {
 resource "aws_dynamodb_table" "story_sessions_backup" {
   count          = var.enable_cross_region_backup ? 1 : 0
   provider       = aws.backup_region
-  name           = "liminal-transit-story-sessions-backup-${var.environment}"
+  name           = "noveli-story-sessions-backup-${var.environment}"
   billing_mode   = "PAY_PER_REQUEST"
   hash_key       = "session_id"
   range_key      = "timestamp"
@@ -1149,7 +1149,7 @@ resource "aws_lambda_function" "story_generator_backup" {
   count            = var.enable_cross_region_backup ? 1 : 0
   provider         = aws.backup_region
   filename         = "../lambda/story-generator.zip"
-  function_name    = "liminal-transit-story-generator-backup-${var.environment}"
+  function_name    = "noveli-story-generator-backup-${var.environment}"
   role            = aws_iam_role.lambda_execution_role_backup[0].arn
   handler         = "index.handler"
   runtime         = "nodejs18.x"
@@ -1182,7 +1182,7 @@ resource "aws_route53_health_check" "api_health" {
 resource "aws_route53_record" "api_primary" {
   count   = var.enable_cross_region_backup ? 1 : 0
   zone_id = var.route53_zone_id
-  name    = "api.liminal-transit.com"
+  name    = "api.noveli.com"
   type    = "CNAME"
   ttl     = "60"
   
@@ -1199,7 +1199,7 @@ resource "aws_route53_record" "api_primary" {
 resource "aws_route53_record" "api_secondary" {
   count   = var.enable_cross_region_backup ? 1 : 0
   zone_id = var.route53_zone_id
-  name    = "api.liminal-transit.com"
+  name    = "api.noveli.com"
   type    = "CNAME"
   ttl     = "60"
   
@@ -1232,7 +1232,7 @@ jobs:
       - name: Verify DynamoDB Backup
         run: |
           aws dynamodb describe-continuous-backups \
-            --table-name liminal-transit-story-sessions-production
+            --table-name noveli-story-sessions-production
             
       - name: Test Backup Restore Process
         run: |
@@ -1240,7 +1240,7 @@ jobs:
           aws dynamodb restore-table-from-backup \
             --target-table-name test-restore-$(date +%s) \
             --backup-arn $(aws dynamodb list-backups \
-              --table-name liminal-transit-story-sessions-production \
+              --table-name noveli-story-sessions-production \
               --query 'BackupSummaries[0].BackupArn' --output text)
               
       - name: Cleanup Test Resources
@@ -1253,7 +1253,7 @@ jobs:
         run: |
           # Check that backup region is in sync
           aws dynamodb describe-table \
-            --table-name liminal-transit-story-sessions-backup-production \
+            --table-name noveli-story-sessions-backup-production \
             --region us-west-2
 ```
 

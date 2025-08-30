@@ -2,7 +2,7 @@
 
 ## Overview
 
-Comprehensive cost control framework for the AI Native Liminal Transit platform, implementing intelligent budget management, automated cost optimization, real-time spending governance, and predictive cost analytics to ensure sustainable scaling while maintaining performance excellence.
+Comprehensive cost control framework for the AI Native NOVELI.SH platform, implementing intelligent budget management, automated cost optimization, real-time spending governance, and predictive cost analytics to ensure sustainable scaling while maintaining performance excellence.
 
 ---
 

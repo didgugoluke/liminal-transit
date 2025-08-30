@@ -1,10 +1,10 @@
-# Liminal Transit - Bootstrap & Observatory Scripts
+# NOVELI.SH - Bootstrap & Observatory Scripts
 
-This directory contains the comprehensive bootstrap and monitoring scripts for the AI Native Liminal Transit platform.
+This directory contains the comprehensive bootstrap and monitoring scripts for the AI Native NOVELI.SH platform.
 
 ## 🚀 Bootstrap Script
 
-### `bootstrap-liminal-transit.sh`
+### `bootstrap-noveli.sh`
 
 The master bootstrap script that sets up the entire AI Native development environment from scratch. This is your **Day 1, Hour Zero** starting point.
 
@@ -21,7 +21,7 @@ The master bootstrap script that sets up the entire AI Native development enviro
 **Usage:**
 ```bash
 # Run from your development directory
-./scripts/bootstrap-liminal-transit.sh
+./scripts/bootstrap-noveli.sh
 ```
 
 **Prerequisites:**
@@ -98,7 +98,7 @@ Once bootstrap is complete, access your HITM Observatory dashboard:
 - Live Dashboard: Terminal-based real-time monitoring
 
 **Production Dashboard:**
-- URL: `https://observatory.liminal-transit.com`
+- URL: `https://observatory.noveli.com`
 - Real-time AI agent monitoring
 - Infrastructure health metrics
 - Cost analysis and alerting
@@ -108,12 +108,12 @@ Once bootstrap is complete, access your HITM Observatory dashboard:
 
 1. **Bootstrap Environment:**
    ```bash
-   ./scripts/bootstrap-liminal-transit.sh
+   ./scripts/bootstrap-noveli.sh
    ```
 
 2. **Complete Setup:**
    ```bash
-   cd liminal-transit
+   cd noveli
    pnpm bootstrap:complete
    ```
 
@@ -143,7 +143,7 @@ AWS_REGION="us-east-1"
 AWS_ACCOUNT_ID="123456789012"
 
 # Observatory Configuration
-OBSERVATORY_DASHBOARD_URL="https://observatory.liminal-transit.com"
+OBSERVATORY_DASHBOARD_URL="https://observatory.noveli.com"
 OBSERVATORY_REFRESH_INTERVAL="30000"  # 30 seconds
 
 # AI Provider Settings
@@ -155,7 +155,7 @@ ANTHROPIC_API_KEY="sk-ant-..."  # Optional for health checks
 
 To customize the bootstrap process:
 
-1. **Repository Settings:** Edit the configuration section in `bootstrap-liminal-transit.sh`
+1. **Repository Settings:** Edit the configuration section in `bootstrap-noveli.sh`
 2. **Observatory Metrics:** Modify monitoring intervals in `observatory-monitor.js`
 3. **Cost Models:** Update pricing data in `ai-cost-analysis.js`
 4. **Health Checks:** Customize provider endpoints in `ai-health-check.js`
@@ -232,4 +232,4 @@ The Observatory system tracks:
 
 The future of software development starts with these scripts. Experience 100% AI-driven development with enterprise-grade observability and zero human scaffolding.
 
-Ready to build the future? Run `./scripts/bootstrap-liminal-transit.sh` and let the AI agents take over! 🚀
+Ready to build the future? Run `./scripts/bootstrap-noveli.sh` and let the AI agents take over! 🚀

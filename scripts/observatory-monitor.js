@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Liminal Transit Observatory Monitor
+ * NOVELI.SH Observatory Monitor
  * Real-time AI Agent and Infrastructure Monitoring for HITM
  */
 
@@ -26,8 +26,8 @@ class ObservatoryMonitor {
   }
 
   start() {
-    console.log('🔭 Liminal Transit Observatory Starting...');
-    console.log('📊 HITM Dashboard: https://observatory.liminal-transit.com');
+    console.log('🔭 NOVELI.SH Observatory Starting...');
+    console.log('📊 HITM Dashboard: https://observatory.noveli.com');
     console.log('🤖 AI Agent Monitoring: ENABLED');
     console.log('🏗️  Infrastructure Tracking: ENABLED');
     console.log('🔐 Compliance Monitoring: ENABLED');
@@ -98,7 +98,7 @@ class ObservatoryMonitor {
       console.log('🔭 LIMINAL TRANSIT OBSERVATORY - HITM DASHBOARD');
       console.log('=' .repeat(60));
       console.log(`⏰ Uptime: ${this.getUptime()}`);
-      console.log(`📊 Dashboard: https://observatory.liminal-transit.com`);
+      console.log(`📊 Dashboard: https://observatory.noveli.com`);
       console.log('');
       
       // AI Agents Status

@@ -2,7 +2,7 @@
 
 ## AI Native Well-Architected Design Principles
 
-This document establishes the foundational architectural principles that govern all design decisions in the Liminal Transit platform. These principles ensure enterprise-grade compliance, zero human overhead operations, and alignment with AWS Well-Architected Framework best practices.
+This document establishes the foundational architectural principles that govern all design decisions in the NOVELI.SH platform. These principles ensure enterprise-grade compliance, zero human overhead operations, and alignment with AWS Well-Architected Framework best practices.
 
 ---
 

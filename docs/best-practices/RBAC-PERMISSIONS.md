@@ -2,7 +2,7 @@
 
 ## Overview
 
-Comprehensive Role-Based Access Control (RBAC) framework for the AI Native Liminal Transit platform, covering multi-channel HITM access, end-user permissions, AI agent authorization, and hierarchical permission inheritance from god-level rights down through the entire architecture.
+Comprehensive Role-Based Access Control (RBAC) framework for the AI Native NOVELI.SH platform, covering multi-channel HITM access, end-user permissions, AI agent authorization, and hierarchical permission inheritance from god-level rights down through the entire architecture.
 
 ---
 
@@ -319,7 +319,7 @@ export class AWSIAMIntegration {
               'dynamodb:Query',
               'dynamodb:Scan'
             ],
-            Resource: 'arn:aws:*:*:*:liminal-transit-dev-*',
+            Resource: 'arn:aws:*:*:*:noveli-dev-*',
             Condition: {
               StringEquals: {
                 'aws:RequestedRegion': ['us-east-1', 'us-west-2']
@@ -365,7 +365,7 @@ export class AWSIAMIntegration {
               'dynamodb:GetItem',
               'dynamodb:UpdateItem'
             ],
-            Resource: 'arn:aws:*:*:*:liminal-transit-mobile-*'
+            Resource: 'arn:aws:*:*:*:noveli-mobile-*'
           }
         ]
       },
@@ -388,10 +388,10 @@ export class AWSIAMIntegration {
             ],
             Resource: [
               'arn:aws:bedrock:*:*:foundation-model/*',
-              'arn:aws:ssm:*:*:parameter/liminal-transit/*',
+              'arn:aws:ssm:*:*:parameter/noveli/*',
               'arn:aws:kms:*:*:key/*',
-              'arn:aws:dynamodb:*:*:table/liminal-transit-*',
-              'arn:aws:logs:*:*:log-group:/aws/lambda/liminal-transit-*'
+              'arn:aws:dynamodb:*:*:table/noveli-*',
+              'arn:aws:logs:*:*:log-group:/aws/lambda/noveli-*'
             ]
           }
         ]
@@ -417,7 +417,7 @@ export class AWSIAMIntegration {
               'dynamodb:UpdateItem',
               'dynamodb:Query'
             ],
-            Resource: 'arn:aws:dynamodb:*:*:table/liminal-transit-stories',
+            Resource: 'arn:aws:dynamodb:*:*:table/noveli-stories',
             Condition: {
               ForAllValues:StringEquals: {
                 'dynamodb:Attributes': ['story_id', 'user_id', 'content', 'choices', 'created_at']
@@ -433,8 +433,8 @@ export class AWSIAMIntegration {
               'lambda:InvokeFunction'
             ],
             Resource: [
-              'arn:aws:lambda:*:*:function:liminal-transit-story-generator',
-              'arn:aws:lambda:*:*:function:liminal-transit-choice-processor'
+              'arn:aws:lambda:*:*:function:noveli-story-generator',
+              'arn:aws:lambda:*:*:function:noveli-choice-processor'
             ]
           }
         ]
@@ -449,7 +449,7 @@ export class AWSIAMIntegration {
               'dynamodb:GetItem',
               'dynamodb:Query'
             ],
-            Resource: 'arn:aws:dynamodb:*:*:table/liminal-transit-stories',
+            Resource: 'arn:aws:dynamodb:*:*:table/noveli-stories',
             Condition: {
               StringEquals: {
                 'dynamodb:LeadingKeys': ['${cognito-identity.amazonaws.com:sub}']
@@ -467,7 +467,7 @@ export class AWSIAMIntegration {
             Action: [
               'dynamodb:GetItem'
             ],
-            Resource: 'arn:aws:dynamodb:*:*:table/liminal-transit-demo-stories',
+            Resource: 'arn:aws:dynamodb:*:*:table/noveli-demo-stories',
             Condition: {
               StringEquals: {
                 'dynamodb:Select': 'SpecificAttributes'

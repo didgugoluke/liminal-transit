@@ -1,7 +1,7 @@
-# Architecture Document: AI Native Liminal Transit Platform
+# Architecture Document: AI Native NOVELI.SH Platform
 
 ## System Overview
-Liminal Transit is built using Clean Architecture principles with strict separation of concerns, designed for 100% AI-driven interactive storytelling with autonomous data management. The system emphasizes maximum testability, modularity, and maintainability with AWS-native infrastructure and AI-governed data architecture.
+NOVELI.SH is built using Clean Architecture principles with strict separation of concerns, designed for 100% AI-driven interactive storytelling with autonomous data management. The system emphasizes maximum testability, modularity, and maintainability with AWS-native infrastructure and AI-governed data architecture.
 
 ## Architecture Layers
 

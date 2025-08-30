@@ -2,7 +2,7 @@
 
 ## Overview
 
-Comprehensive local development environment for the AI Native Liminal Transit platform, featuring Docker containerization, reverse proxy CORS solutions, automated tooling, and streamlined dev/test workflows with one-liner commands for maximum developer productivity.
+Comprehensive local development environment for the AI Native NOVELI.SH platform, featuring Docker containerization, reverse proxy CORS solutions, automated tooling, and streamlined dev/test workflows with one-liner commands for maximum developer productivity.
 
 ---
 
@@ -232,7 +232,7 @@ http {
     server {
         listen 80;
         listen 443 ssl http2;
-        server_name localhost dev.liminal-transit.local;
+        server_name localhost dev.noveli.local;
 
         # SSL configuration for HTTPS development
         ssl_certificate /etc/ssl/certs/dev.crt;
@@ -469,7 +469,7 @@ npm run ai:benchmark
 
 set -euo pipefail
 
-echo "🚀 Setting up Liminal Transit development environment..."
+echo "🚀 Setting up NOVELI.SH development environment..."
 
 # Check prerequisites
 check_prerequisites() {
@@ -710,10 +710,10 @@ create_s3_buckets() {
     echo "🪣 Creating S3 buckets..."
     
     local buckets=(
-        "liminal-transit-dev-stories"
-        "liminal-transit-dev-assets"
-        "liminal-transit-dev-user-data"
-        "liminal-transit-dev-telemetry"
+        "noveli-dev-stories"
+        "noveli-dev-assets"
+        "noveli-dev-user-data"
+        "noveli-dev-telemetry"
     )
     
     for bucket in "${buckets[@]}"; do
@@ -768,14 +768,14 @@ create_cognito_resources() {
     
     # Create User Pool
     local user_pool_id=$(aws --endpoint-url=http://localhost:4566 cognito-idp create-user-pool \
-        --pool-name "liminal-transit-dev" \
+        --pool-name "noveli-dev" \
         --policies '{"PasswordPolicy":{"MinimumLength":8}}' \
         --query 'UserPool.Id' --output text)
     
     # Create User Pool Client
     aws --endpoint-url=http://localhost:4566 cognito-idp create-user-pool-client \
         --user-pool-id "$user_pool_id" \
-        --client-name "liminal-transit-dev-client" \
+        --client-name "noveli-dev-client" \
         --explicit-auth-flows ADMIN_NO_SRP_AUTH USER_PASSWORD_AUTH || true
     
     echo "✅ Cognito resources created"
@@ -933,7 +933,7 @@ xcrun simctl list devices
 open -a Simulator
 
 # Tunnel localhost to device
-npx localtunnel --port 8080 --subdomain liminal-transit-dev
+npx localtunnel --port 8080 --subdomain noveli-dev
 ```
 
 ### Android Testing
@@ -947,4 +947,4 @@ adb reverse tcp:8080 tcp:8080
 
 ---
 
-This comprehensive local development setup provides everything needed for efficient development of the AI Native Liminal Transit platform, with zero-configuration Docker environment, CORS-solving reverse proxy, and streamlined one-liner commands for all common development tasks.
+This comprehensive local development setup provides everything needed for efficient development of the AI Native NOVELI.SH platform, with zero-configuration Docker environment, CORS-solving reverse proxy, and streamlined one-liner commands for all common development tasks.

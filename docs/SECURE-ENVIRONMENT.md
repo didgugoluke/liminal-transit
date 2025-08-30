@@ -9,22 +9,22 @@
 ```yaml
 Parameter Hierarchy:
   Production:
-    /liminal-transit/prod/openai/api-key
-    /liminal-transit/prod/anthropic/api-key
-    /liminal-transit/prod/github/token
-    /liminal-transit/prod/aws/bedrock-access
-    /liminal-transit/prod/monitoring/datadog-key
+    /noveli/prod/openai/api-key
+    /noveli/prod/anthropic/api-key
+    /noveli/prod/github/token
+    /noveli/prod/aws/bedrock-access
+    /noveli/prod/monitoring/datadog-key
     
   Staging:
-    /liminal-transit/staging/openai/api-key
-    /liminal-transit/staging/anthropic/api-key
-    /liminal-transit/staging/github/token
-    /liminal-transit/staging/aws/bedrock-access
+    /noveli/staging/openai/api-key
+    /noveli/staging/anthropic/api-key
+    /noveli/staging/github/token
+    /noveli/staging/aws/bedrock-access
     
   Development:
-    /liminal-transit/dev/openai/api-key
-    /liminal-transit/dev/test/mock-keys
-    /liminal-transit/dev/local/credentials
+    /noveli/dev/openai/api-key
+    /noveli/dev/test/mock-keys
+    /noveli/dev/local/credentials
 
 Security Configuration:
   Encryption: AWS KMS with customer-managed keys
@@ -314,7 +314,7 @@ Automated Reports:
 
 set -euo pipefail
 
-echo "🚀 Bootstrapping Liminal Transit AI Native Environment"
+echo "🚀 Bootstrapping NOVELI.SH AI Native Environment"
 
 # Check prerequisites
 command -v aws >/dev/null 2>&1 || { echo "❌ AWS CLI required"; exit 1; }
@@ -331,14 +331,14 @@ echo "✅ Prerequisites validated"
 
 # Create KMS key for secret encryption
 KMS_KEY_ID=$(aws kms create-key \
-  --description "Liminal Transit Secret Encryption" \
+  --description "NOVELI.SH Secret Encryption" \
   --usage ENCRYPT_DECRYPT \
   --key-spec SYMMETRIC_DEFAULT \
   --query 'KeyMetadata.KeyId' \
   --output text)
 
 aws kms create-alias \
-  --alias-name alias/liminal-transit-secrets \
+  --alias-name alias/noveli-secrets \
   --target-key-id "$KMS_KEY_ID"
 
 echo "✅ KMS encryption key created: $KMS_KEY_ID"
@@ -346,21 +346,21 @@ echo "✅ KMS encryption key created: $KMS_KEY_ID"
 # Set up secret parameters (if provided)
 if [[ -n "${OPENAI_API_KEY:-}" ]]; then
   aws ssm put-parameter \
-    --name "/liminal-transit/prod/openai/api-key" \
+    --name "/noveli/prod/openai/api-key" \
     --value "$OPENAI_API_KEY" \
     --type "SecureString" \
-    --key-id "alias/liminal-transit-secrets" \
+    --key-id "alias/noveli-secrets" \
     --description "OpenAI API key for production"
   echo "✅ OpenAI API key stored securely"
 fi
 
 # Create CloudWatch log groups
 aws logs create-log-group \
-  --log-group-name "/liminal-transit/agents" || true
+  --log-group-name "/noveli/agents" || true
 aws logs create-log-group \
-  --log-group-name "/liminal-transit/observatory" || true
+  --log-group-name "/noveli/observatory" || true
 aws logs create-log-group \
-  --log-group-name "/liminal-transit/security" || true
+  --log-group-name "/noveli/security" || true
 
 echo "✅ CloudWatch log groups created"
 
@@ -390,7 +390,7 @@ echo "✅ Pre-commit security hooks installed"
 ./scripts/setup-monitoring-dashboards.sh
 
 echo "🎉 Secure environment bootstrap complete!"
-echo "📊 Observatory dashboard: https://observatory.liminal-transit.com"
+echo "📊 Observatory dashboard: https://observatory.noveli.com"
 echo "🔐 Secrets managed in AWS Systems Manager Parameter Store"
 echo "🛡️ Pre-commit security scanning enabled"
 ```
@@ -482,7 +482,7 @@ EOF
 echo "✅ Issue templates created for AI agents"
 
 # Set up webhook for agent coordination
-WEBHOOK_URL="https://observatory.liminal-transit.com/webhooks/github"
+WEBHOOK_URL="https://observatory.noveli.com/webhooks/github"
 gh api repos/:owner/:repo/hooks \
   --method POST \
   --field name='web' \

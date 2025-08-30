@@ -323,10 +323,10 @@ GitHub Project Automation:
 Secret Management Strategy:
   AWS Systems Manager Parameter Store:
     Structure:
-      /liminal-transit/prod/openai/api-key
-      /liminal-transit/prod/github/token
-      /liminal-transit/staging/anthropic/key
-      /liminal-transit/dev/test/credentials
+      /noveli/prod/openai/api-key
+      /noveli/prod/github/token
+      /noveli/staging/anthropic/key
+      /noveli/dev/test/credentials
       
     Security:
       - Encryption at rest with AWS KMS
@@ -399,14 +399,14 @@ interface SecurityAuditSystem {
 
 # Create secret management infrastructure
 aws ssm put-parameter \
-  --name "/liminal-transit/prod/openai/api-key" \
+  --name "/noveli/prod/openai/api-key" \
   --value "$OPENAI_API_KEY" \
   --type "SecureString" \
-  --key-id "alias/liminal-transit-secrets"
+  --key-id "alias/noveli-secrets"
 
 # Set up CloudWatch logging
-aws logs create-log-group --log-group-name "/liminal-transit/agents"
-aws logs create-log-group --log-group-name "/liminal-transit/observatory"
+aws logs create-log-group --log-group-name "/noveli/agents"
+aws logs create-log-group --log-group-name "/noveli/observatory"
 
 # Deploy monitoring infrastructure
 ./scripts/deploy-monitoring.sh
@@ -459,7 +459,7 @@ agents:
     cost_limit: 15.00
     
 observatory:
-  dashboard_url: https://observatory.liminal-transit.com
+  dashboard_url: https://observatory.noveli.com
   monitoring_frequency: 30s
   alert_thresholds:
     response_time: 10s

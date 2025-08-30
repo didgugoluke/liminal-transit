@@ -250,7 +250,7 @@ interface IAMRoles {
 ```typescript
 interface EventPatterns {
   storyGenerated: {
-    source: "liminal-transit.story";
+    source: "noveli.story";
     detailType: "Story Beat Generated";
     detail: {
       sessionId: string;
@@ -261,7 +261,7 @@ interface EventPatterns {
   };
   
   userEngagement: {
-    source: "liminal-transit.user";
+    source: "noveli.user";
     detailType: "User Choice Made";
     detail: {
       userId: string;
@@ -272,7 +272,7 @@ interface EventPatterns {
   };
   
   aiOptimization: {
-    source: "liminal-transit.ai";
+    source: "noveli.ai";
     detailType: "Model Performance Updated";
     detail: {
       model: string;

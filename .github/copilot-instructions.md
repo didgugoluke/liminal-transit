@@ -1,6 +1,6 @@
-# Liminal Transit — AI Native Interactive Storytelling Platform
+# NOVELI.SH — AI Native Interactive Storytelling Platform
 
-# Liminal Transit — AI Native Interactive Storytelling Platform
+# NOVELI.SH — AI Native Interactive Storytelling Platform
 
 ### AI Native Development Principles
 - **100% AI Orchestration** — GitHub Copilot agents manage entire development lifecycle

@@ -2,7 +2,7 @@
 
 ## Overview
 
-Comprehensive AI telemetry framework for the AI Native Liminal Transit platform, implementing Day 1 Hour Zero prompt tracking, model performance monitoring, cost attribution, and intelligent observability to capture every AI interaction with full visibility and continuous optimization capabilities.
+Comprehensive AI telemetry framework for the AI Native NOVELI.SH platform, implementing Day 1 Hour Zero prompt tracking, model performance monitoring, cost attribution, and intelligent observability to capture every AI interaction with full visibility and continuous optimization capabilities.
 
 ---
 
