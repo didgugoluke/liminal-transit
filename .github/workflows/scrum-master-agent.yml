@@ -153,7 +153,7 @@ jobs:
               
               # First, ensure story is added to project
               echo "📋 Ensuring story is in project..."
-              if ! gh project item-list "$PROJECT_ID" --owner "didgugoluke" --format json | jq -e --arg title "$STORY_TITLE" '.items[] | select(.content.title == $title)' > /dev/null; then
+              if ! gh project item-list "$PROJECT_NUMBER" --owner "didgugoluke" --format json | jq -e --arg title "$STORY_TITLE" '.items[] | select(.content.title == $title)' > /dev/null; then
                 echo "➕ Adding story to project..."
                 if gh project item-add "$PROJECT_NUMBER" --owner "didgugoluke" --url "https://github.com/didgugoluke/liminal-transit/issues/$STORY_NUMBER"; then
                   echo "✅ Story added to project successfully"
