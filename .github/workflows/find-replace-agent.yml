@@ -242,7 +242,7 @@ jobs:
           echo "changes_made=$CHANGES_MADE" >> $GITHUB_OUTPUT
 
       - name: 📝 Commit Changes
-        if: steps.execute_transformations.outputs.changes_made == '1'
+        if: steps.extract_patterns.outputs.patterns_valid == 'true'
         run: |
           git add .
           
@@ -260,7 +260,7 @@ jobs:
           git commit -m "$COMMIT_MSG"
 
       - name: 🚀 Create Pull Request
-        if: steps.execute_transformations.outputs.changes_made == '1'
+        if: steps.extract_patterns.outputs.patterns_valid == 'true'
         run: |
           BRANCH_NAME="ai-agent/find-replace-${{ github.event.issue.number }}"
           
