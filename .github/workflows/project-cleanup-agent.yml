@@ -113,7 +113,7 @@ jobs:
           echo "$ORPHANED_ITEMS" > /tmp/orphaned_count
           echo -e "$ORPHANED_LIST" > /tmp/orphaned_list
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
 
       - name: 🧹 Execute Cleanup
         id: cleanup
@@ -182,7 +182,7 @@ jobs:
             echo "✅ Cleanup complete - Deleted $DELETED_COUNT orphaned items"
           fi
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
 
       - name: 📊 Generate Report
         run: |
@@ -247,7 +247,7 @@ jobs:
           
           gh issue comment ${{ github.event.issue.number }} --body "✅ **$SUMMARY**"
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
 
       - name: ✅ Agent Completion
         run: |
