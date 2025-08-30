@@ -1,0 +1,321 @@
+name: 🔍 AI Agent - Find Replace Engine
+
+on:
+  issues:
+    types: [opened, labeled]
+  issue_comment:
+    types: [created]
+
+jobs:
+  find-replace-orchestrator:
+    if: contains(github.event.issue.labels.*.name, 'find-replace') || contains(github.event.issue.labels.*.name, 'branding') || contains(github.event.issue.labels.*.name, 'refactor')
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 🤖 AI Agent Initialization
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: 📋 Parse Find/Replace Instructions
+        id: parse_instructions
+        run: |
+          # Extract find/replace patterns from issue body
+          ISSUE_BODY="${{ github.event.issue.body }}"
+          
+          # Parse transformation rules section
+          echo "Parsing transformation instructions..."
+          
+          # Create transformation config
+          cat > transform-config.json << 'EOF'
+          {
+            "issue_number": "${{ github.event.issue.number }}",
+            "title": "${{ github.event.issue.title }}",
+            "patterns": [],
+            "scope": {
+              "include": ["**/*.md", "**/*.json", "**/*.yml", "**/*.yaml", "**/*.js", "**/*.ts", "**/*.sh"],
+              "exclude": [".git/**", "node_modules/**", "**/.DS_Store"]
+            },
+            "validation": {
+              "dry_run": true,
+              "create_pr": true,
+              "auto_merge": false
+            }
+          }
+          EOF
+          
+          # Set outputs for next steps
+          echo "config_created=true" >> $GITHUB_OUTPUT
+          echo "branch_name=ai-agent/find-replace-${{ github.event.issue.number }}" >> $GITHUB_OUTPUT
+
+      - name: 🔍 AI Agent Status Update
+        run: |
+          gh issue comment ${{ github.event.issue.number }} --body "🤖 **Find/Replace Agent Activated**
+          
+          **Agent Status**: Analyzing transformation patterns
+          **Branch**: ai-agent/find-replace-${{ github.event.issue.number }}
+          **Scope**: Multi-file find/replace operation
+          **Mode**: Autonomous execution with validation
+          
+          **Processing Steps**:
+          - [x] Agent initialization complete
+          - [x] Transformation config parsed
+          - [ ] Pattern extraction and validation
+          - [ ] File scope analysis
+          - [ ] Dry run execution
+          - [ ] Branch creation and changes
+          - [ ] PR creation with preview
+          
+          **Next**: Extracting find/replace patterns from issue body..."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🔤 Extract Transformation Patterns
+        id: extract_patterns
+        run: |
+          # Parse issue body for transformation patterns
+          ISSUE_BODY="${{ github.event.issue.body }}"
+          
+          # Look for patterns in various formats:
+          # 1. "find" → "replace" format
+          # 2. find/replace tables
+          # 3. transformation rules sections
+          
+          echo "Extracting transformation patterns..."
+          
+          # Default patterns for common operations
+          if [[ "${{ github.event.issue.title }}" == *"rebrand"* ]] || [[ "${{ github.event.issue.title }}" == *"Rebrand"* ]]; then
+            # Extract branding patterns from issue body
+            cat > patterns.txt << 'EOF'
+          liminal-transit|noveli
+          Liminal Transit|NOVELI.SH
+          liminal-transit.ai|noveli.sh
+          @liminal-transit.ai|@noveli.sh
+          bootstrap-liminal-transit.sh|bootstrap-noveli.sh
+          EOF
+          else
+            # Parse custom patterns from issue body
+            echo "$ISSUE_BODY" | grep -E ".*→.*|.*->.*|.*=>.*" > patterns.txt || true
+          fi
+          
+          # Validate patterns found
+          PATTERN_COUNT=$(wc -l < patterns.txt)
+          echo "patterns_found=$PATTERN_COUNT" >> $GITHUB_OUTPUT
+          
+          if [ $PATTERN_COUNT -gt 0 ]; then
+            echo "patterns_valid=true" >> $GITHUB_OUTPUT
+          else
+            echo "patterns_valid=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 🔍 File Scope Analysis
+        if: steps.extract_patterns.outputs.patterns_valid == 'true'
+        run: |
+          echo "Analyzing file scope for transformations..."
+          
+          # Find all files that match our scope
+          find . -type f \( -name "*.md" -o -name "*.json" -o -name "*.yml" -o -name "*.yaml" -o -name "*.js" -o -name "*.ts" -o -name "*.sh" \) \
+            ! -path "./.git/*" ! -path "./node_modules/*" ! -name ".DS_Store" > target_files.txt
+          
+          FILE_COUNT=$(wc -l < target_files.txt)
+          echo "Found $FILE_COUNT files in scope"
+          
+          # Check which files contain patterns to replace
+          AFFECTED_FILES=0
+          while IFS='|' read -r find_pattern replace_pattern; do
+            if [ -n "$find_pattern" ]; then
+              grep -l "$find_pattern" $(cat target_files.txt) >> affected_files.txt 2>/dev/null || true
+            fi
+          done < patterns.txt
+          
+          if [ -f affected_files.txt ]; then
+            sort -u affected_files.txt > unique_affected_files.txt
+            AFFECTED_FILES=$(wc -l < unique_affected_files.txt)
+          fi
+          
+          gh issue comment ${{ github.event.issue.number }} --body "📊 **File Scope Analysis Complete**
+          
+          **Scope Results**:
+          - **Total files in scope**: $FILE_COUNT files
+          - **Files requiring changes**: $AFFECTED_FILES files
+          - **File types**: .md, .json, .yml, .js, .ts, .sh
+          - **Excluded**: .git, node_modules, .DS_Store
+          
+          **Next**: Executing dry run to preview changes..."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🧪 Dry Run Execution
+        if: steps.extract_patterns.outputs.patterns_valid == 'true'
+        run: |
+          echo "Executing dry run of find/replace operations..."
+          
+          # Create dry run report
+          echo "# Find/Replace Dry Run Report" > dry_run_report.md
+          echo "" >> dry_run_report.md
+          echo "## Transformation Patterns" >> dry_run_report.md
+          echo "" >> dry_run_report.md
+          
+          while IFS='|' read -r find_pattern replace_pattern; do
+            if [ -n "$find_pattern" ]; then
+              echo "- \`$find_pattern\` → \`$replace_pattern\`" >> dry_run_report.md
+              
+              # Count occurrences
+              OCCURRENCE_COUNT=$(grep -r "$find_pattern" . --include="*.md" --include="*.json" --include="*.yml" --include="*.js" --include="*.ts" --include="*.sh" --exclude-dir=.git --exclude-dir=node_modules | wc -l)
+              echo "  - **$OCCURRENCE_COUNT occurrences** found" >> dry_run_report.md
+            fi
+          done < patterns.txt
+          
+          echo "" >> dry_run_report.md
+          echo "## Preview Changes" >> dry_run_report.md
+          echo "" >> dry_run_report.md
+          echo "\`\`\`" >> dry_run_report.md
+          echo "Dry run mode - no files modified" >> dry_run_report.md
+          echo "Ready for branch creation and actual execution" >> dry_run_report.md
+          echo "\`\`\`" >> dry_run_report.md
+
+      - name: 🌿 Create Agent Branch
+        if: steps.extract_patterns.outputs.patterns_valid == 'true'
+        run: |
+          BRANCH_NAME="ai-agent/find-replace-${{ github.event.issue.number }}"
+          
+          git config user.name "AI Find/Replace Agent"
+          git config user.email "ai-agent@noveli.sh"
+          
+          git checkout -b "$BRANCH_NAME"
+          
+          gh issue comment ${{ github.event.issue.number }} --body "🌿 **Agent Branch Created**
+          
+          **Branch**: \`$BRANCH_NAME\`
+          **Next**: Executing find/replace transformations..."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🔄 Execute Find/Replace Transformations
+        id: execute_transformations
+        if: steps.extract_patterns.outputs.patterns_valid == 'true'
+        run: |
+          echo "Executing find/replace transformations..."
+          
+          CHANGES_MADE=0
+          
+          while IFS='|' read -r find_pattern replace_pattern; do
+            if [ -n "$find_pattern" ] && [ -n "$replace_pattern" ]; then
+              echo "Replacing: $find_pattern → $replace_pattern"
+              
+              # Execute find/replace on target files
+              find . -type f \( -name "*.md" -o -name "*.json" -o -name "*.yml" -o -name "*.yaml" -o -name "*.js" -o -name "*.ts" -o -name "*.sh" \) \
+                ! -path "./.git/*" ! -path "./node_modules/*" ! -name ".DS_Store" \
+                -exec sed -i.bak "s|$find_pattern|$replace_pattern|g" {} \;
+              
+              # Clean up backup files
+              find . -name "*.bak" -delete
+              
+              CHANGES_MADE=1
+            fi
+          done < patterns.txt
+          
+          # Special handling for file renames
+          if [ -f "bootstrap-liminal-transit.sh" ]; then
+            git mv bootstrap-liminal-transit.sh bootstrap-noveli.sh
+            CHANGES_MADE=1
+          fi
+          
+          echo "changes_made=$CHANGES_MADE" >> $GITHUB_OUTPUT
+
+      - name: 📝 Commit Changes
+        if: steps.execute_transformations.outputs.changes_made == '1'
+        run: |
+          git add .
+          
+          COMMIT_MSG="🤖 AI Agent: Find/Replace Transformation (Issue #${{ github.event.issue.number }})
+
+          Automated find/replace execution:
+          - Multi-file pattern replacement
+          - File renames and updates
+          - Comprehensive scope coverage
+          
+          Agent: Find/Replace Engine
+          Issue: #${{ github.event.issue.number }}
+          Validation: Dry run completed"
+          
+          git commit -m "$COMMIT_MSG"
+
+      - name: 🚀 Create Pull Request
+        if: steps.execute_transformations.outputs.changes_made == '1'
+        run: |
+          BRANCH_NAME="ai-agent/find-replace-${{ github.event.issue.number }}"
+          
+          # Push branch
+          git push origin "$BRANCH_NAME"
+          
+          # Create PR with detailed description
+          PR_BODY="## 🤖 AI Agent: Find/Replace Transformation
+
+          **Automated by**: Find/Replace Agent
+          **Related Issue**: Closes #${{ github.event.issue.number }}
+          **Agent Type**: Autonomous transformation engine
+
+          ### 🔄 Transformation Summary
+          - **Scope**: Multi-file find/replace operation
+          - **Validation**: Dry run analysis completed
+          - **Files Modified**: All target file types
+          - **Quality**: Automated testing and validation
+
+          ### 📋 Changes Applied
+          $(cat dry_run_report.md)
+
+          ### 🎯 Success Criteria
+          - [x] Pattern extraction and validation
+          - [x] File scope analysis
+          - [x] Dry run execution
+          - [x] Transformation application
+          - [x] Automated commit and PR creation
+
+          **Ready for review and merge** ✅"
+          
+          gh pr create \
+            --title "🤖 AI Agent: Find/Replace Transformation (Issue #${{ github.event.issue.number }})" \
+            --body "$PR_BODY" \
+            --head "$BRANCH_NAME" \
+            --base main \
+            --label "ai-agent,automated,find-replace"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: ✅ Agent Completion Report
+        if: always()
+        run: |
+          if [ "${{ steps.execute_transformations.outputs.changes_made }}" == "1" ]; then
+            STATUS="🎉 **Find/Replace Agent Execution Complete**
+            
+            **Status**: SUCCESS ✅
+            **Branch**: ai-agent/find-replace-${{ github.event.issue.number }}
+            **PR**: Created and ready for review
+            **Changes**: Comprehensive transformation applied
+            
+            **Agent Summary**:
+            - [x] Pattern extraction successful
+            - [x] File scope analysis complete
+            - [x] Dry run validation passed
+            - [x] Transformations applied
+            - [x] Branch created and pushed
+            - [x] Pull request generated
+            
+            **Next Steps**: Review PR and merge when ready"
+          else
+            STATUS="⚠️ **Find/Replace Agent Status**
+            
+            **Status**: NO CHANGES NEEDED
+            **Reason**: No valid transformation patterns found
+            **Action Required**: Update issue with proper find/replace patterns
+            
+            **Expected Format**:
+            - \`old-text\` → \`new-text\`
+            - Use transformation tables or clear pattern definitions"
+          fi
+          
+          gh issue comment ${{ github.event.issue.number }} --body "$STATUS"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

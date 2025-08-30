@@ -1,0 +1,125 @@
+name: AI Native Agent Orchestrator
+on:
+  issues:
+    types: [opened, labeled, edited]
+  issue_comment:
+    types: [created]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  actions: write
+
+jobs:
+  ai-agent-dispatcher:
+    runs-on: ubuntu-latest
+    if: contains(github.event.issue.labels.*.name, 'ai-agent') || github.event_name == 'workflow_dispatch'
+    
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        fetch-depth: 0
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install Dependencies
+      run: |
+        npm install @octokit/rest @octokit/action
+        npm install openai
+        
+    - name: AI Agent Analysis
+      id: agent-analysis
+      run: |
+        cat > agent-dispatcher.js << 'EOF'
+        const { Octokit } = require('@octokit/rest');
+        const core = require('@actions/core');
+        
+        const octokit = new Octokit({
+          auth: process.env.GITHUB_TOKEN,
+        });
+        
+        async function analyzeIssue() {
+          const context = JSON.parse(process.env.GITHUB_CONTEXT);
+          const issue = context.event.issue;
+          
+          console.log(`Analyzing issue #${issue.number}: ${issue.title}`);
+          
+          // AI Native Decision Logic from Foundation Documents
+          const aiAgentTypes = {
+            'P1': 'HighPriorityAgent',
+            'chore': 'MaintenanceAgent', 
+            'epic': 'EpicOrchestrator',
+            'branding': 'BrandingAgent',
+            'infrastructure': 'InfrastructureAgent'
+          };
+          
+          let assignedAgent = 'GeneralPurposeAgent';
+          let priority = 'P3';
+          
+          // Determine agent type based on labels
+          for (const label of issue.labels) {
+            if (aiAgentTypes[label.name]) {
+              assignedAgent = aiAgentTypes[label.name];
+            }
+            if (label.name.startsWith('P')) {
+              priority = label.name;
+            }
+          }
+          
+          // Output for GitHub Actions
+          core.setOutput('agent-type', assignedAgent);
+          core.setOutput('priority', priority);
+          core.setOutput('issue-number', issue.number);
+          core.setOutput('issue-title', issue.title);
+          
+          console.log(`Assigned Agent: ${assignedAgent}, Priority: ${priority}`);
+        }
+        
+        analyzeIssue().catch(console.error);
+        EOF
+        
+        GITHUB_CONTEXT='${{ toJson(github) }}' node agent-dispatcher.js
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Execute AI Agent Workflow
+      run: |
+        echo "Executing AI Agent: ${{ steps.agent-analysis.outputs.agent-type }}"
+        echo "Priority: ${{ steps.agent-analysis.outputs.priority }}"
+        echo "Issue: #${{ steps.agent-analysis.outputs.issue-number }} - ${{ steps.agent-analysis.outputs.issue-title }}"
+        
+        # Call appropriate agent workflow based on analysis
+        case "${{ steps.agent-analysis.outputs.agent-type }}" in
+          "BrandingAgent")
+            echo "Triggering Branding Agent for global rebrand..."
+            gh workflow run branding-agent.yml --field issue-number="${{ steps.agent-analysis.outputs.issue-number }}"
+            ;;
+          "EpicOrchestrator") 
+            echo "Triggering Epic Orchestrator for feature development..."
+            gh workflow run epic-orchestrator.yml --field issue-number="${{ steps.agent-analysis.outputs.issue-number }}"
+            ;;
+          "MaintenanceAgent")
+            echo "Triggering Maintenance Agent for chores..."
+            gh workflow run maintenance-agent.yml --field issue-number="${{ steps.agent-analysis.outputs.issue-number }}"
+            ;;
+          *)
+            echo "Triggering General Purpose Agent..."
+            gh workflow run general-agent.yml --field issue-number="${{ steps.agent-analysis.outputs.issue-number }}"
+            ;;
+        esac
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Update Issue with Agent Assignment
+      run: |
+        gh issue comment ${{ steps.agent-analysis.outputs.issue-number }} --body "AI Agent Activated: ${{ steps.agent-analysis.outputs.agent-type }} assigned with priority ${{ steps.agent-analysis.outputs.priority }}. Autonomous execution initiated."
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
