@@ -331,10 +331,10 @@ jobs:
           BRANCH_NAME: ${{ steps.execute.outputs.branch_name }}
         run: |
           echo "🚀 Creating Pull Request for implemented tasks..."
-          
+
           # Ensure required labels exist
           echo "🏷️ Ensuring required labels exist..."
-          
+
           # Function to ensure a label exists, create if missing
           ensure_label_exists() {
             local label_name="$1"
@@ -352,7 +352,7 @@ jobs:
               echo "✅ Label exists: $label_name"
             fi
           }
-          
+
           # Create required labels
           ensure_label_exists "ai-agent" "7B68EE" "Issues and PRs created by AI agents"
           ensure_label_exists "automated" "00D084" "Automated processes and workflows"
@@ -387,16 +387,16 @@ jobs:
 
           # Create PR with robust label handling
           echo "📝 Creating pull request..."
-          
+
           # Create the PR first
           PR_URL=$(gh pr create \
             --title "🚀 AI Development Agent: Implement $STORY_TITLE (#$STORY_NUMBER)" \
             --body "$PR_BODY" \
             --head "$BRANCH_NAME" \
             --base main)
-          
+
           echo "✅ Pull request created: $PR_URL"
-          
+
           # Add labels one by one with error handling
           for label in "ai-agent" "automated" "development" "database"; do
             if gh label list | grep -q "^$label"; then

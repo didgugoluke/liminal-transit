@@ -30,7 +30,7 @@ jobs:
   project-admin:
     name: 🛡️ Project Admin Review & Merge
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: 📥 Checkout Repository
         uses: actions/checkout@v4
@@ -55,7 +55,7 @@ jobs:
         run: |
           git config --global user.name "AI Project Admin Agent"
           git config --global user.email "admin@noveli.sh"
-          
+
           echo "Verifying GitHub CLI authentication..."
           gh auth status
         env:
@@ -65,7 +65,7 @@ jobs:
         run: |
           echo "🛡️ Project Admin Agent Starting..."
           echo "Repository: didgugoluke/liminal-transit"
-          
+
           # Determine PR number
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             PR_NUMBER="${{ github.event.pull_request.number }}"
@@ -74,10 +74,10 @@ jobs:
             PR_NUMBER="${{ github.event.inputs.pr_number }}"
             ACTION="${{ github.event.inputs.action }}"
           fi
-          
+
           echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
           echo "ACTION=$ACTION" >> $GITHUB_ENV
-          
+
           echo "Reviewing PR: #$PR_NUMBER"
           echo "Action: $ACTION"
 
@@ -86,9 +86,9 @@ jobs:
         run: |
           # Use the environment variables set in previous step
           PR_NUMBER="$PR_NUMBER"
-          
+
           echo "🔍 Analyzing PR #$PR_NUMBER..."
-          
+
           # Get PR details
           PR_DATA=$(gh pr view "$PR_NUMBER" --json title,labels,state,body,headRefName,author,files,additions,deletions)
           PR_TITLE=$(echo "$PR_DATA" | jq -r '.title')
@@ -98,7 +98,7 @@ jobs:
           PR_FILES_COUNT=$(echo "$PR_DATA" | jq '.files | length')
           PR_ADDITIONS=$(echo "$PR_DATA" | jq -r '.additions')
           PR_DELETIONS=$(echo "$PR_DATA" | jq -r '.deletions')
-          
+
           echo "pr_title=$PR_TITLE" >> $GITHUB_OUTPUT
           echo "pr_labels=$PR_LABELS" >> $GITHUB_OUTPUT
           echo "pr_branch=$PR_BRANCH" >> $GITHUB_OUTPUT
@@ -106,7 +106,7 @@ jobs:
           echo "pr_files_count=$PR_FILES_COUNT" >> $GITHUB_OUTPUT
           echo "pr_additions=$PR_ADDITIONS" >> $GITHUB_OUTPUT
           echo "pr_deletions=$PR_DELETIONS" >> $GITHUB_OUTPUT
-          
+
           # Determine risk level
           RISK_LEVEL="medium"
           if [[ "$PR_LABELS" == *"ai-agent"* && "$PR_FILES_COUNT" -le 5 && "$PR_ADDITIONS" -le 100 ]]; then
@@ -114,9 +114,9 @@ jobs:
               RISK_LEVEL="low"
             fi
           fi
-          
+
           echo "risk_level=$RISK_LEVEL" >> $GITHUB_OUTPUT
-          
+
           echo "📈 Analysis Complete:"
           echo "  Title: $PR_TITLE"
           echo "  Author: $PR_AUTHOR"
@@ -138,9 +138,9 @@ jobs:
           PR_TITLE="${{ steps.analyze.outputs.pr_title }}"
           PR_BRANCH="${{ steps.analyze.outputs.pr_branch }}"
           PR_LABELS="${{ steps.analyze.outputs.pr_labels }}"
-          
+
           echo "🎯 Executing Admin Action: $ACTION"
-          
+
           case "$ACTION" in
             "review_and_merge")
               echo "📋 Performing automated review and merge..."
@@ -222,9 +222,9 @@ jobs:
           # Use environment variables
           PR_NUMBER="$PR_NUMBER"
           PR_TITLE="${{ steps.analyze.outputs.pr_title }}"
-          
+
           echo "🎉 Performing post-merge actions..."
-          
+
           # Update any related issues
           if [[ "$PR_TITLE" == *"#"* ]]; then
             STORY_NUMBER=$(echo "$PR_TITLE" | grep -o '#[0-9]*' | sed 's/#//')
@@ -243,7 +243,7 @@ jobs:
               gh issue comment "$STORY_NUMBER" --body-file story_update.md
             fi
           fi
-          
+
           echo "✅ Post-merge actions completed"
         env:
           GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
@@ -253,12 +253,12 @@ jobs:
         run: |
           ACTION_RESULT="${{ steps.execute.outputs.action_result }}"
           PR_NUMBER="$PR_NUMBER"
-          
+
           echo "📊 Project Admin Agent Summary:"
           echo "  PR: #$PR_NUMBER"
           echo "  Action: $ACTION"
           echo "  Result: $ACTION_RESULT"
-          
+
           # Add status update to original issue if available
           if scripts/github-rate-limit-manager.sh check-rest "status update" 5; then
             case "$ACTION_RESULT" in
@@ -299,7 +299,7 @@ jobs:
         if: failure()
         run: |
           echo "🚨 Project Admin Agent execution failed - performing emergency cleanup..."
-          
+
           # Report failure status
           if scripts/github-rate-limit-manager.sh check-rest "emergency comment" 5; then
             if [ -n "$PR_NUMBER" ]; then

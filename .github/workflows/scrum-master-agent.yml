@@ -74,7 +74,7 @@ jobs:
           if [ -z "$STORY_NUMBER" ] || [ "$STORY_NUMBER" = "null" ]; then
             STORY_NUMBER="54"
           fi
-          
+
           if [ -z "$ACTION" ] || [ "$ACTION" = "null" ]; then
             ACTION="start_story"
           fi

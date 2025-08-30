@@ -3,6 +3,7 @@
 ## 🚨 MANDATORY Components (Never Skip These)
 
 ### 1. Rate Limiting Setup
+
 ```yaml
 - name: ⚡ Setup Rate Limiting
   run: |
@@ -13,10 +14,11 @@
       exit 1
     fi
   env:
-    GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # ← CRITICAL: Never forget this!
+    GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # ← CRITICAL: Never forget this!
 ```
 
 ### 2. GitHub CLI Authentication
+
 ```yaml
 - name: ⚙️ Configure Git and GitHub CLI
   run: |
@@ -27,10 +29,11 @@
       exit 1
     fi
   env:
-    GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # ← CRITICAL: Must be here too!
+    GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # ← CRITICAL: Must be here too!
 ```
 
 ### 3. Emergency Cleanup
+
 ```yaml
 - name: 🚨 Emergency Cleanup
   if: failure()
@@ -44,6 +47,7 @@
 ## ⚡ Quick Copy-Paste Snippets
 
 ### Basic Agent Structure
+
 ```yaml
 name: 🤖 [Agent Name] Agent
 
@@ -69,6 +73,7 @@ jobs:
 ```
 
 ### Safe Issue Comment
+
 ```yaml
 - name: 📝 Comment with Rate Limiting
   run: |
@@ -82,6 +87,7 @@ jobs:
 ```
 
 ### Context Extraction with Environment Variables
+
 ```yaml
 - name: 📊 Get Issue Context
   id: context
@@ -89,25 +95,26 @@ jobs:
     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   run: |
     ISSUE_NUMBER="${{ github.event.inputs.issue_number }}"
-    
+
     # Validate inputs
     if [ -z "$ISSUE_NUMBER" ] || [ "$ISSUE_NUMBER" = "null" ]; then
       echo "❌ No issue number provided"
       exit 1
     fi
-    
+
     ISSUE_TITLE=$(gh issue view "$ISSUE_NUMBER" --json title --jq '.title')
-    
+
     # Set for subsequent steps
     echo "ISSUE_NUMBER=$ISSUE_NUMBER" >> $GITHUB_ENV
     echo "ISSUE_TITLE=$ISSUE_TITLE" >> $GITHUB_ENV
-    
+
     # Also set as outputs
     echo "issue_number=$ISSUE_NUMBER" >> $GITHUB_OUTPUT
     echo "issue_title=$ISSUE_TITLE" >> $GITHUB_OUTPUT
 ```
 
 ### Using Environment Variables in Steps
+
 ```yaml
 - name: Process Issue
   env:
@@ -125,16 +132,61 @@ jobs:
 ❌ **No emergency cleanup** for failed workflows  
 ❌ **Hardcoded secrets** instead of using `${{ secrets.NAME }}`
 ❌ **No rate limit checks** before GitHub API calls
-❌ **Missing authentication verification** 
+❌ **Missing authentication verification**
 ❌ **No error handling** in core agent logic
 ❌ **Using `${{ env.VAR }}` in run scripts** without declaring in env section
 ❌ **No input validation** for null/empty values
 ❌ **Accessing environment variables before they're set**
+❌ **Multi-line YAML strings** for long markdown content (use file-based approach)
+❌ **Incorrect JSON parsing** - use `jq '.files | length'` not `.files.length`
+❌ **Wrong token for merge operations** - use PROJECT_TOKEN not GITHUB_TOKEN
+
+## 🆕 Advanced Patterns (From Project Admin Agent)
+
+### File-Based Multi-line Content
+
+```yaml
+# ✅ Safe approach for long markdown
+- name: Create Long Comment
+  run: |
+    cat > /tmp/comment.md << 'EOF'
+    ## Long markdown content
+    With multiple lines and special characters
+    EOF
+    gh pr comment "$PR_NUMBER" --body-file /tmp/comment.md
+    rm /tmp/comment.md
+```
+
+### Proper JSON Array Length
+
+```yaml
+# ✅ Correct JSON parsing
+FILE_COUNT=$(gh pr view "$PR_NUMBER" --json files --jq '.files | length')
+
+# ❌ Wrong - causes errors  
+FILE_COUNT=$(gh pr view "$PR_NUMBER" --json files --jq '.files.length')
+```
+
+### Token Usage Guidelines
+
+```yaml
+# ✅ Analysis operations - Use GITHUB_TOKEN
+- name: Analyze PR
+  env:
+    GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  run: gh pr view "$PR_NUMBER" --json files
+
+# ✅ Merge operations - Use PROJECT_TOKEN
+- name: Merge PR  
+  env:
+    GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+  run: gh pr merge "$PR_NUMBER" --squash --delete-branch
+```
 
 ## ✅ Validation Checklist
 
 - [ ] Rate limiting with `GH_TOKEN` env var
-- [ ] GitHub CLI auth verification  
+- [ ] GitHub CLI auth verification
 - [ ] Emergency cleanup on failure
 - [ ] Status updates with rate limiting
 - [ ] No hardcoded secrets
