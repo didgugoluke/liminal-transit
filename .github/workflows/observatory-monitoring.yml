@@ -1,0 +1,37 @@
+name: 🔭 Observatory Monitoring
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'  # Every 15 minutes
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  observatory-health-check:
+    name: 🔭 Observatory Health Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'pnpm'
+      
+      - name: Install dependencies
+        run: |
+          npm install -g pnpm
+          pnpm install --frozen-lockfile
+      
+      - name: AI Agent Health Check
+        run: pnpm ai:health-check
+      
+      - name: Cost Analysis
+        run: pnpm ai:cost-report
+      
+      - name: Update Observatory Dashboard
+        run: |
+          echo "🔭 Observatory monitoring cycle complete"
+          echo "📊 All AI agents monitored"
+          echo "💰 Cost analysis updated"
+          echo "🕐 $(date)"

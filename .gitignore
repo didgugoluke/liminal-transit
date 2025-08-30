@@ -1,0 +1,94 @@
+# Liminal Transit - AI Native .gitignore
+
+# Private files (LinkedIn motivation, personal notes)
+.private-*
+*.private.*
+/private/
+
+# Dependencies
+node_modules/
+.pnpm-store/
+.npm/
+.yarn/
+pnpm-lock.yaml
+yarn.lock
+package-lock.json
+
+# Environment variables and secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
+
+# Build outputs
+dist/
+build/
+.vite/
+.next/
+out/
+
+# Runtime and logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.DS_Store
+Thumbs.db
+
+# IDE and editor files
+.vscode/settings.json
+.vscode/launch.json
+.idea/
+*.swp
+*.swo
+*~
+
+# Testing
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+test-results.xml
+
+# Terraform
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.backup
+terraform/.terraform.lock.hcl
+terraform/terraform.tfvars
+terraform/*.tfplan
+
+# AWS
+.aws/
+aws-exports.js
+
+# Docker
+.docker/
+
+# Temporary files
+tmp/
+temp/
+.cache/
+.parcel-cache/
+
+# Operating system files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# AI and ML temporary files
+*.model
+*.weights
+.ai-cache/
+
+# Observatory logs
+.observatory/
+logs/
+*.observatory.log

@@ -1,0 +1,39 @@
+{
+  "observatory": {
+    "name": "Liminal Transit AI Native Observatory",
+    "version": "1.0.0",
+    "hitm_interface": {
+      "enabled": true,
+      "dashboard_url": "https://observatory.liminal-transit.com",
+      "real_time_monitoring": true,
+      "ai_agent_tracking": true
+    },
+    "monitoring": {
+      "ai_agents": {
+        "health_checks": true,
+        "performance_metrics": true,
+        "cost_tracking": true,
+        "quality_assurance": true
+      },
+      "infrastructure": {
+        "aws_cloudwatch": true,
+        "terraform_state": true,
+        "github_actions": true,
+        "security_scanning": true
+      },
+      "compliance": {
+        "well_architected": true,
+        "security_framework": true,
+        "enterprise_policies": true,
+        "audit_logging": true
+      }
+    },
+    "alerts": {
+      "ai_failures": "immediate",
+      "cost_overruns": "immediate", 
+      "security_incidents": "immediate",
+      "performance_degradation": "5min",
+      "compliance_violations": "immediate"
+    }
+  }
+}

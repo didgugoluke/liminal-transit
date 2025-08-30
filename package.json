@@ -1,0 +1,89 @@
+{
+  "name": "liminal-transit",
+  "version": "1.0.0",
+  "description": "AI Native Interactive Storytelling Platform with AWS Well-Architected Framework",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "eslint . --ext ts,tsx --fix",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write \\"src/**/*.{ts,tsx,js,jsx,json,css,md}\\"",
+    "format:check": "prettier --check \\"src/**/*.{ts,tsx,js,jsx,json,css,md}\\"",
+    "docker:dev": "docker-compose -f docker/docker-compose.dev.yml up",
+    "docker:dev:rebuild": "docker-compose -f docker/docker-compose.dev.yml up --build",
+    "docker:prod": "docker-compose -f docker/docker-compose.prod.yml up",
+    "terraform:init": "cd terraform && terraform init",
+    "terraform:plan": "cd terraform && terraform plan",
+    "terraform:apply": "cd terraform && terraform apply",
+    "terraform:destroy": "cd terraform && terraform destroy",
+    "aws:deploy:dev": "npm run build && aws s3 sync dist/ s3://liminal-transit-dev --delete",
+    "aws:deploy:prod": "npm run build && aws s3 sync dist/ s3://liminal-transit-prod --delete",
+    "observatory:start": "node scripts/observatory-monitor.js",
+    "ai:health-check": "node scripts/ai-health-check.js",
+    "ai:cost-report": "node scripts/ai-cost-analysis.js",
+    "bootstrap:complete": "./scripts/post-bootstrap-setup.sh"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "@aws-sdk/client-bedrock-runtime": "^3.0.0",
+    "@aws-sdk/client-cognito-identity-provider": "^3.0.0",
+    "@aws-sdk/client-dynamodb": "^3.0.0",
+    "@aws-sdk/client-lambda": "^3.0.0",
+    "@aws-sdk/client-ssm": "^3.0.0",
+    "openai": "^4.0.0",
+    "@anthropic-ai/sdk": "^0.20.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "@vitejs/plugin-react": "^4.0.0",
+    "eslint": "^8.45.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.3",
+    "prettier": "^3.0.0",
+    "typescript": "^5.0.2",
+    "vite": "^5.0.0",
+    "vitest": "^1.0.0",
+    "@vitest/ui": "^1.0.0",
+    "c8": "^8.0.0",
+    "@playwright/test": "^1.40.0",
+    "tailwindcss": "^3.3.0",
+    "autoprefixer": "^10.4.0",
+    "postcss": "^8.4.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@8.15.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/didgugoluke/liminal-transit.git"
+  },
+  "homepage": "https://liminal-transit.vercel.app",
+  "bugs": {
+    "url": "https://github.com/didgugoluke/liminal-transit/issues"
+  },
+  "license": "MIT",
+  "keywords": [
+    "ai-native",
+    "interactive-storytelling",
+    "aws-well-architected",
+    "react",
+    "typescript",
+    "serverless",
+    "enterprise-compliance"
+  ]
+}
