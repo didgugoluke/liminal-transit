@@ -82,7 +82,8 @@ jobs:
 
           echo "STORY_NUMBER=$STORY_NUMBER" >> $GITHUB_ENV
           echo "ACTION=$ACTION" >> $GITHUB_ENV
-          echo "PROJECT_ID=2" >> $GITHUB_ENV
+          echo "PROJECT_ID=PVT_kwHOCf5VHc4BB2AJ" >> $GITHUB_ENV
+          echo "PROJECT_NUMBER=2" >> $GITHUB_ENV
 
           echo "Managing Story: #$STORY_NUMBER"
           echo "Action: $ACTION"
@@ -101,7 +102,7 @@ jobs:
           echo "story_state=$STORY_STATE" >> $GITHUB_OUTPUT
 
           # Get current project status
-          PROJECT_ITEMS=$(gh project item-list "$PROJECT_ID" --owner "@me" --format json)
+          PROJECT_ITEMS=$(gh project item-list "$PROJECT_NUMBER" --owner "@me" --format json)
           CURRENT_STATUS=$(echo "$PROJECT_ITEMS" | jq -r --arg title "$STORY_TITLE" '.items[] | select(.content.title == $title) | .status // "No Status"')
 
           echo "current_status=$CURRENT_STATUS" >> $GITHUB_OUTPUT
@@ -154,7 +155,7 @@ jobs:
               echo "📋 Ensuring story is in project..."
               if ! gh project item-list "$PROJECT_ID" --owner "didgugoluke" --format json | jq -e --arg title "$STORY_TITLE" '.items[] | select(.content.title == $title)' > /dev/null; then
                 echo "➕ Adding story to project..."
-                if gh project item-add "$PROJECT_ID" --owner "didgugoluke" --url "https://github.com/didgugoluke/liminal-transit/issues/$STORY_NUMBER"; then
+                if gh project item-add "$PROJECT_NUMBER" --owner "didgugoluke" --url "https://github.com/didgugoluke/liminal-transit/issues/$STORY_NUMBER"; then
                   echo "✅ Story added to project successfully"
                   sleep 2  # Brief pause for project system to sync
                 else
@@ -171,10 +172,8 @@ jobs:
               if [ "$CURRENT_STATUS" = "No Status" ] || [ "$CURRENT_STATUS" = "null" ] || [ -z "$CURRENT_STATUS" ]; then
                 echo "📋 Moving story to Todo status..."
                 
-                # Get the item ID for this story
-                ITEM_ID=$(gh project item-list "$PROJECT_ID" --owner "didgugoluke" --format json | jq -r --arg title "$STORY_TITLE" '.items[] | select(.content.title == $title) | .id')
-                
-                if [ -n "$ITEM_ID" ] && [ "$ITEM_ID" != "null" ]; then
+              # Get the item ID for this story
+              ITEM_ID=$(gh project item-list "$PROJECT_NUMBER" --owner "didgugoluke" --format json | jq -r --arg title "$STORY_TITLE" '.items[] | select(.content.title == $title) | .id')                if [ -n "$ITEM_ID" ] && [ "$ITEM_ID" != "null" ]; then
                   echo "Found item ID: $ITEM_ID"
                   if gh project item-edit --id "$ITEM_ID" --field-id "PVTSSF_lAHOCf5VHc4BB2AJzg0OtoQ" --single-select-option-id "f75ad846" --project-id "$PROJECT_ID"; then
                     echo "✅ Status updated successfully"
@@ -223,7 +222,7 @@ jobs:
               echo "📊 Checking story progress..."
               
               # Get updated status
-              PROJECT_ITEMS=$(gh project item-list "$PROJECT_ID" --owner "@me" --format json)
+              PROJECT_ITEMS=$(gh project item-list "$PROJECT_NUMBER" --owner "@me" --format json)
               UPDATED_STATUS=$(echo "$PROJECT_ITEMS" | jq -r --arg title "$STORY_TITLE" '.items[] | select(.content.title == $title) | .status // "No Status"')
               
               gh issue comment "$STORY_NUMBER" --body "📊 Scrum Master Progress Check. Story #$STORY_NUMBER status: $UPDATED_STATUS. $TASK_COUNT tasks. Timestamp: $(date)"
