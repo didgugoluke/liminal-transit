@@ -8,6 +8,7 @@ permissions:
   contents: write
   issues: write
   pull-requests: write
+  projects: write
 
 jobs:
   epic-breakdown-simple:
@@ -40,8 +41,8 @@ jobs:
           STORY_1_ID=$(echo $STORY_1 | grep -o '[0-9]*$')
           echo "Created test story: #$STORY_1_ID"
           
-          # Add to project
-          gh project item-add 1 --owner didgugoluke --url "https://github.com/didgugoluke/liminal-transit/issues/$STORY_1_ID"
+          # Add to project (using project ID instead of number for user projects)
+          gh project item-add PVT_kwHOCf5VHc4BB1Po --url "https://github.com/didgugoluke/liminal-transit/issues/$STORY_1_ID"
           
           # Comment success
           gh issue comment ${{ github.event.issue.number }} --body "✅ **Simple Epic Breakdown Test Complete**
