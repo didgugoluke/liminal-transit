@@ -26,9 +26,9 @@ jobs:
           echo "🧠 AI Native Epic Analysis starting..."
           EPIC_NUMBER="${{ github.event.issue.number }}"
           EPIC_TITLE="${{ github.event.issue.title }}"
-          
+
           # Extract Epic content for AI analysis
-          EPIC_BODY=$(gh issue view $EPIC_NUMBER --json body --jq -r '.body')
+          EPIC_BODY=$(gh issue view $EPIC_NUMBER --json body --jq -r '.body // ""')
           
           # Determine Epic type and complexity
           if echo "$EPIC_TITLE" | grep -qi "Epic 1.*Core Platform Foundation"; then
@@ -46,7 +46,7 @@ jobs:
           fi
           
           # AI Native content extraction
-          EPIC_COMPLEXITY=$(echo "$EPIC_BODY" | wc -w)
+          EPIC_COMPLEXITY=$(echo "$EPIC_BODY" | wc -w || echo "0")
           if [ "$EPIC_COMPLEXITY" -gt 500 ]; then
             STORY_COUNT="4-6"
             TASK_MULTIPLIER="3"
@@ -59,10 +59,8 @@ jobs:
           fi
           
           # Extract key requirements using AI pattern recognition
-          KEY_REQUIREMENTS=$(echo "$EPIC_BODY" | grep -E "(Requirements?|Goals?|Objectives?|Must have|Should have)" -A 3 || echo "Standard implementation requirements")
-          TECHNICAL_STACK=$(echo "$EPIC_BODY" | grep -E "(Technology|Tech stack|Framework|Library|Tool)" -A 2 || echo "React, TypeScript, Node.js")
-          
-          echo "epic_type=$EPIC_TYPE" >> $GITHUB_OUTPUT
+          KEY_REQUIREMENTS=$(echo "$EPIC_BODY" | grep -E "(Requirements?|Goals?|Objectives?|Must have|Should have)" -A 3 2>/dev/null || echo "Standard implementation requirements")
+          TECHNICAL_STACK=$(echo "$EPIC_BODY" | grep -E "(Technology|Tech stack|Framework|Library|Tool)" -A 2 2>/dev/null || echo "React, TypeScript, Node.js")          echo "epic_type=$EPIC_TYPE" >> $GITHUB_OUTPUT
           echo "breakdown_mode=$BREAKDOWN_MODE" >> $GITHUB_OUTPUT
           echo "story_count=$STORY_COUNT" >> $GITHUB_OUTPUT
           echo "task_multiplier=$TASK_MULTIPLIER" >> $GITHUB_OUTPUT
