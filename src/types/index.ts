@@ -19,6 +19,13 @@ export interface StoryBeat {
   characters: Character[];
   tension: number; // 0-100 tension level
   location?: Location;
+  
+  // Enhanced story intelligence
+  characters: Character[];
+  worldState: WorldState;
+  relationships: Relationship[];
+  consequences: Consequence[];
+  themes: string[];
 }
 
 export interface Character {
@@ -52,6 +59,12 @@ export interface Relationship {
   affection: number;
   respect: number;
   history: string[];
+  personality: string[];
+  memories: Memory[];
+  relationships: Record<string, number>; // character_id -> relationship_strength (-1 to 1)
+  traits: CharacterTrait[];
+  currentMood: string;
+  lastSeen: Date;
 }
 
 export interface Memory {
@@ -132,6 +145,57 @@ export interface KeyMoment {
   phase: string;
   completed: boolean;
   requiredConditions: string[];
+  type: 'event' | 'conversation' | 'choice' | 'consequence';
+  emotionalWeight: number; // -1 to 1
+  timestamp: Date;
+  relatedCharacters: string[];
+}
+
+export interface CharacterTrait {
+  name: string;
+  strength: number; // 0-1
+  category: 'personality' | 'skill' | 'background' | 'motivation';
+}
+
+export interface WorldState {
+  location: string;
+  timeOfDay: string;
+  atmosphere: string;
+  tension: number; // 0-1
+  mystery: number; // 0-1
+  continuity: number; // 0-6 scale for story coherence
+  foreshadow: number; // accumulated foreshadowing elements
+  playerRole: string[];
+}
+
+export interface Relationship {
+  id: string;
+  character1Id: string;
+  character2Id: string;
+  type: 'friendship' | 'rivalry' | 'romantic' | 'family' | 'professional' | 'unknown';
+  strength: number; // -1 to 1
+  history: RelationshipEvent[];
+  lastUpdate: Date;
+}
+
+export interface RelationshipEvent {
+  id: string;
+  type: 'interaction' | 'conflict' | 'cooperation' | 'betrayal' | 'support';
+  description: string;
+  impact: number; // -1 to 1
+  timestamp: Date;
+}
+
+export interface Consequence {
+  id: string;
+  choiceId: string;
+  description: string;
+  impact: 'immediate' | 'short_term' | 'long_term' | 'permanent';
+  severity: 'minor' | 'moderate' | 'major' | 'critical';
+  affectedCharacters: string[];
+  worldStateChanges: Partial<WorldState>;
+  isRevealed: boolean;
+  revealCondition?: string;
 }
 
 export interface Choice {
@@ -178,6 +242,16 @@ export interface CharacterReaction {
   reaction: string;
   moodChange: number; // -20 to +20
   relationshipChange: number; // -10 to +10
+  metadata?: ChoiceMetadata;
+  
+  // Enhanced choice mechanics
+  type: 'binary' | 'multiple' | 'gesture' | 'timed' | 'conditional';
+  difficulty: 'easy' | 'medium' | 'hard' | 'impossible';
+  requiredTraits?: string[];
+  emotionalTone: 'positive' | 'neutral' | 'negative' | 'complex';
+  consequencePreview?: string;
+  timeLimit?: number; // seconds
+  isRepeatable: boolean;
 }
 
 export interface StoryMetadata {
@@ -205,6 +279,36 @@ export interface PlayerPreferences {
   complexityLevel: 'simple' | 'intermediate' | 'advanced';
   themePreferences: string[];
   choiceStyle: 'decisive' | 'thoughtful' | 'exploratory';
+
+  
+  // Enhanced tracking
+  choicesMade: number;
+  charactersMet: number;
+  consequencesRevealed: number;
+  storyBranch: string;
+  difficulty: 'beginner' | 'intermediate' | 'advanced' | 'expert';
+  playerPreferences: PlayerPreferences;
+}
+
+export interface PlayerPreferences {
+  readingSpeed: 'slow' | 'normal' | 'fast';
+  preferredChoiceStyle: 'cautious' | 'bold' | 'unpredictable';
+  characterInteractionStyle: 'friendly' | 'neutral' | 'challenging';
+  narrativeComplexity: 'simple' | 'moderate' | 'complex';
+  themePreferences: string[];
+}
+
+export interface ChoiceMetadata {
+  impact: 'low' | 'medium' | 'high';
+  category?: string;
+  aiConfidence?: number;
+  
+  // Enhanced metadata
+  characterReactions?: Record<string, string>; // character_id -> reaction
+  worldStateImpact?: Partial<WorldState>;
+  unlockConditions?: string[];
+  previouslyChosen?: boolean;
+  alternativeChoices?: string[];
 }
 
 export interface AIProvider {
