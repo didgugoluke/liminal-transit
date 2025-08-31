@@ -242,13 +242,41 @@ jobs:
             "handoff_to_copilot")
               echo "🤖 Handing off to GitHub Copilot (native coding agent)..."
               
+              # First ensure issue is in project
+              echo "📋 Ensuring story is in project before handoff..."
+              PROJECT_ITEMS_DATA=$(gh project item-list "$PROJECT_NUMBER" --owner "didgugoluke" --format json)
+              
+              if ! echo "$PROJECT_ITEMS_DATA" | jq -e --arg title "$STORY_TITLE" '.items[] | select(.content.title == $title)' > /dev/null; then
+                echo "➕ Adding story to project..."
+                if gh project item-add "$PROJECT_NUMBER" --owner "didgugoluke" --url "https://github.com/didgugoluke/liminal-transit/issues/$STORY_NUMBER"; then
+                  echo "✅ Story added to project successfully"
+                  sleep 2  # Brief pause for project system to sync
+                  PROJECT_ITEMS_DATA=$(gh project item-list "$PROJECT_NUMBER" --owner "didgugoluke" --format json)
+                else
+                  echo "❌ Failed to add story to project"
+                fi
+              else
+                echo "✅ Story already in project"
+              fi
+              
+              # Set status to In Progress since Copilot will start working
+              ITEM_ID=$(echo "$PROJECT_ITEMS_DATA" | jq -r --arg title "$STORY_TITLE" '.items[] | select(.content.title == $title) | .id')
+              if [ -n "$ITEM_ID" ] && [ "$ITEM_ID" != "null" ]; then
+                echo "📋 Moving story to In Progress status (Copilot working)..."
+                if gh project item-edit --id "$ITEM_ID" --field-id "PVTSSF_lAHOCf5VHc4BB2AJzg0OtoQ" --single-select-option-id "47fc9ee4" --project-id "$PROJECT_ID"; then
+                  echo "✅ Status updated to In Progress"
+                else
+                  echo "❌ Failed to update story status"
+                fi
+              fi
+              
               # Assign the issue to GitHub Copilot's coding agent
               echo "Assigning issue #${STORY_NUMBER} to copilot-swe-agent..."
               
               # Use GitHub CLI to assign the issue to Copilot
               if gh issue edit "$STORY_NUMBER" --add-assignee "copilot-swe-agent" 2>/dev/null; then
                 echo "✅ Successfully assigned issue to GitHub Copilot coding agent"
-                gh issue comment "$STORY_NUMBER" --body "🤖 Handoff to GitHub Copilot Coding Agent. Issue #$STORY_NUMBER assigned to @copilot-swe-agent for autonomous implementation. GitHub Copilot will: 👀 Acknowledge assignment, 📝 Create draft PR, 🔨 Start agent session, 💻 Generate code automatically, ✅ Request review when complete. Track progress at github.com/copilot/agents"
+                gh issue comment "$STORY_NUMBER" --body "🤖 Handoff to GitHub Copilot Coding Agent. Issue #$STORY_NUMBER assigned to @copilot-swe-agent for autonomous implementation. Project status: In Progress. GitHub Copilot will: 👀 Acknowledge assignment, 📝 Create draft PR, 🔨 Start agent session, 💻 Generate code automatically, ✅ Request review when complete. Track progress at github.com/copilot/agents"
               else
                 echo "⚠️ Could not assign to GitHub Copilot - falling back to comment notification"
                 gh issue comment "$STORY_NUMBER" --body "🤖 Ready for GitHub Copilot Assignment. To activate: Go to Assignees and select Copilot from the list. Alternatively use: gh issue edit $STORY_NUMBER --add-assignee copilot-swe-agent"
