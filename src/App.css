@@ -1,0 +1,88 @@
+.app {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.app-header {
+  margin-bottom: 2rem;
+}
+
+.app-header h1 {
+  color: #646cff;
+  margin-bottom: 0.5rem;
+}
+
+.app-header p {
+  color: #888;
+  font-size: 1.2rem;
+}
+
+.app-main {
+  margin: 2rem 0;
+}
+
+.liminal-space {
+  padding: 2rem;
+  border: 1px solid #333;
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.02);
+  margin-bottom: 2rem;
+}
+
+.liminal-space h2 {
+  color: #fff;
+  margin-bottom: 1rem;
+}
+
+.liminal-space p {
+  color: #ccc;
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+.debug-counter {
+  margin-top: 2rem;
+  padding: 1rem;
+  border: 1px solid #646cff;
+  border-radius: 8px;
+  background-color: rgba(100, 108, 255, 0.1);
+}
+
+.app-footer {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #333;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+@media (prefers-color-scheme: light) {
+  .app-header h1 {
+    color: #747bff;
+  }
+  
+  .liminal-space {
+    border-color: #ddd;
+    background-color: rgba(0, 0, 0, 0.02);
+  }
+  
+  .liminal-space h2 {
+    color: #333;
+  }
+  
+  .liminal-space p {
+    color: #666;
+  }
+  
+  .debug-counter {
+    border-color: #747bff;
+    background-color: rgba(116, 123, 255, 0.1);
+  }
+  
+  .app-footer {
+    border-top-color: #ddd;
+    color: #999;
+  }
+}
