@@ -44,9 +44,9 @@ export const APP_CONFIG = {
 
 export const DEVELOPMENT_CONFIG = {
   VITE_PORT: 5173,
-  API_BASE_URL: process.env.VITE_API_BASE_URL || 'http://localhost:3000',
-  NODE_ENV: process.env.NODE_ENV || 'development',
-  DEBUG: process.env.NODE_ENV === 'development',
+  API_BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000',
+  NODE_ENV: import.meta.env.MODE || 'development',
+  DEBUG: import.meta.env.MODE === 'development',
 } as const;
 
 // AI Agent Orchestration Constants
