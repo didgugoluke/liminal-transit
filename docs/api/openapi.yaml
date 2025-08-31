@@ -409,8 +409,7 @@ paths:
       summary: Get analytics dashboard data
       description: Retrieve dashboard analytics data (admin only)
       operationId: getAnalyticsDashboard
-      security:
-        - CognitoAuth: [admin]
+        - CognitoAuth: []
       parameters:
         - name: timeRange
           in: query
