@@ -129,8 +129,8 @@ jobs:
       - name: Unit Tests
         if: steps.check-scaffold.outputs.scaffolded == 'true'
         run: |
-          # Check if coverage dependency exists, run with or without coverage
-          if pnpm list @vitest/coverage-v8 > /dev/null 2>&1; then
+          # Check if coverage dependency exists by checking package.json and node_modules
+          if grep -q "@vitest/coverage-v8" package.json && [ -d "node_modules/@vitest/coverage-v8" ]; then
             echo "Coverage dependency found, running tests with coverage..."
             pnpm test:run --coverage
           else
