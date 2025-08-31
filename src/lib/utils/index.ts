@@ -128,13 +128,32 @@ export function withErrorHandling<T>(
 /**
  * Debounce function for AI calls
  */
-export function debounce<T extends (...args: never[]) => unknown>(
+export function debounce<T extends (...args: any[]) => any>(
   func: T,
   wait: number
-): (...args: Parameters<T>) => void {
+): (...args: Parameters<T>) => Promise<ReturnType<T>> {
   let timeout: NodeJS.Timeout;
-  return (...args: Parameters<T>) => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func(...args), wait);
+  let pendingPromise: { resolve: (value: ReturnType<T>) => void; reject: (reason?: any) => void } | null = null;
+  return (...args: Parameters<T>): Promise<ReturnType<T>> => {
+    if (timeout) {
+      clearTimeout(timeout);
+    }
+    if (pendingPromise) {
+      // If a previous promise is pending, reject it as it's being superseded
+      pendingPromise.reject(new Error('Debounced call superseded by a new call.'));
+    }
+    return new Promise<ReturnType<T>>((resolve, reject) => {
+      pendingPromise = { resolve, reject };
+      timeout = setTimeout(() => {
+        try {
+          const result = func(...args);
+          resolve(result);
+        } catch (err) {
+          reject(err);
+        } finally {
+          pendingPromise = null;
+        }
+      }, wait);
+    });
   };
 }
