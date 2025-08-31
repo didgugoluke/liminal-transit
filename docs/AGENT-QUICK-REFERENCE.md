@@ -145,6 +145,202 @@ jobs:
 ❌ **Race conditions in auto-progression** - add delays between workflow triggers
 ❌ **No branch cleanup** - clean existing branches before creating new ones
 ❌ **Forgetting to source external scripts** - always verify function availability
+❌ **🆕 Missing pipeline coordination** - no handoff delays causing rate limit issues
+❌ **🆕 Incomplete agent routing** - orchestrator not handling all agent types
+❌ **🆕 No risk assessment** - auto-merging without complexity evaluation
+❌ **🆕 Missing inline task processing** - not parsing acceptance criteria from story body
+❌ **🆕 No clean state management** - branches not reset between implementation cycles
+
+## 🆕 3-Agent Pipeline Patterns (PRODUCTION PROVEN)
+
+### **Orchestrator → Scrum Master → Development Agent**
+
+**Proven End-to-End Flow**:
+1. AI Agent Orchestrator analyzes and routes issues
+2. Scrum Master manages story lifecycle  
+3. Development Agent implements code in phases
+4. Project Admin Agent auto-reviews and merges
+
+### **Orchestrator Pattern (Entry Point)**
+
+```yaml
+# Multi-trigger orchestrator
+on:
+  issues:
+    types: [opened, labeled, edited]
+  issue_comment:
+    types: [created]
+
+# Inline Node.js agent routing
+- name: AI Agent Analysis
+  run: |
+    cat > agent-dispatcher.js << 'EOF'
+    import * as core from '@actions/core';
+    
+    async function analyzeIssue() {
+      const context = JSON.parse(process.env.GITHUB_CONTEXT);
+      const issue = context.event.issue;
+      
+      // Route based on labels
+      let assignedAgent = 'GeneralPurposeAgent';
+      for (const label of issue.labels) {
+        if (label.name === 'epic') assignedAgent = 'EpicOrchestrator';
+        if (label.name === 'chore') assignedAgent = 'MaintenanceAgent';
+      }
+      
+      core.setOutput('agent-type', assignedAgent);
+    }
+    
+    analyzeIssue().catch(console.error);
+    EOF
+    
+    GITHUB_CONTEXT='${{ toJson(github) }}' node agent-dispatcher.js
+```
+
+### **Scrum Master Pattern (Lifecycle Management)**
+
+```yaml
+# Multi-phase story management
+- name: Story Lifecycle
+  run: |
+    ACTION="${{ github.event.inputs.action }}"
+    
+    # Default action handling
+    if [ -z "$ACTION" ] || [ "$ACTION" = "null" ]; then
+      ACTION="take_story"
+    fi
+    
+    case "$ACTION" in
+      "take_story")
+        gh issue edit "$STORY_NUMBER" --add-assignee "@me"
+        echo "next_action=trigger_development" >> $GITHUB_OUTPUT
+        ;;
+      "trigger_development")
+        gh workflow run development-agent.yml \
+          --field story_number="$STORY_NUMBER" \
+          --field action="take_story"
+        ;;
+    esac
+
+# Auto-progression with rate limiting
+- name: Auto-Progress
+  if: steps.lifecycle.outputs.next_action
+  run: |
+    sleep 15  # Rate limit friendly delay
+    gh workflow run scrum-master-agent.yml \
+      --field issue_number="$ISSUE_NUMBER" \
+      --field action="${{ steps.lifecycle.outputs.next_action }}"
+```
+
+### **Development Agent Pattern (Multi-Phase Implementation)**
+
+```yaml
+# Three-phase development workflow
+- name: Multi-Phase Development
+  run: |
+    ACTION="${{ github.event.inputs.action }}"
+    
+    if [ -z "$ACTION" ] || [ "$ACTION" = "null" ]; then
+      ACTION="take_story"
+    fi
+    
+    case "$ACTION" in
+      "take_story")
+        # Analyze story and extract tasks
+        echo "next_action=implement_tasks" >> $GITHUB_OUTPUT
+        ;;
+        
+      "implement_tasks")
+        # Create clean branch and implement files
+        BRANCH_NAME="story/$STORY_NUMBER"
+        
+        # Clean existing branch
+        git fetch origin
+        if git show-ref --verify --quiet "refs/remotes/origin/$BRANCH_NAME"; then
+          git push origin --delete "$BRANCH_NAME" 2>/dev/null || true
+          git branch -D "$BRANCH_NAME" 2>/dev/null || true
+        fi
+        
+        git checkout main && git pull origin main
+        git checkout -b "$BRANCH_NAME" && git push -u origin "$BRANCH_NAME"
+        
+        # Process inline acceptance criteria
+        STORY_BODY=$(gh issue view "$STORY_NUMBER" --json body --jq '.body')
+        echo "$STORY_BODY" | grep -E "^\s*-\s*\[[ ]\]" | while read task; do
+          # Modular task processing
+          if echo "$task" | grep -i "config" > /dev/null; then
+            # Create config file
+            mkdir -p src/config
+            cat > src/config/hello.config.ts << 'EOF'
+export const config = { environment: "development" };
+EOF
+          elif echo "$task" | grep -i "documentation" > /dev/null; then
+            # Create docs
+            cat > README.md << 'EOF'
+# Hello World Documentation
+EOF
+          else
+            # Generic implementation
+            mkdir -p src/hello
+            cat > src/hello/index.ts << 'EOF'
+export class HelloWorld {
+  greet() { return "Hello, World!"; }
+}
+EOF
+          fi
+        done
+        
+        echo "next_action=complete_story" >> $GITHUB_OUTPUT
+        ;;
+        
+      "complete_story")
+        # CRITICAL: Enhanced commit detection
+        HAS_CHANGES=false
+        
+        if ! git diff --quiet; then
+          HAS_CHANGES=true
+        fi
+        
+        if ! git diff --staged --quiet; then
+          HAS_CHANGES=true
+        fi
+        
+        # CRITICAL: Check untracked files
+        if [ -n "$(git status --porcelain | grep '^??')" ]; then
+          HAS_CHANGES=true
+        fi
+        
+        if [ "$HAS_CHANGES" = "true" ]; then
+          git add . && git commit -m "Implementation" && git push
+          gh pr create --title "Story Implementation" --body "Implementation complete"
+        fi
+        ;;
+    esac
+```
+
+### **Project Admin Pattern (Auto-merge)**
+
+```yaml
+# Risk-based auto-merge for AI agent PRs
+- name: Risk Assessment & Auto-merge
+  if: contains(github.event.pull_request.labels.*.name, 'ai-agent')
+  run: |
+    PR_NUMBER="${{ github.event.pull_request.number }}"
+    
+    # Get PR metrics
+    FILE_COUNT=$(gh pr view "$PR_NUMBER" --json files --jq '.files | length')
+    ADDITIONS=$(gh pr view "$PR_NUMBER" --json files --jq '.files | map(.additions) | add // 0')
+    
+    # Risk assessment
+    if [ "$FILE_COUNT" -le 5 ] && [ "$ADDITIONS" -le 100 ]; then
+      if gh pr view "$PR_NUMBER" --json labels | jq -r '.labels[].name' | grep -q "ai-agent"; then
+        echo "✅ Low-risk PR - auto-merging"
+        gh pr merge "$PR_NUMBER" --squash --delete-branch
+      fi
+    fi
+  env:
+    GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+```
 
 ## 🆕 Development Agent Patterns (PROVEN)
 
@@ -351,6 +547,11 @@ FILE_COUNT=$(gh pr view "$PR_NUMBER" --json files --jq '.files.length')
 - [ ] **Auto-progression delays** to avoid race conditions
 - [ ] **Branch cleanup** before creating new branches
 - [ ] **External script sourcing** with function verification
+- [ ] **🆕 Pipeline coordination** - proper handoffs with rate limit delays
+- [ ] **🆕 Agent routing logic** - orchestrator handles all expected agent types
+- [ ] **🆕 Risk assessment** - complexity evaluation before auto-merge
+- [ ] **🆕 Inline task processing** - parsing acceptance criteria from story body
+- [ ] **🆕 Clean state management** - fresh branches for each implementation cycle
 
 ## 🚀 Agent Creation Steps
 

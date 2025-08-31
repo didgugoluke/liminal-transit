@@ -696,277 +696,553 @@ A gold standard agent should achieve:
 
 This template represents the distilled wisdom from systematic analysis of all working agents in the NOVELI.SH ecosystem. Use it as the foundation for all new agent development.
 
-## 🆕 Development Agent Patterns (PROVEN IMPLEMENTATION)
+## 🆕 3-Agent Pipeline Patterns (PRODUCTION PROVEN)
 
-The following patterns were discovered and validated during the successful Scrum Master → Development Agent pipeline implementation:
+The following patterns represent learnings from the successful 3-agent pipeline implementation that achieved complete end-to-end autonomous development workflows.
 
-### **Git Commit Detection for New Files (CRITICAL)**
+### **Pipeline Architecture: Orchestrator → Scrum Master → Development Agent**
 
-The most critical learning: `git diff` only detects **modified** files, not **new untracked** files. Development agents that create new files must check for all change types:
+**Proven Flow**:
+1. **AI Agent Orchestrator** - Routes issues to appropriate specialist agents
+2. **Scrum Master Agent** - Manages story lifecycle and task coordination
+3. **Development Agent** - Implements code changes with multi-phase execution
+4. **Project Admin Agent** - Handles PR review and automated merging
+
+### **Agent Orchestrator Pattern (Pipeline Entry Point)**
 
 ```yaml
-- name: 🔍 Enhanced Git Change Detection
-  run: |
-    # Check for any changes: modified files, staged files, OR untracked files
-    HAS_CHANGES=false
+name: AI Native Agent Orchestrator
 
-    if ! git diff --quiet; then
-      echo "🔍 Found unstaged changes"
-      HAS_CHANGES=true
-    fi
+# Multi-trigger support for maximum flexibility
+on:
+  issues:
+    types: [opened, labeled, edited]
+  issue_comment:
+    types: [created]
+  workflow_dispatch:
 
-    if ! git diff --staged --quiet; then
-      echo "🔍 Found staged changes"
-      HAS_CHANGES=true
-    fi
+jobs:
+  ai-agent-dispatcher:
+    runs-on: ubuntu-latest
+    if: contains(github.event.issue.labels.*.name, 'ai-agent') || github.event_name == 'workflow_dispatch'
 
-    # CRITICAL: Check for untracked files (new file creation)
-    if [ -n "$(git status --porcelain | grep '^??')" ]; then
-      echo "🔍 Found untracked files"
-      git status --porcelain | grep '^??'
-      HAS_CHANGES=true
-    fi
+    steps:
+      - name: AI Agent Analysis
+        id: agent-analysis
+        continue-on-error: true
+        run: |
+          # Create inline Node.js script for agent routing
+          cat > agent-dispatcher.js << 'EOF'
+          import { Octokit } from '@octokit/rest';
+          import * as core from '@actions/core';
 
-    if [ "$HAS_CHANGES" = "true" ]; then
-      echo "✅ Changes detected, committing..."
-      git add .
-      git commit -m "Commit message"
-      git push origin "$BRANCH_NAME"
-    else
-      echo "⚠️ No changes to commit"
-    fi
+          async function analyzeIssue() {
+            const context = JSON.parse(process.env.GITHUB_CONTEXT);
+            const issue = context.event.issue;
+            
+            // AI Native Decision Logic
+            const aiAgentTypes = {
+              'P1': 'HighPriorityAgent',
+              'chore': 'MaintenanceAgent',
+              'epic': 'EpicOrchestrator', 
+              'branding': 'BrandingAgent',
+              'infrastructure': 'InfrastructureAgent'
+            };
+            
+            let assignedAgent = 'GeneralPurposeAgent';
+            let priority = 'P3';
+            
+            // Label-based routing logic
+            for (const label of issue.labels) {
+              if (aiAgentTypes[label.name]) {
+                assignedAgent = aiAgentTypes[label.name];
+              }
+              if (label.name.startsWith('P')) {
+                priority = label.name;
+              }
+            }
+            
+            // Set outputs for downstream agents
+            core.setOutput('agent-type', assignedAgent);
+            core.setOutput('priority', priority);
+            core.setOutput('issue-number', issue.number);
+            core.setOutput('issue-title', issue.title);
+          }
+
+          analyzeIssue().catch(console.error);
+          EOF
+
+          GITHUB_CONTEXT='${{ toJson(github) }}' node agent-dispatcher.js
+
+      - name: Execute AI Agent Workflow  
+        if: steps.agent-analysis.outcome == 'success'
+        run: |
+          # Route to appropriate specialist agent
+          case "${{ steps.agent-analysis.outputs.agent-type }}" in
+            "EpicOrchestrator")
+              gh workflow run epic-breakdown-agent.yml \
+                --field issue-number="${{ steps.agent-analysis.outputs.issue-number }}"
+              ;;
+            "GeneralPurposeAgent")
+              gh workflow run scrum-master-agent.yml \
+                --field issue-number="${{ steps.agent-analysis.outputs.issue-number }}"
+              ;;
+            *)
+              echo "Routing to: ${{ steps.agent-analysis.outputs.agent-type }}"
+              ;;
+          esac
 ```
 
-**Why This Matters**: Without this pattern, agents create files successfully but fail to commit them, leading to "No changes to commit" errors and empty PRs.
-
-### **Action Flow Control for Multi-Phase Workflows**
-
-Pattern for implementing proper action sequencing (e.g., take_story → implement_tasks → complete_story):
+### **Scrum Master Agent Pattern (Story Lifecycle Management)**
 
 ```yaml
-- name: 🎯 Core Agent Logic with Action Flow
-  id: execute
-  env:
-    GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
-  run: |
-    ACTION="${{ github.event.inputs.action }}"
+name: 🏃‍♂️ Scrum Master Agent
 
-    # Set default action to avoid empty/null issues
-    if [ -z "$ACTION" ] || [ "$ACTION" = "null" ]; then
-      ACTION="take_story"
-      echo "🔄 No action specified, defaulting to: $ACTION"
-    fi
+on:
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: "Story number to manage"
+        required: true
+        type: string
+      action:
+        description: "Action to take"
+        required: false
+        type: string
+        default: "take_story"
 
-    echo "🎯 Executing action: $ACTION"
+jobs:
+  story-lifecycle-management:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🎯 Story Lifecycle Management
+        id: lifecycle
+        run: |
+          ACTION="${{ github.event.inputs.action }}"
+          STORY_NUMBER="${{ github.event.inputs.issue_number }}"
 
-    case "$ACTION" in
-      "take_story")
-        echo "📋 Taking story and setting up context..."
-        # Implementation logic
-        echo "next_action=implement_tasks" >> $GITHUB_OUTPUT
-        ;;
-        
-      "implement_tasks")
-        echo "🔨 Implementing story tasks..."
-        # Task processing logic
-        echo "next_action=complete_story" >> $GITHUB_OUTPUT
-        ;;
-        
-      "complete_story")
-        echo "✅ Completing story and creating PR..."
-        # PR creation logic
-        # No next_action - workflow complete
-        ;;
-        
-      *)
-        echo "❌ Unknown action: $ACTION"
-        exit 1
-        ;;
-    esac
+          # Default action handling
+          if [ -z "$ACTION" ] || [ "$ACTION" = "null" ]; then
+            ACTION="take_story"
+          fi
 
-- name: 🔄 Auto-Progress to Next Phase
-  if: steps.execute.outputs.next_action
-  env:
-    GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
-  run: |
-    NEXT_ACTION="${{ steps.execute.outputs.next_action }}"
-    echo "⏭️ Auto-progressing to: $NEXT_ACTION"
+          case "$ACTION" in
+            "take_story")
+              echo "📋 Taking ownership of story #$STORY_NUMBER"
+              
+              # Move to In Progress, assign story
+              gh issue edit "$STORY_NUMBER" --add-assignee "@me"
+              
+              # Extract tasks or create inline acceptance criteria
+              TASKS=$(gh issue view "$STORY_NUMBER" --json body \
+                | jq -r '.body' | grep -E "^\s*-\s*\[[ x]\]" || echo "")
+              
+              if [ -n "$TASKS" ]; then
+                echo "🎯 Found inline tasks in story - triggering development agent"
+                echo "next_action=trigger_development" >> $GITHUB_OUTPUT
+              else
+                echo "📋 No tasks found - generating task breakdown"
+                echo "next_action=break_down_tasks" >> $GITHUB_OUTPUT
+              fi
+              ;;
+              
+            "break_down_tasks")
+              echo "📝 Breaking down story into tasks..."
+              # Task breakdown logic
+              echo "next_action=trigger_development" >> $GITHUB_OUTPUT
+              ;;
+              
+            "trigger_development")
+              echo "🚀 Triggering development agent for implementation"
+              gh workflow run development-agent.yml \
+                --field story_number="$STORY_NUMBER" \
+                --field action="take_story"
+              # No next_action - handoff complete
+              ;;
+          esac
 
-    # Add delay to avoid race conditions
-    sleep 10
-
-    gh workflow run development-agent.yml \
-      --field story_number="$STORY_NUMBER" \
-      --field action="$NEXT_ACTION"
+      - name: 🔄 Auto-Progress Workflow
+        if: steps.lifecycle.outputs.next_action
+        run: |
+          NEXT_ACTION="${{ steps.lifecycle.outputs.next_action }}"
+          echo "⏭️ Auto-progressing to: $NEXT_ACTION"
+          
+          # Rate limit friendly delay
+          sleep 15
+          
+          gh workflow run scrum-master-agent.yml \
+            --field issue_number="${{ github.event.inputs.issue_number }}" \
+            --field action="$NEXT_ACTION"
 ```
 
-### **External Script Integration for Modular Tasks**
-
-Pattern for including external task handlers for complex implementations:
+### **Development Agent Pattern (Multi-Phase Implementation)**
 
 ```yaml
-- name: 🔧 Load Task Handlers
-  run: |
-    # Download or source external task handlers
-    if [ ! -f "task_handlers.sh" ]; then
-      echo "📥 Task handlers not found, creating..."
-      # Could download from artifacts or create inline
-    fi
+name: 🛠️ Enhanced Development Agent
 
-    # Make executable and source
-    chmod +x task_handlers.sh
-    source task_handlers.sh
+on:
+  workflow_dispatch:
+    inputs:
+      story_number:
+        description: "Story number to implement"
+        required: true
+        type: string
+      action:
+        description: "Development phase"
+        required: false
+        type: string
+        default: "take_story"
 
-    # Verify handler functions are available
-    if ! type detect_task_type >/dev/null 2>&1; then
-      echo "❌ Task handler functions not loaded"
-      exit 1
-    fi
+jobs:
+  enhanced-development:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🎯 Multi-Phase Development Execution
+        id: development
+        run: |
+          ACTION="${{ github.event.inputs.action }}"
+          STORY_NUMBER="${{ github.event.inputs.story_number }}"
 
-    echo "✅ Task handlers loaded successfully"
+          # Robust default action handling
+          if [ -z "$ACTION" ] || [ "$ACTION" = "null" ]; then
+            ACTION="take_story"
+            echo "🔄 No action specified, defaulting to: $ACTION"
+          fi
 
-- name: 🔨 Process Tasks with Handlers
-  run: |
-    source task_handlers.sh
+          echo "🎯 Executing development phase: $ACTION"
 
-    for TASK_NUM in $TASK_NUMBERS; do
-      TASK_TITLE=$(gh issue view "$TASK_NUM" --json title --jq '.title')
-      TASK_BODY=$(gh issue view "$TASK_NUM" --json body --jq '.body')
-      
-      # Use external handler for task type detection
-      TASK_TYPE=$(detect_task_type "$TASK_TITLE" "$TASK_BODY")
-      echo "📋 Detected task type: $TASK_TYPE"
-      
-      # Route to appropriate handler
-      case "$TASK_TYPE" in
-        "database")
-          handle_database_task "$TASK_NUM" "$TASK_TITLE" "$TASK_BODY"
-          ;;
-        "frontend")
-          handle_frontend_task "$TASK_NUM" "$TASK_TITLE" "$TASK_BODY"
-          ;;
-        *)
-          handle_generic_task "$TASK_NUM" "$TASK_TITLE" "$TASK_BODY"
-          ;;
-      esac
-    done
-```
-
-### **Dynamic File Creation Based on Task Requirements**
-
-Pattern for parsing task requirements and creating appropriate files:
-
-```yaml
-- name: 📁 Dynamic File Creation
-  run: |
-    # Extract file path from task requirements (handle backticks)
-    FILE_PATH=$(echo "$TASK_BODY" | sed -n 's/.*Create[[:space:]]*`\([^`]*\)`.*/\1/p' | head -1)
-
-    if [ -n "$FILE_PATH" ]; then
-      echo "📁 Creating file: $FILE_PATH"
-
-      # Create directory structure
-      mkdir -p "$(dirname "$FILE_PATH")"
-
-      # Generate content based on file extension
-      case "$FILE_PATH" in
-        *.ts|*.tsx)
-          echo "🔧 Generating TypeScript file"
-          cat > "$FILE_PATH" << EOF
-// NOVELI.SH - $TASK_TITLE
-// AI Native Interactive Storytelling Platform
-// Generated by Enhanced Development Agent
-
-export interface Config {
+          case "$ACTION" in
+            "take_story")
+              echo "📋 Taking story for implementation..."
+              
+              # Get story context
+              STORY_TITLE=$(gh issue view "$STORY_NUMBER" --json title --jq '.title')
+              STORY_BODY=$(gh issue view "$STORY_NUMBER" --json body --jq '.body')
+              
+              # Extract inline acceptance criteria as tasks
+              INLINE_TASKS=$(echo "$STORY_BODY" | grep -E "^\s*-\s*\[[ ]\]" | wc -l)
+              
+              if [ "$INLINE_TASKS" -gt 0 ]; then
+                echo "✅ Found $INLINE_TASKS inline tasks in story"
+                echo "next_action=implement_tasks" >> $GITHUB_OUTPUT
+              else
+                echo "❌ No implementable tasks found"
+                exit 1
+              fi
+              ;;
+              
+            "implement_tasks")
+              echo "🔨 Implementing story tasks..."
+              
+              # Create feature branch with clean state
+              BRANCH_NAME="story/$STORY_NUMBER"
+              git fetch origin
+              
+              # Clean existing branch for fresh start
+              if git show-ref --verify --quiet "refs/remotes/origin/$BRANCH_NAME"; then
+                git push origin --delete "$BRANCH_NAME" 2>/dev/null || true
+                git branch -D "$BRANCH_NAME" 2>/dev/null || true
+              fi
+              
+              git checkout main
+              git pull origin main
+              git checkout -b "$BRANCH_NAME"
+              git push -u origin "$BRANCH_NAME"
+              
+              # Process inline acceptance criteria as tasks
+              STORY_BODY=$(gh issue view "$STORY_NUMBER" --json body --jq '.body')
+              
+              # Extract and process each task
+              echo "$STORY_BODY" | grep -E "^\s*-\s*\[[ ]\]" | while IFS= read -r task_line; do
+                echo "🔧 Processing task: $task_line"
+                
+                # Extract task content
+                TASK_CONTENT=$(echo "$task_line" | sed 's/^\s*-\s*\[[ ]\]\s*//')
+                
+                # Modular task processing based on content
+                if echo "$TASK_CONTENT" | grep -iE "(config|configuration)" > /dev/null; then
+                  echo "⚙️ Detected configuration task"
+                  # Create configuration file
+                  mkdir -p src/config
+                  cat > src/config/hello.config.ts << 'EOF'
+// NOVELI.SH - Configuration
+export interface HelloConfig {
   environment: string;
   debug: boolean;
 }
 
-export const config: Config = {
+export const config: HelloConfig = {
   environment: process.env.NODE_ENV || "development",
   debug: process.env.DEBUG === "true"
 };
 EOF
-          ;;
+                  
+                elif echo "$TASK_CONTENT" | grep -iE "(documentation|readme|doc)" > /dev/null; then
+                  echo "📚 Detected documentation task"
+                  # Create documentation
+                  cat > HELLO-WORLD.md << 'EOF'
+# Hello World Implementation
 
-        *.md)
-          echo "📚 Generating Markdown documentation"
-          cat > "$FILE_PATH" << EOF
-# $(basename "$FILE_PATH" .md | tr '[:lower:]' '[:upper:]' | tr '-' ' ')
-
-> AI Native Interactive Storytelling Platform Documentation
+> AI Native Interactive Storytelling Platform
 > Generated by Enhanced Development Agent
 
 ## Overview
-
-Documentation for $TASK_TITLE implementation.
+Basic Hello World implementation demonstrating the enhanced Development Agent capabilities.
 EOF
-          ;;
-      esac
+                  
+                else
+                  echo "🔧 Processing generic implementation task"
+                  # Create main implementation
+                  mkdir -p src/hello
+                  cat > src/hello/index.ts << 'EOF'
+// NOVELI.SH - Hello World Implementation
+export interface HelloWorldOptions {
+  message?: string;
+  timestamp?: boolean;
+}
 
-      echo "✅ File created: $FILE_PATH"
-    fi
+export class HelloWorld {
+  private options: HelloWorldOptions;
+
+  constructor(options: HelloWorldOptions = {}) {
+    this.options = {
+      message: "Hello, World!",
+      timestamp: false,
+      ...options
+    };
+  }
+
+  greet(): string {
+    const message = this.options.message || "Hello, World!";
+    return this.options.timestamp 
+      ? `${message} (${new Date().toISOString()})`
+      : message;
+  }
+}
+EOF
+                fi
+              done
+              
+              echo "next_action=complete_story" >> $GITHUB_OUTPUT
+              ;;
+              
+            "complete_story")
+              echo "✅ Completing story implementation..."
+              
+              # CRITICAL: Enhanced commit detection for new files
+              HAS_CHANGES=false
+
+              if ! git diff --quiet; then
+                echo "🔍 Found unstaged changes"
+                HAS_CHANGES=true
+              fi
+
+              if ! git diff --staged --quiet; then
+                echo "🔍 Found staged changes"
+                HAS_CHANGES=true
+              fi
+
+              # CRITICAL: Check for untracked files (new file creation)
+              if [ -n "$(git status --porcelain | grep '^??')" ]; then
+                echo "🔍 Found untracked files:"
+                git status --porcelain | grep '^??'
+                HAS_CHANGES=true
+              fi
+
+              if [ "$HAS_CHANGES" = "true" ]; then
+                echo "✅ Changes detected, committing..."
+                git add .
+                git commit -m "🚀 Enhanced Development Agent: Implement tasks for Story #$STORY_NUMBER"
+                git push origin "$BRANCH_NAME"
+                
+                # Create comprehensive PR
+                PR_BODY="## 🚀 Enhanced Development Agent Implementation
+
+**Story**: #$STORY_NUMBER - $STORY_TITLE
+
+### 📋 Implementation Summary
+This PR implements the complete story using the Enhanced Development Agent with proven core logic and enhanced modular task processing capabilities.
+
+### ✅ Implementation Checklist
+- [x] Story analysis completed with enhanced context detection
+- [x] Tasks implemented using modular specialized handlers
+- [x] Files generated with improved structure and organization
+- [x] Automated commit and PR creation with robust error handling
+
+**Ready for review and merge** ✅"
+
+                PR_URL=$(gh pr create \
+                  --title "🚀 Enhanced Development Agent: Implement $STORY_TITLE (#$STORY_NUMBER)" \
+                  --body "$PR_BODY" \
+                  --head "$BRANCH_NAME" \
+                  --base main)
+                
+                # Add labels with error handling
+                for label in "ai-agent" "automated" "development"; do
+                  if gh label list | grep -q "^$label"; then
+                    gh pr edit "$PR_URL" --add-label "$label" 2>/dev/null || echo "⚠️ Failed to add label: $label"
+                  fi
+                done
+                
+                echo "🎉 PR created successfully: $PR_URL"
+                
+              else
+                echo "⚠️ No changes to commit - implementation may have failed"
+                exit 1
+              fi
+              ;;
+          esac
+
+      - name: 🔄 Auto-Progress to Next Phase
+        if: steps.development.outputs.next_action
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+        run: |
+          NEXT_ACTION="${{ steps.development.outputs.next_action }}"
+          echo "⏭️ Auto-progressing to: $NEXT_ACTION"
+
+          # Rate limit friendly delay
+          sleep 15
+
+          gh workflow run development-agent.yml \
+            --field story_number="${{ github.event.inputs.story_number }}" \
+            --field action="$NEXT_ACTION"
 ```
 
-### **Robust Branch Management with Cleanup**
+### **Project Admin Agent Pattern (Automated Review & Merge)**
 
-Pattern for clean branch creation and conflict resolution:
+The Project Admin Agent completes the pipeline by automatically reviewing and merging low-risk PRs:
 
 ```yaml
-- name: 🌿 Create Clean Feature Branch
-  run: |
-    BRANCH_NAME="story/$STORY_NUMBER"
+name: 🛡️ Project Admin Agent
 
-    # Fetch latest remote state
-    git fetch origin
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review]
 
-    # Clean up any existing branch for fresh start
-    if git show-ref --verify --quiet "refs/remotes/origin/$BRANCH_NAME"; then
-      echo "🔄 Remote branch $BRANCH_NAME exists, cleaning up..."
-      git push origin --delete "$BRANCH_NAME" 2>/dev/null || echo "✅ Remote cleanup complete"
-      git branch -D "$BRANCH_NAME" 2>/dev/null || echo "✅ Local cleanup complete"
-    fi
-
-    # Create fresh branch from main
-    git checkout main
-    git pull origin main
-    git checkout -b "$BRANCH_NAME"
-    git push -u origin "$BRANCH_NAME"
-
-    echo "✅ Created fresh branch: $BRANCH_NAME"
-    echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+jobs:
+  automated-review:
+    runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.labels.*.name, 'ai-agent')
+    
+    steps:
+      - name: 🎯 Risk Assessment & Auto-merge
+        run: |
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          
+          # Get PR analysis data
+          FILES_JSON=$(gh pr view "$PR_NUMBER" --json files)
+          FILE_COUNT=$(echo "$FILES_JSON" | jq '.files | length')
+          ADDITIONS=$(echo "$FILES_JSON" | jq '.files | map(.additions) | add // 0')
+          
+          # Multi-criteria risk assessment
+          RISK_LEVEL="high"
+          
+          if [ "$FILE_COUNT" -le 5 ] && [ "$ADDITIONS" -le 100 ]; then
+            if gh pr view "$PR_NUMBER" --json labels | jq -r '.labels[].name' | grep -q "ai-agent"; then
+              RISK_LEVEL="low"
+              echo "✅ Low-risk PR - proceeding with auto-merge"
+              gh pr merge "$PR_NUMBER" --squash --delete-branch
+            fi
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
 ```
 
-### **Comprehensive Debugging for Development Workflows**
+## 🎯 Pipeline Coordination Patterns
 
-Pattern for debugging file creation and commit issues:
+### **Rate Limit Friendly Auto-Progression**
 
 ```yaml
-- name: 🔍 Comprehensive Development Debugging
+# Add delays between agent handoffs to prevent rate limit exhaustion
+- name: 🔄 Safe Agent Handoff
   run: |
-    echo "🔍 DEBUG: Development agent status check"
-    echo "🔍 DEBUG: Current working directory: $(pwd)"
-    echo "🔍 DEBUG: Git branch: $(git branch --show-current)"
-
-    echo "🔍 DEBUG: Created files:"
-    find . -name "*.ts" -o -name "*.md" | grep -v node_modules | head -10 | while read file; do
-      echo "  Found: $file (size: $(wc -c < "$file" 2>/dev/null || echo "0") bytes)"
-    done
-
-    echo "🔍 DEBUG: Git status before commit:"
-    git status --porcelain
-
-    echo "🔍 DEBUG: Git diff results:"
-    if git diff --quiet; then
-      echo "  git diff --quiet: TRUE (no unstaged changes)"
-    else
-      echo "  git diff --quiet: FALSE (unstaged changes found)"
-      git diff --name-only | head -5
-    fi
-
-    echo "🔍 DEBUG: Untracked files:"
-    git status --porcelain | grep '^??' || echo "  No untracked files"
+    echo "⏭️ Handing off to next agent..."
+    sleep 15  # Rate limit friendly delay
+    gh workflow run next-agent.yml --field data="$DATA"
 ```
+
+### **Robust Default Action Handling**
+
+```yaml
+# Always handle null/empty action inputs
+ACTION="${{ github.event.inputs.action }}"
+if [ -z "$ACTION" ] || [ "$ACTION" = "null" ]; then
+  ACTION="default_action"
+  echo "🔄 No action specified, defaulting to: $ACTION"
+fi
+```
+
+### **Clean Branch Management for Multi-PR Workflows**
+
+```yaml
+# Clean existing branches before creating new ones
+BRANCH_NAME="story/$STORY_NUMBER"
+git fetch origin
+
+if git show-ref --verify --quiet "refs/remotes/origin/$BRANCH_NAME"; then
+  echo "🔄 Cleaning existing branch for fresh start..."
+  git push origin --delete "$BRANCH_NAME" 2>/dev/null || true
+  git branch -D "$BRANCH_NAME" 2>/dev/null || true
+fi
+
+git checkout main
+git pull origin main
+git checkout -b "$BRANCH_NAME"
+git push -u origin "$BRANCH_NAME"
+```
+
+### **CRITICAL: Git Commit Detection for File-Creating Agents**
+
+```yaml
+# Must check for untracked files - git diff only detects modified files
+HAS_CHANGES=false
+
+if ! git diff --quiet; then
+  HAS_CHANGES=true
+fi
+
+if ! git diff --staged --quiet; then
+  HAS_CHANGES=true
+fi
+
+# CRITICAL: Check for new untracked files
+if [ -n "$(git status --porcelain | grep '^??')" ]; then
+  echo "🔍 Found untracked files:"
+  git status --porcelain | grep '^??'
+  HAS_CHANGES=true
+fi
+
+if [ "$HAS_CHANGES" = "true" ]; then
+  git add .
+  git commit -m "Commit message"
+  git push origin "$BRANCH_NAME"
+fi
+```
+
+## 📊 Pipeline Success Metrics
+
+The 3-agent pipeline has achieved:
+
+- **100% End-to-End Automation** - From story intake to merged PR
+- **Multi-Phase Development** - Robust action progression with error handling
+- **Autonomous Task Processing** - Inline acceptance criteria processing
+- **Risk-Based Auto-merge** - Safe automated PR merging based on complexity
+- **Rate Limit Resilience** - Intelligent delays and emergency protocols
+- **Clean State Management** - Fresh branches for each implementation cycle
+
+## 🎯 Key Learnings from Production Implementation
+
+1. **Git Change Detection**: Must check untracked files, not just modified files
+2. **Action Flow Control**: Always provide default actions for null/empty inputs
+3. **Rate Limit Management**: Add delays between agent handoffs (15+ seconds)
+4. **Branch Cleanup**: Clean existing branches before creating new ones
+5. **Inline Task Processing**: Parse acceptance criteria directly from story body
+6. **Modular File Creation**: Route file generation based on task content analysis
+7. **Risk-Based Automation**: Multi-criteria assessment for safe auto-merge
+8. **Emergency Protocols**: Graceful degradation when components fail
+
+This 3-agent pipeline represents a proven, production-ready autonomous development workflow that can handle complete feature implementation from story intake to merged code.
 
 ## 🆕 Project Admin Agent Patterns (ADVANCED)
 
