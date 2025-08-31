@@ -1,10 +1,14 @@
-// Story Progression Hook - AI Native State Management
-// Core hook for managing interactive story state and progression
+// Enhanced Story Progression Hook - AI Native State Management
+// Core hook for managing interactive story state with character persistence
 
 import { useState, useCallback } from 'react';
 import { StoryContext } from '../types';
-import { createInitialStoryContext, calculateCompletionRate } from '../lib/utils';
-import { generateWorld, offlineBeat } from '../lib/rng';
+import { 
+  createEnhancedStoryContext,
+  processEnhancedChoice,
+  generateEnhancedNarrative,
+  shouldStoryEnd
+} from '../lib/enhanced-story-engine';
 
 export interface UseStoryProgressionReturn {
   context: StoryContext;
@@ -17,11 +21,11 @@ export interface UseStoryProgressionReturn {
 }
 
 /**
- * Hook for managing story progression and state
+ * Enhanced hook for managing story progression with character persistence and consequences
  */
 export function useStoryProgression(initialSeed?: string): UseStoryProgressionReturn {
   const [context, setContext] = useState<StoryContext>(() => 
-    createInitialStoryContext(initialSeed)
+    createEnhancedStoryContext(initialSeed)
   );
   const [narrative, setNarrative] = useState<string>(() => 
     "The bus halts at dawn. Officials demand your ticket. Hand it over? (Y/N)"
@@ -29,64 +33,40 @@ export function useStoryProgression(initialSeed?: string): UseStoryProgressionRe
   const [isGenerating, setIsGenerating] = useState(false);
   const [isEnded, setIsEnded] = useState(false);
 
-  // Generate world state based on context seed
-  const world = generateWorld(context.metadata.seed || 'default');
-
   const makeChoice = useCallback(async (choice: 'Y' | 'N') => {
     if (isGenerating || isEnded) return;
 
     setIsGenerating(true);
 
     try {
-      // Update world state based on choice coherence
-      const coherent = (world.playerRole.includes("Hero") && choice === "Y") || 
-                      (!world.playerRole.includes("Hero") && choice === "N");
-      world.continuity = Math.max(0, Math.min(6, world.continuity + (coherent ? 1 : -1)));
+      // Process choice with enhanced story intelligence
+      const updatedContext = processEnhancedChoice(context, choice, narrative);
       
-      if (Math.random() < 0.25) {
-        world.foreshadow += 1;
+      // Generate next narrative beat with character awareness
+      const nextNarrative = generateEnhancedNarrative(updatedContext, choice);
+      
+      // Update context
+      setContext(updatedContext);
+      setNarrative(nextNarrative);
+
+      // Check if story should end with enhanced conditions
+      const hasEnded = shouldStoryEnd(updatedContext);
+      if (hasEnded) {
+        setIsEnded(true);
+        setNarrative(nextNarrative + " (Restart?)");
       }
 
-      // Generate next story beat
-      const nextBeat = offlineBeat(world, choice);
-      
-      // Update context with new choice and narrative
-      setContext(prev => {
-        const newHistory = [...prev.history, narrative, `You chose: ${choice}`];
-        const newCompletionRate = calculateCompletionRate({
-          ...prev,
-          history: newHistory
-        });
-
-        return {
-          ...prev,
-          history: newHistory,
-          currentScene: nextBeat,
-          metadata: {
-            ...prev.metadata,
-            lastUpdate: new Date(),
-            completionRate: newCompletionRate,
-          }
-        };
-      });
-
-      setNarrative(nextBeat);
-
-      // Check if story has ended
-      const hasEnded = /\(Restart\?\)$/i.test(nextBeat);
-      setIsEnded(hasEnded);
-
     } catch (error) {
-      console.error('Error generating next story beat:', error);
+      console.error('Error generating enhanced story beat:', error);
       // Fallback to simple continuation
-      setNarrative("The moment passes. What happens next? (Y/N)");
+      setNarrative("The moment passes, heavy with unspoken possibilities. What happens next? (Y/N)");
     } finally {
       setIsGenerating(false);
     }
-  }, [isGenerating, isEnded, world, narrative]);
+  }, [isGenerating, isEnded, context, narrative]);
 
   const resetStory = useCallback((seed?: string) => {
-    const newContext = createInitialStoryContext(seed);
+    const newContext = createEnhancedStoryContext(seed);
     setContext(newContext);
     setNarrative("The bus halts at dawn. Officials demand your ticket. Hand it over? (Y/N)");
     setIsEnded(false);
