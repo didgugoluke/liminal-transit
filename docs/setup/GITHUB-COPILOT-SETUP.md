@@ -125,7 +125,7 @@ For development and testing, you can use the GitHub CLI Copilot extension.
 ### Method 1: Update Workflow to Use Copilot API
 
 ```yaml
-# Add to .github/workflows/github-copilot-claude4-agent.yml
+# Add to .github/workflows/ai-intelligence-agent-v2.yml
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   GITHUB_COPILOT_TOKEN: ${{ secrets.GITHUB_COPILOT_TOKEN }}
