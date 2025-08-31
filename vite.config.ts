@@ -8,7 +8,7 @@ export default defineConfig({
       // Enable Fast Refresh for better development experience
       fastRefresh: true,
       // Include .js files in Fast Refresh
-      include: "**/*.{jsx,tsx,js,ts}",
+      include: ["**/*.{jsx,tsx,js,ts}"],
     })
   ],
   
