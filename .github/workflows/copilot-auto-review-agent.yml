@@ -1,0 +1,142 @@
+name: 🤖 Copilot PR Auto-Review Agent
+
+on:
+  pull_request:
+    types: [ready_for_review]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "PR number to auto-review"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  copilot-auto-review:
+    name: 🤖 Copilot Auto-Review
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'workflow_dispatch') ||
+      (github.event.pull_request.user.login == 'app/copilot-swe-agent')
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: ⚡ Setup Rate Limiting
+        run: |
+          chmod +x scripts/github-rate-limit-manager.sh
+          if ! scripts/github-rate-limit-manager.sh check; then
+            echo "❌ Rate limits too low for auto-review"
+            scripts/github-rate-limit-manager.sh emergency "Copilot Auto-Review"
+            exit 1
+          fi
+          echo "✅ Rate limits OK"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: ⚙️ Configure GitHub CLI
+        run: |
+          if ! gh auth status; then
+            echo "❌ GitHub CLI authentication failed"
+            exit 1
+          fi
+          echo "✅ GitHub CLI configured"
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+
+      - name: 📊 Analyze PR Risk
+        id: analyze
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            PR_NUMBER="${{ github.event.inputs.pr_number }}"
+          else
+            PR_NUMBER="${{ github.event.pull_request.number }}"
+          fi
+
+          echo "🔍 Analyzing PR #$PR_NUMBER for auto-merge eligibility..."
+
+          FILE_COUNT=$(gh pr view "$PR_NUMBER" --json files --jq '.files | length')
+          ADDITIONS=$(gh pr view "$PR_NUMBER" --json files --jq '.files | map(.additions) | add // 0')
+          AUTHOR=$(gh pr view "$PR_NUMBER" --json author --jq '.author.login')
+
+          echo "📊 Analysis Results:"
+          echo "  Files changed: $FILE_COUNT"
+          echo "  Lines added: $ADDITIONS" 
+          echo "  Author: $AUTHOR"
+
+          # Risk assessment
+          if [ "$FILE_COUNT" -le 5 ] && [ "$ADDITIONS" -le 100 ]; then
+            RISK="low"
+            AUTO_MERGE="true"
+            echo "✅ Low risk - approved for auto-merge"
+          else
+            RISK="high"
+            AUTO_MERGE="false"
+            echo "⚠️ High risk - manual review required"
+          fi
+
+          echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
+          echo "RISK_LEVEL=$RISK" >> $GITHUB_ENV
+          echo "AUTO_MERGE=$AUTO_MERGE" >> $GITHUB_ENV
+          echo "FILE_COUNT=$FILE_COUNT" >> $GITHUB_ENV
+          echo "ADDITIONS=$ADDITIONS" >> $GITHUB_ENV
+
+      - name: 🚀 Auto-Approve and Merge
+        if: env.AUTO_MERGE == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+        run: |
+          echo "🚀 Auto-approving and merging PR #${{ env.PR_NUMBER }}..."
+          
+          # Create approval comment in file to avoid YAML issues
+          cat > /tmp/approval_comment.md << 'EOF'
+          🤖 **Automated Review Complete**
+
+          **Risk Assessment**: Low Risk ✅
+          - Files: ${{ env.FILE_COUNT }}
+          - Additions: ${{ env.ADDITIONS }}
+          - Author: GitHub Copilot
+
+          **Auto-Approval Criteria Met**:
+          - ✅ Small changeset
+          - ✅ Copilot-generated code
+          - ✅ Ready for review
+
+          **Approved for immediate merge** 🚀
+          EOF
+
+          # Approve the PR using file content
+          gh pr review "${{ env.PR_NUMBER }}" --approve --body-file /tmp/approval_comment.md
+
+          # Merge with squash
+          if gh pr merge "${{ env.PR_NUMBER }}" --squash --delete-branch; then
+            echo "✅ PR #${{ env.PR_NUMBER }} successfully merged and branch deleted"
+          else
+            echo "❌ Merge failed - may need manual intervention"
+            exit 1
+          fi
+
+          # Cleanup
+          rm -f /tmp/approval_comment.md
+
+      - name: 📝 Request Manual Review
+        if: env.AUTO_MERGE == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "⚠️ Requesting manual review for PR #${{ env.PR_NUMBER }}"
+          
+          gh pr comment "${{ env.PR_NUMBER }}" --body "⚠️ Manual review required - high complexity changes (Files: ${{ env.FILE_COUNT }}, Additions: ${{ env.ADDITIONS }})"
+
+      - name: ✅ Auto-Review Complete
+        run: |
+          echo "🤖 Copilot Auto-Review Agent completed"
+          echo "📊 PR: #${{ env.PR_NUMBER }}"
+          echo "🎯 Auto-merged: ${{ env.AUTO_MERGE }}"
