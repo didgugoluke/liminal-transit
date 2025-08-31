@@ -608,7 +608,7 @@ export class UnifiedV2IntelligenceFoundation {
   }
 
   private determineIntelligenceLevel(epicAnalysis: EpicAnalysisResult): 'basic' | 'enhanced' | 'advanced' | 'contextual' | 'predictive' | 'adaptive' {
-    const { complexityLevel, successPrediction, confidence } = epicAnalysis;
+    const { complexityLevel, confidence } = epicAnalysis;
     
     if (complexityLevel === 'high' && confidence > 0.85) return 'adaptive';
     if (complexityLevel === 'high') return 'predictive';
