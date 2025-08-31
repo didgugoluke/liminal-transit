@@ -1,4 +1,4 @@
-name: 📦 [ARCHIVED V1] AI Native Agent Orchestrator
+name: AI Native Agent Orchestrator
 on:
   issues:
     types: [opened, labeled, edited]
@@ -15,8 +15,7 @@ permissions:
 jobs:
   ai-agent-dispatcher:
     runs-on: ubuntu-latest
-    # V1 AGENT ARCHIVED - Disabled for V2 transition. Remove this condition to reactivate.
-    if: false &&
+    if: contains(github.event.issue.labels.*.name, 'ai-agent') || github.event_name == 'workflow_dispatch'
 
     steps:
       - name: Checkout Repository
@@ -105,8 +104,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Execute AI Agent Workflow
-    # V1 AGENT ARCHIVED - Disabled for V2 transition. Remove this condition to reactivate.
-    if: false &&
+        if: steps.agent-analysis.outcome == 'success'
         run: |
           echo "Executing AI Agent: ${{ steps.agent-analysis.outputs.agent-type }}"
           echo "Priority: ${{ steps.agent-analysis.outputs.priority }}"
@@ -139,8 +137,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update Issue with Agent Assignment
-    # V1 AGENT ARCHIVED - Disabled for V2 transition. Remove this condition to reactivate.
-    if: false &&
+        if: steps.agent-analysis.outcome == 'success'
         run: |
           echo "🚧 Issue update temporarily disabled"
           echo "Would comment: AI Agent Activated: ${{ steps.agent-analysis.outputs.agent-type }} assigned with priority ${{ steps.agent-analysis.outputs.priority }}. Autonomous execution initiated."

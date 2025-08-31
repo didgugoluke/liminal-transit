@@ -1,9 +1,7 @@
-name: 📦 [ARCHIVED V1] 🚀 Development Agent - Enhanced Story Implementation
+name: 🚀 Development Agent - Enhanced Story Implementation
 
 on:
   workflow_dispatch:
-    # V1 AGENT ARCHIVED - Disabled for V2 transition. Remove this condition to reactivate.
-    if: false
     inputs:
       story_number:
         description: "Story issue number to implement"

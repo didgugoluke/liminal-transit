@@ -124,6 +124,7 @@ Use the provided script for regular updates:
 ### Production Status
 
 - ✅ **Operational** - Running in production with validated metrics
+- 📦 **Archived (V1 Baseline)** - V1 agent safely disabled but preserved for V2 rollback
 - ✅ **Ready for Epic 3** - Complete but pending AWS deployment
 - 🚧 **Epic 2 Development** - Part of Observatory Dashboard implementation
 - 🚧 **Epic 3 Development** - Part of AWS production deployment

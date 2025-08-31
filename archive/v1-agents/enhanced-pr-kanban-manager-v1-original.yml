@@ -1,4 +1,4 @@
-name: 📦 [ARCHIVED V1] 🎯 Enhanced PR Kanban Manager
+name: 🎯 Enhanced PR Kanban Manager
 
 on:
   pull_request:
@@ -18,8 +18,7 @@ permissions:
 jobs:
   kanban-manager:
     runs-on: ubuntu-latest
-    # V1 AGENT ARCHIVED - Disabled for V2 transition. Remove this condition to reactivate.
-    if: false &&
+    if: |
       (github.event_name == 'workflow_dispatch') ||
       (github.event.pull_request.user.login == 'app/copilot-swe-agent')
 
@@ -72,8 +71,7 @@ jobs:
           echo "is_draft=$IS_DRAFT" >> $GITHUB_OUTPUT
 
       - name: 🤖 Request Copilot Review
-    # V1 AGENT ARCHIVED - Disabled for V2 transition. Remove this condition to reactivate.
-    if: false &&
+        if: steps.analyze.outputs.is_draft == 'false'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -111,8 +109,7 @@ jobs:
           echo "auto_merge=$AUTO_MERGE" >> $GITHUB_OUTPUT
 
       - name: 🚀 Auto-Merge & Update Kanban
-    # V1 AGENT ARCHIVED - Disabled for V2 transition. Remove this condition to reactivate.
-    if: false &&
+        if: steps.risk.outputs.auto_merge == 'true'
         env:
           GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
         run: |
@@ -144,8 +141,7 @@ jobs:
           fi
 
       - name: 📝 Manual Review Required
-    # V1 AGENT ARCHIVED - Disabled for V2 transition. Remove this condition to reactivate.
-    if: false &&
+        if: steps.risk.outputs.auto_merge == 'false'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |

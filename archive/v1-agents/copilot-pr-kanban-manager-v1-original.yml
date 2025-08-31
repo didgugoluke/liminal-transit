@@ -1,4 +1,4 @@
-name: 📦 [ARCHIVED V1] 🎯 Copilot PR Manager - Kanban Integration
+name: 🎯 Copilot PR Manager - Kanban Integration
 
 on:
   pull_request:
@@ -18,8 +18,7 @@ permissions:
 jobs:
   copilot-pr-manager:
     runs-on: ubuntu-latest
-    # V1 AGENT ARCHIVED - Disabled for V2 transition. Remove this condition to reactivate.
-    if: false &&
+    if: |
       (github.event_name == 'workflow_dispatch') ||
       (github.event.pull_request.user.login == 'app/copilot-swe-agent')
 
@@ -76,8 +75,7 @@ jobs:
           echo "issue_num=$ISSUE_NUM" >> $GITHUB_OUTPUT
 
       - name: 📋 Update Kanban to In Progress
-    # V1 AGENT ARCHIVED - Disabled for V2 transition. Remove this condition to reactivate.
-    if: false &&
+        if: steps.context.outputs.issue_num != 'null' && steps.context.outputs.issue_num != ''
         env:
           GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
         run: |
@@ -117,8 +115,7 @@ jobs:
           fi
 
       - name: 🚀 Auto-Merge Low Risk PR
-    # V1 AGENT ARCHIVED - Disabled for V2 transition. Remove this condition to reactivate.
-    if: false &&
+        if: steps.risk.outputs.auto_merge == 'true'
         id: merge
         env:
           GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
@@ -138,8 +135,7 @@ jobs:
           fi
 
       - name: ✅ Update Kanban to Done
-    # V1 AGENT ARCHIVED - Disabled for V2 transition. Remove this condition to reactivate.
-    if: false &&
+        if: steps.merge.outputs.merge_success == 'true' && steps.context.outputs.issue_num != 'null' && steps.context.outputs.issue_num != ''
         env:
           GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
         run: |
@@ -165,8 +161,7 @@ jobs:
           fi
 
       - name: 📝 Manual Review Required
-    # V1 AGENT ARCHIVED - Disabled for V2 transition. Remove this condition to reactivate.
-    if: false &&
+        if: steps.risk.outputs.auto_merge == 'false'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -174,8 +169,7 @@ jobs:
           gh pr comment "${{ steps.context.outputs.pr_number }}" --body "⚠️ **Manual Review Required** - High complexity changes (${{ steps.context.outputs.file_count }} files, ${{ steps.context.outputs.additions }} additions)"
 
       - name: 🚨 Emergency Cleanup
-    # V1 AGENT ARCHIVED - Disabled for V2 transition. Remove this condition to reactivate.
-    if: false &&
+        if: failure()
         run: |
           echo "🚨 Copilot PR Manager failed"
         env:

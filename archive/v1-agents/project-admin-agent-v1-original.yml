@@ -1,9 +1,7 @@
-name: 📦 [ARCHIVED V1] 🛡️ Project Admin Agent - PR Review & Merge
+name: 🛡️ Project Admin Agent - PR Review & Merge
 
 on:
   pull_request:
-    # V1 AGENT ARCHIVED - Disabled for V2 transition. Remove this condition to reactivate.
-    if: false
     types: [opened, synchronize]
     branches: [main]
   workflow_dispatch:

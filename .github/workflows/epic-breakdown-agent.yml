@@ -1,4 +1,4 @@
-name: 📋 Epic Breakdown Agent - AI Native Story & Task Generator
+name: 📦 [ARCHIVED V1] Epic Breakdown Agent - AI Native Story & Task Generator
 
 on:
   issue_comment:
@@ -12,9 +12,9 @@ permissions:
 jobs:
   epic-breakdown:
     runs-on: ubuntu-latest
-    if: |
-      (contains(github.event.comment.body, 'Epic breakdown agent') && contains(github.event.issue.labels.*.name, 'epic')) ||
-      (contains(github.event.comment.body, 'Epic breakdown agent: force rebuild') && contains(github.event.issue.labels.*.name, 'epic'))
+    # V1 AGENT ARCHIVED - Disabled for V2 transition. Remove this condition to reactivate.
+    if: false && ((contains(github.event.comment.body, 'Epic breakdown agent') && contains(github.event.issue.labels.*.name, 'epic')) ||
+      (contains(github.event.comment.body, 'Epic breakdown agent: force rebuild') && contains(github.event.issue.labels.*.name, 'epic')))
 
     steps:
       - name: 🏗️ Checkout Repository

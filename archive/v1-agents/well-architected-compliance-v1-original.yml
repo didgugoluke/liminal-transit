@@ -1,4 +1,4 @@
-name: 📦 [ARCHIVED V1] 🏗️ AWS Well-Architected Compliance [DISABLED]
+name: 🏗️ AWS Well-Architected Compliance [DISABLED]
 
 # DISABLED: AWS credentials not yet configured
 # Will be enabled after Epic 3: AWS Infrastructure implementation
@@ -18,8 +18,7 @@ jobs:
   well-architected-review:
     name: 🏗️ Well-Architected Review
     runs-on: ubuntu-latest
-    # V1 AGENT ARCHIVED - Disabled for V2 transition. Remove this condition to reactivate.
-    if: false &&
+    if: github.event.inputs.force_enable == 'true'
     steps:
       - uses: actions/checkout@v4
 

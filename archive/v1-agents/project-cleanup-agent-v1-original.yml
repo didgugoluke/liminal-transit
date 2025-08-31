@@ -1,4 +1,4 @@
-name: 📦 [ARCHIVED V1] 🧹 Project Cleanup Agent - Orphaned Items
+name: 🧹 Project Cleanup Agent - Orphaned Items
 
 on:
   issue_comment:
@@ -24,8 +24,7 @@ permissions:
 jobs:
   project-cleanup:
     runs-on: ubuntu-latest
-    # V1 AGENT ARCHIVED - Disabled for V2 transition. Remove this condition to reactivate.
-    if: false &&
+    if: |
       (github.event_name == 'workflow_dispatch') ||
       (contains(github.event.comment.body, 'project cleanup agent') && 
        (contains(github.event.issue.labels.*.name, 'ai-agent') || 
@@ -245,8 +244,7 @@ jobs:
           echo "🎯 Project Health: $([ "$ORPHANED_ITEMS" -eq 0 ] && echo 'EXCELLENT ✅' || echo 'NEEDS CLEANUP ⚠️')"
 
       - name: 💬 Comment on Trigger Issue
-    # V1 AGENT ARCHIVED - Disabled for V2 transition. Remove this condition to reactivate.
-    if: false &&
+        if: github.event_name == 'issue_comment'
         run: |
           TOTAL_ITEMS=${{ steps.analyze.outputs.total_items }}
           VALID_ITEMS=${{ steps.cleanup.outputs.valid_items }}

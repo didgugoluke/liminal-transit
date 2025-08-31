@@ -1,4 +1,4 @@
-name: 📦 [ARCHIVED V1] 🔍 AI Agent - Find Replace Engine
+name: 🔍 AI Agent - Find Replace Engine
 
 on:
   issues:
@@ -14,8 +14,7 @@ permissions:
 
 jobs:
   find-replace-orchestrator:
-    # V1 AGENT ARCHIVED - Disabled for V2 transition. Remove this condition to reactivate.
-    if: false &&
+    if: |
       (contains(github.event.issue.labels.*.name, 'find-replace') || contains(github.event.issue.labels.*.name, 'branding') || contains(github.event.issue.labels.*.name, 'refactor')) &&
       contains(github.event.comment.body, 'find replace agent')
     runs-on: ubuntu-latest
@@ -142,8 +141,7 @@ jobs:
           fi
 
       - name: 🔍 File Scope Analysis
-    # V1 AGENT ARCHIVED - Disabled for V2 transition. Remove this condition to reactivate.
-    if: false &&
+        if: steps.extract_patterns.outputs.patterns_valid == 'true'
         run: |
           echo "Analyzing file scope for transformations..."
 
@@ -180,8 +178,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 🧪 Dry Run Execution
-    # V1 AGENT ARCHIVED - Disabled for V2 transition. Remove this condition to reactivate.
-    if: false &&
+        if: steps.extract_patterns.outputs.patterns_valid == 'true'
         run: |
           echo "Executing dry run of find/replace operations..."
 
@@ -210,8 +207,7 @@ jobs:
           echo "\`\`\`" >> dry_run_report.md
 
       - name: 🌿 Create Agent Branch
-    # V1 AGENT ARCHIVED - Disabled for V2 transition. Remove this condition to reactivate.
-    if: false &&
+        if: steps.extract_patterns.outputs.patterns_valid == 'true'
         run: |
           BRANCH_NAME="ai-agent/find-replace-${{ github.event.issue.number }}"
 
@@ -233,8 +229,7 @@ jobs:
 
       - name: 🔄 Execute Find/Replace Transformations
         id: execute_transformations
-    # V1 AGENT ARCHIVED - Disabled for V2 transition. Remove this condition to reactivate.
-    if: false &&
+        if: steps.extract_patterns.outputs.patterns_valid == 'true'
         run: |
           echo "Executing find/replace transformations..."
 
@@ -265,8 +260,7 @@ jobs:
           echo "changes_made=$CHANGES_MADE" >> $GITHUB_OUTPUT
 
       - name: 📝 Commit Changes
-    # V1 AGENT ARCHIVED - Disabled for V2 transition. Remove this condition to reactivate.
-    if: false &&
+        if: steps.extract_patterns.outputs.patterns_valid == 'true'
         run: |
           git add .
 
@@ -284,8 +278,7 @@ jobs:
           git commit -m "$COMMIT_MSG"
 
       - name: 🚀 Create Pull Request
-    # V1 AGENT ARCHIVED - Disabled for V2 transition. Remove this condition to reactivate.
-    if: false &&
+        if: steps.extract_patterns.outputs.patterns_valid == 'true'
         run: |
           BRANCH_NAME="ai-agent/find-replace-${{ github.event.issue.number }}"
 
@@ -330,8 +323,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: ✅ Agent Completion Report
-    # V1 AGENT ARCHIVED - Disabled for V2 transition. Remove this condition to reactivate.
-    if: false &&
+        if: always()
         run: |
           if [ "${{ steps.execute_transformations.outputs.changes_made }}" == "1" ]; then
             STATUS="🎉 **Find/Replace Agent Execution Complete**
@@ -367,8 +359,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 🧹 Agent Cleanup
-    # V1 AGENT ARCHIVED - Disabled for V2 transition. Remove this condition to reactivate.
-    if: false &&
+        if: always()
         run: |
           echo "Cleaning up temporary agent files..."
 

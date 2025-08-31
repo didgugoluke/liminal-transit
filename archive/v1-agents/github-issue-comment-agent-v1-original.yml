@@ -1,10 +1,8 @@
-name: 📦 [ARCHIVED V1] GitHub Issue Comment Agent
+name: GitHub Issue Comment Agent
 description: Autonomous AI agent for real-time GitHub issue status updates and activity tracking
 
 on:
   workflow_call:
-    # V1 AGENT ARCHIVED - Disabled for V2 transition. Remove this condition to reactivate.
-    if: false
     inputs:
       issue_number:
         description: "GitHub issue number to update"
