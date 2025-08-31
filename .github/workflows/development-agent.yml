@@ -819,6 +819,89 @@ jobs:
                 fi
               else
                 echo "⚠️ No linked tasks found for this story"
+                echo "🔍 Checking for inline acceptance criteria..."
+                
+                # Get story body and parse inline acceptance criteria
+                STORY_BODY=$(gh issue view "$STORY_NUMBER" --json body --jq '.body')
+                
+                # Extract acceptance criteria (lines starting with "- [ ]")
+                ACCEPTANCE_CRITERIA=$(echo "$STORY_BODY" | grep -E "^- \[ \]" | sed 's/^- \[ \] //' || true)
+                
+                if [ ! -z "$ACCEPTANCE_CRITERIA" ]; then
+                  echo "📋 Found inline acceptance criteria:"
+                  echo "$ACCEPTANCE_CRITERIA" | nl -w2 -s'. '
+                  
+                  # Process each acceptance criterion as a virtual task
+                  TASK_COUNTER=1
+                  echo "$ACCEPTANCE_CRITERIA" | while IFS= read -r CRITERION; do
+                    if [ ! -z "$CRITERION" ]; then
+                      echo "🔧 Processing Acceptance Criterion #$TASK_COUNTER: $CRITERION"
+                      
+                      # Generate virtual task number for logging
+                      VIRTUAL_TASK_NUM="${STORY_NUMBER}.${TASK_COUNTER}"
+                      
+                      # Detect task type from criterion content
+                      TASK_TYPE=$(detect_task_type "$CRITERION" "$CRITERION")
+                      echo "📋 Detected task type: $TASK_TYPE"
+                      
+                      # Process the acceptance criterion as a task
+                      case "$TASK_TYPE" in
+                        "database")
+                          handle_database_task "$VIRTUAL_TASK_NUM" "$CRITERION" "$CRITERION"
+                          ;;
+                        "api")
+                          handle_api_task "$VIRTUAL_TASK_NUM" "$CRITERION" "$CRITERION"
+                          ;;
+                        "frontend")
+                          handle_frontend_task "$VIRTUAL_TASK_NUM" "$CRITERION" "$CRITERION"
+                          ;;
+                        "configuration"|"documentation"|*)
+                          handle_generic_task "$VIRTUAL_TASK_NUM" "$CRITERION" "$CRITERION"
+                          ;;
+                      esac
+                      
+                      TASK_COUNTER=$((TASK_COUNTER + 1))
+                    fi
+                  done
+                  
+                  # Check for changes after processing acceptance criteria
+                  echo "🔍 Checking for changes after processing acceptance criteria..."
+                  if ! git diff --quiet || ! git diff --cached --quiet; then
+                    echo "📝 Changes detected after processing acceptance criteria"
+                    git add .
+                    
+                    # Comprehensive file listing before commit
+                    echo "📋 Files to be committed:"
+                    git diff --cached --name-only | head -20
+                    
+                    # Format check before commit
+                    echo "🎨 Running formatter on staged files..."
+                    git diff --cached --name-only | grep -E '\.(ts|js|json|md)$' | xargs npx prettier --write --ignore-unknown 2>/dev/null || echo "ℹ️ Prettier not available or no files to format"
+                    git add . 2>/dev/null || true
+                    
+                    # Final check before commit
+                    if git diff --staged --quiet; then
+                      echo "ℹ️ No changes to commit after formatting - all files were already properly formatted"
+                    else
+                      echo "📝 Committing changes after processing acceptance criteria..."
+                      CRITERIA_COUNT=$(echo "$ACCEPTANCE_CRITERIA" | wc -l | tr -d ' ')
+                      git commit -m "🚀 Enhanced Development Agent: Implement inline acceptance criteria for Story #$STORY_NUMBER - $CRITERIA_COUNT criteria processed - $STORY_TITLE"
+                      
+                      # Push with conflict resolution
+                      echo "📤 Pushing changes to branch: $BRANCH_NAME"
+                      if ! git push origin "$BRANCH_NAME"; then
+                        echo "⚠️ Push failed, attempting to resolve conflicts..."
+                        git pull origin "$BRANCH_NAME" --rebase || echo "ℹ️ No remote changes to rebase"
+                        git push origin "$BRANCH_NAME"
+                      fi
+                      echo "✅ All acceptance criteria implementations committed and pushed"
+                    fi
+                  else
+                    echo "⚠️ No changes to commit after processing acceptance criteria"
+                  fi
+                else
+                  echo "⚠️ No acceptance criteria found in story body"
+                fi
               fi
 
               echo "next_action=complete_story" >> $GITHUB_OUTPUT
