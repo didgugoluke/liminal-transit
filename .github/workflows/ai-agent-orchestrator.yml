@@ -112,7 +112,7 @@ jobs:
 
           echo "🚧 Agent execution temporarily disabled - analysis complete"
           echo "Would trigger: ${{ steps.agent-analysis.outputs.agent-type }}"
-          
+
           # TODO: Re-enable when agent workflows are available
           # Call appropriate agent workflow based on analysis
           # case "${{ steps.agent-analysis.outputs.agent-type }}" in
@@ -141,7 +141,7 @@ jobs:
         run: |
           echo "🚧 Issue update temporarily disabled"
           echo "Would comment: AI Agent Activated: ${{ steps.agent-analysis.outputs.agent-type }} assigned with priority ${{ steps.agent-analysis.outputs.priority }}. Autonomous execution initiated."
-          
+
           # TODO: Re-enable when ready for agent comments
           # gh issue comment ${{ steps.agent-analysis.outputs.issue-number }} --body "AI Agent Activated: ${{ steps.agent-analysis.outputs.agent-type }} assigned with priority ${{ steps.agent-analysis.outputs.priority }}. Autonomous execution initiated."
         env:
