@@ -60,10 +60,10 @@ Advanced strategic planning and risk assessment:
 ### GitHub Actions Workflow
 
 #### `.github/workflows/metaagent-orchestrator-v2.yml`
-Production-ready workflow implementing V2 intelligence capabilities:
+Production-ready unified workflow implementing V2 intelligence capabilities:
 
 **Key Features:**
-- Multi-trigger support (issues, comments, workflow_dispatch)
+- Multi-trigger support (workflow_dispatch with unified coordination modes)
 - Comprehensive rate limiting and authentication
 - Natural language analysis with confidence scoring
 - Claude 4 strategic reasoning (simulated, ready for API integration)
@@ -119,7 +119,7 @@ Production-ready workflow implementing V2 intelligence capabilities:
 ## Deployment and Testing
 
 ### Comprehensive Test Suite
-Location: `src/__tests__/lib/metaagent-v2-intelligence.test.ts`
+Location: `src/__tests__/lib/metaagent-v2-intelligence.test.ts` (plus unified foundation tests when present)
 
 **Test Coverage:**
 - Natural Language Epic Interpretation (5 test scenarios)
