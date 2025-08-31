@@ -38,7 +38,7 @@ jobs:
       - name: Rate limit check
         run: |
           echo "⏱️ Checking GitHub API rate limits..."
-          ./scripts/github-rate-limit-manager.sh status
+          ./scripts/github-rate-limit-manager.sh check
         env:
           GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
 
