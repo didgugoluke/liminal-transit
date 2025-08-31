@@ -9,6 +9,9 @@
 import { aiArchitecture, getAIProviderForTask, type AITaskDomain, type AIProviderConfig } from '../config/ai-providers.config';
 import { generateWorld, offlineBeat } from './rng';
 
+// Re-export types for external consumers
+export type { AITaskDomain, AIProviderConfig } from '../config/ai-providers.config';
+
 export interface AIRequest {
   domain: AITaskDomain;
   prompt: string;
