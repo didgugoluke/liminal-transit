@@ -64,10 +64,10 @@ for workflow in "${V1_AGENTS[@]}"; do
                 # Check if there's already an 'if' condition
                 if grep -A 3 "^  [a-zA-Z].*:$" "$workflow_path" | grep -q "if:"; then
                     # Modify existing if condition
-                    sed -i '/if:/c\    # V1 AGENT ARCHIVED - Disabled for V2 transition. Remove this condition to reactivate.\n    if: false &&' "$workflow_path"
+                    sed -i '/if:/c\
                 else
                     # Add new if condition after the job declaration
-                    sed -i "${next_line}i\\    # V1 AGENT ARCHIVED - Disabled for V2 transition. Remove this condition to reactivate.\n    if: false" "$workflow_path"
+                    sed -i "${next_line}i\
                 fi
             fi
         fi
