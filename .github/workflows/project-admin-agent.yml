@@ -318,6 +318,27 @@ jobs:
             if [ -n "$STORY_NUMBER" ]; then
               echo "📝 Updating related story #$STORY_NUMBER"
               
+              # Move project item to Done status
+              echo "📋 Moving story to Done status in project..."
+              STORY_TITLE=$(gh issue view "$STORY_NUMBER" --json title --jq '.title')
+              ITEM_ID=$(gh project item-list "2" --owner "didgugoluke" --format json | jq -r --arg title "$STORY_TITLE" '.items[] | select(.content.title == $title) | .id')
+              
+              if [ -n "$ITEM_ID" ] && [ "$ITEM_ID" != "null" ]; then
+                echo "Found project item ID: $ITEM_ID"
+                # Update to Done status (field ID and option ID for Done status)
+                if gh project item-edit --id "$ITEM_ID" --field-id "PVTSSF_lAHOCf5VHc4BB2AJzg0OtoQ" --single-select-option-id "98236846" --project-id "PVT_kwHOCf5VHc4BB2AJ"; then
+                  echo "✅ Story moved to Done status in project"
+                else
+                  echo "⚠️ Failed to update project status to Done"
+                fi
+              else
+                echo "⚠️ Could not find project item for story: $STORY_TITLE"
+              fi
+              
+              # Close the story issue as completed
+              echo "🎯 Closing story issue as completed..."
+              gh issue close "$STORY_NUMBER" --reason completed
+              
               # Create story update comment file
               echo "✅ **PR Merged Successfully**" > story_update.md
               echo "" >> story_update.md
