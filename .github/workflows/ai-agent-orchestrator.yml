@@ -51,8 +51,8 @@ jobs:
         id: agent-analysis
         run: |
           cat > agent-dispatcher.js << 'EOF'
-          const { Octokit } = require('@octokit/rest');
-          const core = require('@actions/core');
+          import { Octokit } from '@octokit/rest';
+          import * as core from '@actions/core';
 
           const octokit = new Octokit({
             auth: process.env.GITHUB_TOKEN,

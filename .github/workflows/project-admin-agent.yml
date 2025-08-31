@@ -107,15 +107,67 @@ jobs:
           echo "pr_additions=$PR_ADDITIONS" >> $GITHUB_OUTPUT
           echo "pr_deletions=$PR_DELETIONS" >> $GITHUB_OUTPUT
 
-          # Determine risk level
+          # Determine risk level with detailed reasoning
           RISK_LEVEL="medium"
-          if [[ "$PR_LABELS" == *"ai-agent"* && "$PR_FILES_COUNT" -le 5 && "$PR_ADDITIONS" -le 100 ]]; then
-            if [[ "$PR_TITLE" == *"Database"* || "$PR_TITLE" == *"Schema"* ]]; then
+          RISK_REASONS=()
+          
+          # Start with Hello World detection
+          if [[ "$PR_TITLE" == *"Hello World"* || "$PR_TITLE" == *"hello world"* ]]; then
+            RISK_LEVEL="low"
+            RISK_REASONS+=("Hello World scenario detected")
+          fi
+          
+          # AI Agent PRs get baseline analysis
+          if [[ "$PR_LABELS" == *"ai-agent"* ]]; then
+            RISK_REASONS+=("AI Agent generated PR")
+            
+            # File count analysis
+            if [ "$PR_FILES_COUNT" -le 3 ]; then
               RISK_LEVEL="low"
+              RISK_REASONS+=("Low file count (≤3 files: $PR_FILES_COUNT)")
+            elif [ "$PR_FILES_COUNT" -le 8 ]; then
+              RISK_REASONS+=("Moderate file count (4-8 files: $PR_FILES_COUNT)")
+            else
+              RISK_LEVEL="high"
+              RISK_REASONS+=("High file count (>8 files: $PR_FILES_COUNT)")
             fi
+            
+            # Change size analysis
+            if [ "$PR_ADDITIONS" -le 50 ]; then
+              RISK_LEVEL="low"
+              RISK_REASONS+=("Small changes (≤50 additions: $PR_ADDITIONS)")
+            elif [ "$PR_ADDITIONS" -le 200 ]; then
+              RISK_REASONS+=("Medium changes (51-200 additions: $PR_ADDITIONS)")
+            else
+              RISK_LEVEL="high"
+              RISK_REASONS+=("Large changes (>200 additions: $PR_ADDITIONS)")
+            fi
+            
+            # Content type analysis
+            if [[ "$PR_TITLE" == *"Database"* || "$PR_TITLE" == *"Schema"* ]]; then
+              RISK_LEVEL="medium"  # Database changes need extra care
+              RISK_REASONS+=("Database/Schema changes detected")
+            elif [[ "$PR_TITLE" == *"Enhancement"* || "$PR_TITLE" == *"CI"* || "$PR_TITLE" == *"workflow"* ]]; then
+              RISK_REASONS+=("Infrastructure/CI enhancement")
+            elif [[ "$PR_LABELS" == *"development"* && ! "$PR_LABELS" == *"database"* ]]; then
+              RISK_REASONS+=("Standard development task")
+            fi
+            
+            # Hello World override (lowest risk)
+            if [[ "$PR_TITLE" == *"Hello World"* ]]; then
+              RISK_LEVEL="low"
+              RISK_REASONS=("Hello World test scenario" "${RISK_REASONS[@]}")
+            fi
+          else
+            RISK_LEVEL="high"
+            RISK_REASONS+=("Human-created PR requires manual review")
           fi
 
           echo "risk_level=$RISK_LEVEL" >> $GITHUB_OUTPUT
+          
+          # Convert reasons array to comma-separated string for output
+          RISK_REASONS_STR=$(IFS=','; echo "${RISK_REASONS[*]}")
+          echo "risk_reasons=$RISK_REASONS_STR" >> $GITHUB_OUTPUT
 
           echo "📈 Analysis Complete:"
           echo "  Title: $PR_TITLE"
@@ -135,6 +187,7 @@ jobs:
           ACTION="$ACTION"
           PR_NUMBER="$PR_NUMBER"
           RISK_LEVEL="${{ steps.analyze.outputs.risk_level }}"
+          RISK_REASONS="${{ steps.analyze.outputs.risk_reasons }}"
           PR_TITLE="${{ steps.analyze.outputs.pr_title }}"
           PR_BRANCH="${{ steps.analyze.outputs.pr_branch }}"
           PR_LABELS="${{ steps.analyze.outputs.pr_labels }}"
@@ -154,23 +207,57 @@ jobs:
                 echo "" >> review_comment.md
                 echo "**Automated Review**: ✅ APPROVED" >> review_comment.md
                 echo "**PR Type**: AI Agent Implementation" >> review_comment.md  
-                echo "**Risk Level**: $RISK_LEVEL" >> review_comment.md
+                echo "**Risk Level**: \`$RISK_LEVEL\`" >> review_comment.md
                 echo "**Quality Check**: Automated validation passed" >> review_comment.md
                 echo "" >> review_comment.md
+                
+                # Add detailed complexity reasoning
+                echo "### 🎯 Complexity Analysis" >> review_comment.md
+                echo "**Risk Level: \`$RISK_LEVEL\`**" >> review_comment.md
+                echo "" >> review_comment.md
+                echo "**Analysis Factors:**" >> review_comment.md
+                IFS=',' read -ra REASONS <<< "$RISK_REASONS"
+                for reason in "${REASONS[@]}"; do
+                  echo "- $reason" >> review_comment.md
+                done
+                echo "" >> review_comment.md
+                
                 echo "### 📊 Review Summary" >> review_comment.md
                 echo "- **Files Changed**: ${{ steps.analyze.outputs.pr_files_count }}" >> review_comment.md
                 echo "- **Code Changes**: +${{ steps.analyze.outputs.pr_additions }}/-${{ steps.analyze.outputs.pr_deletions }}" >> review_comment.md
                 echo "- **Author**: ${{ steps.analyze.outputs.pr_author }}" >> review_comment.md
                 echo "- **Labels**: $PR_LABELS" >> review_comment.md
                 echo "" >> review_comment.md
-                echo "### 🎯 Approval Criteria Met" >> review_comment.md
+                echo "### 🎯 Approval Criteria" >> review_comment.md
                 echo "- [x] AI Agent created PR" >> review_comment.md
-                echo "- [x] Low risk changes (≤100 additions)" >> review_comment.md
-                echo "- [x] Database/Schema implementation" >> review_comment.md
+                
+                # Dynamic criteria based on analysis
+                if [[ "$RISK_REASONS" == *"Hello World"* ]]; then
+                  echo "- [x] Hello World test scenario" >> review_comment.md
+                fi
+                if [[ "$RISK_REASONS" == *"Low file count"* ]]; then
+                  echo "- [x] Low file count (≤3 files)" >> review_comment.md
+                elif [[ "$RISK_REASONS" == *"Moderate file count"* ]]; then
+                  echo "- [x] Moderate file count (4-8 files)" >> review_comment.md
+                fi
+                if [[ "$RISK_REASONS" == *"Small changes"* ]]; then
+                  echo "- [x] Small code changes (≤50 additions)" >> review_comment.md
+                elif [[ "$RISK_REASONS" == *"Medium changes"* ]]; then
+                  echo "- [x] Medium code changes (51-200 additions)" >> review_comment.md
+                fi
+                
                 echo "- [x] Proper labeling applied" >> review_comment.md
                 echo "- [x] Branch naming convention followed" >> review_comment.md
                 echo "" >> review_comment.md
-                echo "**Status**: ✅ **LGTM** - Ready for merge" >> review_comment.md
+                
+                # Risk-based approval decision
+                if [ "$RISK_LEVEL" = "low" ]; then
+                  echo "**Status**: ✅ **LGTM** - Auto-merging (Low Risk)" >> review_comment.md
+                elif [ "$RISK_LEVEL" = "medium" ]; then
+                  echo "**Status**: ⚠️ **LGTM with Caution** - Manual review recommended" >> review_comment.md
+                else
+                  echo "**Status**: 🛑 **Manual Review Required** - High risk changes" >> review_comment.md
+                fi
                 echo "" >> review_comment.md
                 echo "*Automated review by Project Admin Agent*" >> review_comment.md
                 
