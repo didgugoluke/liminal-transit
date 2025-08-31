@@ -95,7 +95,7 @@ temp_file=$(mktemp)
 # Process CSV and update V1 agents to archived status
 {
     head -n 2 "$REGISTER_FILE"  # Keep headers
-    tail -n +3 "$REGISTER_FILE" | while IFS=',' read -r agent_id agent_name agent_type dev_status prod_status workflow_file lines_of_code primary_function trigger_method performance_metrics last_updated epic_integration dependencies notes; do
+    tail -n +2 "$REGISTER_FILE" | while IFS=',' read -r agent_id agent_name agent_type dev_status prod_status workflow_file lines_of_code primary_function trigger_method performance_metrics last_updated epic_integration dependencies notes; do
         # Check if this is a V1 agent (GitHub Actions Workflow)
         if [[ "$agent_type" == "GitHub Actions Workflow" && "$prod_status" == "✅ Operational" ]]; then
             # Update to archived status
