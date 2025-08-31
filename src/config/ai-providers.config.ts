@@ -169,6 +169,11 @@ export type AITaskDomain =
   | 'github-actions'
   | 'technical-documentation'
   | 'architecture-decisions'
+  | 'quality-intelligence'
+  | 'predictive-bug-detection'
+  | 'semantic-code-review'
+  | 'quality-metrics-analysis'
+  | 'regression-prediction'
   | 'narrative-generation'
   | 'story-continuation'
   | 'character-development'
@@ -182,7 +187,12 @@ export function getAIProviderForTask(domain: AITaskDomain): AIProviderConfig {
     'code-review', 
     'github-actions',
     'technical-documentation',
-    'architecture-decisions'
+    'architecture-decisions',
+    'quality-intelligence',
+    'predictive-bug-detection',
+    'semantic-code-review',
+    'quality-metrics-analysis',
+    'regression-prediction'
   ];
 
   const narrativeDomains: AITaskDomain[] = [
