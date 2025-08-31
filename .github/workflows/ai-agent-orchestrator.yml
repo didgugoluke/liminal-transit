@@ -44,7 +44,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          npm install @octokit/rest @octokit/action
+          npm install @octokit/rest @octokit/action @actions/core
           npm install openai
 
       - name: AI Agent Analysis
