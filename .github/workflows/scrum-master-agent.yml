@@ -69,7 +69,18 @@ jobs:
           else
             # Extract story number from issue or comment context
             STORY_NUMBER="${{ github.event.issue.number || '54' }}"
-            ACTION="start_story"
+            
+            # Extract action from comment body
+            COMMENT_BODY="${{ github.event.comment.body }}"
+            if echo "$COMMENT_BODY" | grep -q "handoff_to_copilot"; then
+              ACTION="handoff_to_copilot"
+            elif echo "$COMMENT_BODY" | grep -q "handoff_to_dev"; then
+              ACTION="handoff_to_dev"
+            elif echo "$COMMENT_BODY" | grep -q "check_progress"; then
+              ACTION="check_progress"
+            else
+              ACTION="start_story"
+            fi
           fi
 
           # Validate inputs before setting environment
