@@ -9,6 +9,7 @@ function App() {
       <header className="app-header">
         <h1>NOVELI.SH</h1>
         <p>AI Native Interactive Storytelling Platform</p>
+        <p className="build-info">🔥 Hot Reload Active - Modern Build Tooling Integrated</p>
       </header>
       
       <main className="app-main">
