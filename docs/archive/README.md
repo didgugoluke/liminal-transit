@@ -5,26 +5,31 @@ This directory contains all **V1 GitHub Actions agents** that were archived duri
 ## 📦 Archived V1 Agents (14 Total)
 
 ### 🧠 Core Intelligence Agents
+
 - **v1-ai-agent-orchestrator.yml** - Central dispatch system with issue analysis and routing
 - **v1-epic-breakdown-agent.yml** - AI Native story & task generator with multi-mode breakdown
 - **v1-epic-task-orchestrator.yml** - Project management engine for task coordination
 
-### 🚀 Development Pipeline Agents  
+### 🚀 Development Pipeline Agents
+
 - **v1-development-agent.yml** - Enhanced story implementation with end-to-end automation
 - **v1-scrum-master-agent.yml** - Story lifecycle management and workflow automation
 - **v1-project-admin-agent.yml** - PR review & merge automation with quality gates
 
 ### 🔧 Coordination & Utility Agents
+
 - **v1-find-replace-agent.yml** - Repository transformation and pattern replacement
 - **v1-project-cleanup-agent.yml** - Orphaned items cleanup and maintenance
 - **v1-github-issue-comment-agent.yml** - Standardized communication and updates
 
 ### 🎯 GitHub Copilot Integration Agents
+
 - **v1-copilot-pr-kanban-manager.yml** - Copilot PR lifecycle with Kanban integration
 - **v1-enhanced-pr-kanban-manager.yml** - Enhanced Copilot peer review integration
 - **v1-github-copilot-claude4-agent.yml** - V2 foundation with GitHub Copilot + Claude 4
 
 ### 🔭 Infrastructure & Monitoring Agents
+
 - **v1-observatory-monitoring.yml** - Real-time monitoring and health tracking
 - **v1-well-architected-compliance.yml** - AWS Well-Architected Framework compliance
 
@@ -41,11 +46,13 @@ This directory contains all **V1 GitHub Actions agents** that were archived duri
 **Archival Method**: All V1 agents were disabled using `if: false &&` conditions and moved to this archive directory.
 
 **Reactivation**: V1 agents can be quickly restored by:
+
 1. Moving workflow files back to `.github/workflows/`
 2. Removing the `if: false &&` condition from job definitions
 3. Removing `[ARCHIVED V1]` prefix from workflow names
 
 **V2 Evolution**: The V1 patterns and logic provide proven templates for V2 intelligent enhancement with:
+
 - **GitHub Copilot Chat** for natural language understanding
 - **Claude 4** for advanced reasoning and strategic planning
 - **GPT-4** for rapid tactical decision making
