@@ -1,0 +1,149 @@
+name: 🎯 Enhanced PR Kanban Manager
+
+on:
+  pull_request:
+    types: [opened, ready_for_review]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "PR number to manage"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  kanban-manager:
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'workflow_dispatch') ||
+      (github.event.pull_request.user.login == 'app/copilot-swe-agent')
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: ⚡ Setup Rate Limiting
+        run: |
+          chmod +x scripts/github-rate-limit-manager.sh
+          if ! scripts/github-rate-limit-manager.sh check; then
+            echo "❌ Rate limits too low"
+            exit 1
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 📊 Analyze PR
+        id: analyze
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            PR_NUMBER="${{ github.event.inputs.pr_number }}"
+          else
+            PR_NUMBER="${{ github.event.pull_request.number }}"
+          fi
+
+          echo "🔍 Analyzing PR #$PR_NUMBER..."
+
+          PR_DATA=$(gh pr view "$PR_NUMBER" --json title,body,isDraft,files,reviews)
+          
+          PR_TITLE=$(echo "$PR_DATA" | jq -r '.title')
+          IS_DRAFT=$(echo "$PR_DATA" | jq -r '.isDraft')
+          FILE_COUNT=$(echo "$PR_DATA" | jq '.files | length')
+          ADDITIONS=$(echo "$PR_DATA" | jq '.files | map(.additions) | add // 0')
+          
+          # Extract issue number
+          ISSUE_NUM=$(echo "$PR_DATA" | jq -r '.body' | grep -oE "Fixes #([0-9]+)" | grep -oE "[0-9]+" | head -1 || echo "")
+
+          echo "📊 PR: #$PR_NUMBER - $PR_TITLE"
+          echo "📊 Files: $FILE_COUNT, Additions: $ADDITIONS"
+          echo "📊 Issue: $ISSUE_NUM"
+
+          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+          echo "pr_title=$PR_TITLE" >> $GITHUB_OUTPUT
+          echo "issue_number=$ISSUE_NUM" >> $GITHUB_OUTPUT
+          echo "file_count=$FILE_COUNT" >> $GITHUB_OUTPUT
+          echo "additions=$ADDITIONS" >> $GITHUB_OUTPUT
+          echo "is_draft=$IS_DRAFT" >> $GITHUB_OUTPUT
+
+      - name: 🤖 Request Copilot Review
+        if: steps.analyze.outputs.is_draft == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🤖 Requesting Copilot peer review..."
+          gh pr edit "${{ steps.analyze.outputs.pr_number }}" --add-reviewer "copilot" || echo "Review request may have failed"
+          gh pr comment "${{ steps.analyze.outputs.pr_number }}" --body "🤖 Copilot peer review requested for enhanced quality assurance"
+
+      - name: 🎯 Risk Assessment
+        id: risk
+        run: |
+          FILE_COUNT=${{ steps.analyze.outputs.file_count }}
+          ADDITIONS=${{ steps.analyze.outputs.additions }}
+
+          # Simple risk scoring: 0-3 points
+          RISK_SCORE=0
+          
+          if [ "$FILE_COUNT" -gt 10 ]; then
+            RISK_SCORE=$((RISK_SCORE + 1))
+          fi
+          
+          if [ "$ADDITIONS" -gt 200 ]; then
+            RISK_SCORE=$((RISK_SCORE + 1))
+          fi
+
+          if [ "$RISK_SCORE" -le 1 ]; then
+            RISK_LEVEL="low"
+            AUTO_MERGE="true"
+          else
+            RISK_LEVEL="medium"
+            AUTO_MERGE="false"
+          fi
+
+          echo "📊 Risk: $RISK_LEVEL (score: $RISK_SCORE)"
+          echo "risk_level=$RISK_LEVEL" >> $GITHUB_OUTPUT
+          echo "auto_merge=$AUTO_MERGE" >> $GITHUB_OUTPUT
+
+      - name: 🚀 Auto-Merge & Update Kanban
+        if: steps.risk.outputs.auto_merge == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+        run: |
+          PR_NUMBER="${{ steps.analyze.outputs.pr_number }}"
+          ISSUE_NUMBER="${{ steps.analyze.outputs.issue_number }}"
+
+          echo "🚀 Auto-merging low-risk PR #$PR_NUMBER..."
+
+          # Approve and merge
+          gh pr review "$PR_NUMBER" --approve --body "🤖 Auto-approved: Low-risk Copilot PR"
+          
+          if gh pr merge "$PR_NUMBER" --squash --delete-branch; then
+            echo "✅ PR merged successfully"
+            
+            # Update kanban to Done if issue exists
+            if [ -n "$ISSUE_NUMBER" ] && [ "$ISSUE_NUMBER" != "null" ]; then
+              echo "📊 Updating kanban status to Done..."
+              
+              PROJECT_ITEMS=$(gh project item-list 2 --owner "didgugoluke" --format json)
+              ITEM_ID=$(echo "$PROJECT_ITEMS" | jq -r --arg num "$ISSUE_NUMBER" '.items[] | select(.content.number == ($num | tonumber)) | .id' | head -1)
+              
+              if [ -n "$ITEM_ID" ] && [ "$ITEM_ID" != "null" ]; then
+                gh project item-edit --id "$ITEM_ID" --field-id "PVTSSF_lAHOCf5VHc4BB2AJzg0OtoQ" --single-select-option-id "98236846" --project-id "PVT_kwHOCf5VHc4BB2AJ"
+                echo "✅ Kanban updated to Done"
+              fi
+              
+              gh issue comment "$ISSUE_NUMBER" --body "✅ **Complete!** PR #$PR_NUMBER merged and kanban updated to Done 🎉"
+            fi
+          fi
+
+      - name: 📝 Manual Review Required
+        if: steps.risk.outputs.auto_merge == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "⚠️ Manual review required"
+          gh pr comment "${{ steps.analyze.outputs.pr_number }}" --body "⚠️ Manual review required - ${{ steps.risk.outputs.risk_level }} risk detected"
