@@ -825,15 +825,19 @@ jobs:
                 STORY_BODY=$(gh issue view "$STORY_NUMBER" --json body --jq '.body')
                 
                 # Extract acceptance criteria (lines starting with "- [ ]")
-                ACCEPTANCE_CRITERIA=$(echo "$STORY_BODY" | grep -E "^- \[ \]" | sed 's/^- \[ \] //' || true)
+                # Use a more flexible pattern to handle potential formatting variations
+                ACCEPTANCE_CRITERIA=$(echo "$STORY_BODY" | grep -E "^- \[ \] " | sed 's/^- \[ \] //' || true)
                 
-                if [ ! -z "$ACCEPTANCE_CRITERIA" ]; then
+                if [ ! -z "$ACCEPTANCE_CRITERIA" ] && [ "$(echo "$ACCEPTANCE_CRITERIA" | wc -l | tr -d ' ')" -gt 0 ]; then
                   echo "📋 Found inline acceptance criteria:"
                   echo "$ACCEPTANCE_CRITERIA" | nl -w2 -s'. '
                   
+                  # Create a temporary file to handle the processing in the main shell
+                  echo "$ACCEPTANCE_CRITERIA" > /tmp/criteria.txt
+                  
                   # Process each acceptance criterion as a virtual task
                   TASK_COUNTER=1
-                  echo "$ACCEPTANCE_CRITERIA" | while IFS= read -r CRITERION; do
+                  while IFS= read -r CRITERION; do
                     if [ ! -z "$CRITERION" ]; then
                       echo "🔧 Processing Acceptance Criterion #$TASK_COUNTER: $CRITERION"
                       
@@ -862,7 +866,10 @@ jobs:
                       
                       TASK_COUNTER=$((TASK_COUNTER + 1))
                     fi
-                  done
+                  done < /tmp/criteria.txt
+                  
+                  # Clean up temporary file
+                  rm -f /tmp/criteria.txt
                   
                   # Check for changes after processing acceptance criteria
                   echo "🔍 Checking for changes after processing acceptance criteria..."
@@ -876,7 +883,7 @@ jobs:
                     
                     # Format check before commit
                     echo "🎨 Running formatter on staged files..."
-                    git diff --cached --name-only | grep -E '\.(ts|js|json|md)$' | xargs npx prettier --write --ignore-unknown 2>/dev/null || echo "ℹ️ Prettier not available or no files to format"
+                    git diff --cached --name-only | grep -E '\.(ts|js|json|md)$' | head -10 | xargs npx prettier --write --ignore-unknown 2>/dev/null || echo "ℹ️ Prettier not available or no files to format"
                     git add . 2>/dev/null || true
                     
                     # Final check before commit
