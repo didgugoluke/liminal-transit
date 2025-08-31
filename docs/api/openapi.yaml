@@ -26,8 +26,6 @@ servers:
 
 security:
   - CognitoAuth: []
-  - ApiKeyAuth: []
-
 paths:
   # Authentication Endpoints
   /auth/login:
