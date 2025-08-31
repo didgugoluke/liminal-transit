@@ -22,7 +22,7 @@ export default defineConfig({
     },
     // Faster cold start
     fs: {
-      strict: false,
+      strict: true,
     },
     // Open browser automatically in development
     open: false,
