@@ -17,6 +17,7 @@ on:
           - "start_story"
           - "check_progress"
           - "handoff_to_dev"
+          - "handoff_to_copilot"
         default: "start_story"
 
 permissions:
@@ -227,6 +228,24 @@ jobs:
               echo "action_result=handed_off" >> $GITHUB_OUTPUT
               ;;
               
+            "handoff_to_copilot")
+              echo "🤖 Handing off to GitHub Copilot (native coding agent)..."
+              
+              # Assign the issue to GitHub Copilot's coding agent
+              echo "Assigning issue #${STORY_NUMBER} to copilot-swe-agent..."
+              
+              # Use GitHub CLI to assign the issue to Copilot
+              if gh issue edit "$STORY_NUMBER" --add-assignee "copilot-swe-agent" 2>/dev/null; then
+                echo "✅ Successfully assigned issue to GitHub Copilot coding agent"
+                gh issue comment "$STORY_NUMBER" --body "🤖 Handoff to GitHub Copilot Coding Agent. Issue #$STORY_NUMBER assigned to @copilot-swe-agent for autonomous implementation. GitHub Copilot will: 👀 Acknowledge assignment, 📝 Create draft PR, 🔨 Start agent session, 💻 Generate code automatically, ✅ Request review when complete. Track progress at github.com/copilot/agents"
+              else
+                echo "⚠️ Could not assign to GitHub Copilot - falling back to comment notification"
+                gh issue comment "$STORY_NUMBER" --body "🤖 Ready for GitHub Copilot Assignment. To activate: Go to Assignees and select Copilot from the list. Alternatively use: gh issue edit $STORY_NUMBER --add-assignee copilot-swe-agent"
+              fi
+              
+              echo "action_result=handed_off_to_copilot" >> $GITHUB_OUTPUT
+              ;;
+              
             "check_progress")
               echo "📊 Checking story progress..."
               
@@ -264,6 +283,16 @@ jobs:
             GH_TOKEN="${{ secrets.GITHUB_TOKEN }}" gh workflow run development-agent.yml \
               -f story_number="$STORY_NUMBER" \
               -f action="take_story" || echo "Development Agent workflow may need manual trigger"
+          elif [ "$NEXT_ACTION" = "handoff_to_copilot" ]; then
+            echo "🤖 Assigning to GitHub Copilot (native coding agent) in 30 seconds..."
+            sleep 30
+            
+            # Assign the issue to GitHub Copilot's native coding agent
+            if gh issue edit "$STORY_NUMBER" --add-assignee "copilot-swe-agent" 2>/dev/null; then
+              echo "✅ Successfully assigned issue to GitHub Copilot coding agent"
+            else
+              echo "⚠️ Could not assign to GitHub Copilot - may need manual assignment"
+            fi
           fi
 
       - name: 📋 Generate Scrum Report
