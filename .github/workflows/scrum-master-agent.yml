@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     if: |
       (github.event_name == 'workflow_dispatch') ||
-      (contains(github.event.comment.body, 'scrum master agent') && 
+      ((contains(github.event.comment.body, 'scrum master agent') || contains(github.event.comment.body, '/handoff_to_copilot')) && 
        (contains(github.event.issue.labels.*.name, 'epic-story') || 
         contains(github.event.issue.labels.*.name, 'epic-task') ||
         contains(github.event.issue.labels.*.name, 'ai-agent')))
