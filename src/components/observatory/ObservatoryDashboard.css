@@ -1,0 +1,333 @@
+/**
+ * Observatory Dashboard Styles
+ * Clean, modern design for V2 Agent monitoring interface
+ */
+
+.observatory-dashboard {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  color: white;
+}
+
+.dashboard-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.dashboard-header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.dashboard-header p {
+  font-size: 1.1rem;
+  opacity: 0.9;
+  margin: 0;
+}
+
+.dashboard-controls {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.start-test-btn, .reset-btn {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+}
+
+.start-test-btn {
+  background: #28a745;
+  color: white;
+}
+
+.start-test-btn:hover:not(:disabled) {
+  background: #218838;
+  transform: translateY(-2px);
+}
+
+.start-test-btn:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+}
+
+.reset-btn {
+  background: #17a2b8;
+  color: white;
+}
+
+.reset-btn:hover:not(:disabled) {
+  background: #138496;
+  transform: translateY(-2px);
+}
+
+.dashboard-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+  gap: 1.5rem;
+}
+
+.agent-monitor-section,
+.logs-section,
+.v2-monitor-section {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.v2-monitor-section {
+  grid-column: 1 / -1;
+}
+
+.agent-monitor-section h2,
+.logs-section h2,
+.v2-monitor-section h2 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 1.3rem;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+  padding-bottom: 0.5rem;
+}
+
+/* Agent Status Display Styles */
+.agent-status-display {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.status-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.status-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.status-icon {
+  font-size: 1.5rem;
+}
+
+.status-details h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.agent-id {
+  margin: 0;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: white;
+}
+
+.progress-section {
+  margin-bottom: 1rem;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+  border-radius: 4px;
+}
+
+.metrics-section {
+  margin-bottom: 1rem;
+}
+
+.metrics-section h4 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1rem;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.metric-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.metric-label {
+  font-size: 0.8rem;
+  opacity: 0.8;
+  margin-bottom: 0.25rem;
+}
+
+.metric-value {
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.timing-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.timing-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+}
+
+.timing-label {
+  opacity: 0.8;
+}
+
+/* No Activity Styles */
+.no-activity {
+  text-align: center;
+  padding: 2rem;
+  opacity: 0.7;
+}
+
+.no-activity p {
+  margin: 0.5rem 0;
+}
+
+/* Logs Section Styles */
+.logs-container {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  padding: 1rem;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.log-entry {
+  margin-bottom: 0.5rem;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.no-logs {
+  text-align: center;
+  opacity: 0.6;
+  font-style: italic;
+  margin: 0;
+}
+
+/* V2 Agent Monitor Styles */
+.v2-agent-monitor {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.v2-status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.v2-status-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.status-indicator {
+  font-size: 1.5rem;
+}
+
+.status-details h4 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1rem;
+}
+
+.status-value {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.status-target {
+  margin: 0;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.v2-activity-info {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.v2-activity-info p {
+  margin: 0.5rem 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .dashboard-content {
+    grid-template-columns: 1fr;
+  }
+  
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .v2-status-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .dashboard-controls {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .start-test-btn, .reset-btn {
+    width: 200px;
+  }
+}
