@@ -1,7 +1,7 @@
-// Narrative Display - Typography-First Story Presentation
-// Core component for displaying story text with atmospheric design
+// Narrative Display - Enhanced Typography-First Story Presentation
+// Premium reading experience with ambient animations and accessibility
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export interface NarrativeDisplayProps {
   narrative: string;
@@ -15,14 +15,25 @@ export function NarrativeDisplay({
   className = '' 
 }: NarrativeDisplayProps) {
   const textRef = useRef<HTMLDivElement>(null);
+  const [isNewContent, setIsNewContent] = useState(false);
 
-  // Auto-scroll to new content
+  // Handle new content animation
   useEffect(() => {
-    if (textRef.current) {
-      textRef.current.scrollIntoView({ 
-        behavior: 'smooth', 
-        block: 'nearest' 
-      });
+    if (narrative) {
+      setIsNewContent(true);
+      
+      // Auto-scroll to new content with enhanced smoothness
+      if (textRef.current) {
+        textRef.current.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center',
+          inline: 'nearest'
+        });
+      }
+      
+      // Reset animation state
+      const timer = setTimeout(() => setIsNewContent(false), 800);
+      return () => clearTimeout(timer);
     }
   }, [narrative]);
 
@@ -42,57 +53,50 @@ export function NarrativeDisplay({
     promptText = '(Restart?)';
   }
 
+  // Enhanced thinking indicator component
+  const ThinkingIndicator = () => (
+    <div 
+      className="generating-indicator"
+      aria-label="AI is crafting the next story beat"
+      role="status"
+    >
+      <div className="flex items-center justify-center gap-1">
+        <span className="w-2 h-2 bg-current rounded-full animate-thinking-pulse" style={{ animationDelay: '0s' }} />
+        <span className="w-2 h-2 bg-current rounded-full animate-thinking-pulse" style={{ animationDelay: '0.2s' }} />
+        <span className="w-2 h-2 bg-current rounded-full animate-thinking-pulse" style={{ animationDelay: '0.4s' }} />
+      </div>
+      <div className="sr-only">
+        Please wait while the AI generates your story
+      </div>
+    </div>
+  );
+
   return (
     <div 
       ref={textRef}
       className={`narrative-display ${className}`}
       role="region"
       aria-label="Story narrative"
-      aria-live="polite"
     >
-      <div className="narrative-text">
+      <div 
+        className={`narrative-text ${isNewContent ? 'animate-narrative-reveal' : ''}`}
+        aria-live="polite"
+        aria-atomic="true"
+      >
         {storyText}
       </div>
       
       {promptText && (
-        <div className="prompt-text text-gray-400 mt-4">
+        <div 
+          className="prompt-text animate-fade-in-up"
+          style={{ animationDelay: '0.4s' }}
+          aria-label={`Story choice prompt: ${promptText}`}
+        >
           {promptText}
         </div>
       )}
       
-      {isGenerating && (
-        <div 
-          className="generating-indicator mt-4 text-gray-500"
-          aria-label="Generating next story beat"
-        >
-          <span className="inline-flex items-center gap-1">
-            <svg 
-              className="animate-pulse w-3 h-3" 
-              fill="currentColor" 
-              viewBox="0 0 8 8"
-              aria-hidden="true"
-            >
-              <circle cx="4" cy="4" r="1" />
-            </svg>
-            <svg 
-              className="animate-pulse w-3 h-3 animation-delay-150" 
-              fill="currentColor" 
-              viewBox="0 0 8 8"
-              aria-hidden="true"
-            >
-              <circle cx="4" cy="4" r="1" />
-            </svg>
-            <svg 
-              className="animate-pulse w-3 h-3 animation-delay-300" 
-              fill="currentColor" 
-              viewBox="0 0 8 8"
-              aria-hidden="true"
-            >
-              <circle cx="4" cy="4" r="1" />
-            </svg>
-          </span>
-        </div>
-      )}
+      {isGenerating && <ThinkingIndicator />}
     </div>
   );
 }
