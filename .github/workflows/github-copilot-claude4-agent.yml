@@ -42,23 +42,16 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
 
-      - name: 🔧 Setup Node.js with Cache
+      - name: 🔧 Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "npm"
 
-      - name: 📦 Install Dependencies (Cached)
+      - name: 📦 Install Dependencies
         run: |
-          # Use existing package.json if available, or install directly
-          if [ -f "package.json" ]; then
-            npm ci --only=prod
-            echo "✅ Dependencies installed from package.json (cached)"
-          else
-            # Fallback to direct install (will be slow first time only)
-            npm install @octokit/rest @octokit/action @actions/core openai
-            echo "✅ Dependencies installed directly"
-          fi
+          # Install agent dependencies directly (no cache dependency)
+          npm install @octokit/rest @octokit/action @actions/core openai
+          echo "✅ Dependencies installed successfully"
 
       - name: 🤖 GitHub Copilot Claude 4 Agent Analysis
         id: copilot-claude4-analysis
