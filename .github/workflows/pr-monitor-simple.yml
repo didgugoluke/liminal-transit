@@ -85,7 +85,7 @@ jobs:
           echo "🔍 Processing draft PR #$PR_NUMBER..."
           
           # Simple readiness check
-          if echo "${{ env.AUTHOR }}" | grep -q "Copilot"; then
+          if echo "${{ env.AUTHOR }}" | grep -iq "copilot"; then
             echo "🤖 Copilot PR detected - marking as ready"
             gh pr ready "$PR_NUMBER"
             gh pr comment "$PR_NUMBER" --body "🤖 PR Monitor Agent - Auto-promoted to ready for review"
