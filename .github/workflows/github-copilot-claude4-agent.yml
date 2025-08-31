@@ -35,16 +35,12 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: ⚡ Setup Rate Limiting
+      - name: Rate limit check
         run: |
-          chmod +x scripts/github-rate-limit-manager.sh
-          if ! scripts/github-rate-limit-manager.sh check; then
-            echo "❌ Rate limits too low"
-            scripts/github-rate-limit-manager.sh emergency "GitHub Copilot Claude 4 Agent"
-            exit 1
-          fi
+          echo "⏱️ Checking GitHub API rate limits..."
+          ./scripts/github-rate-limit-manager.sh status
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
 
       - name: 🔧 Setup Node.js
         uses: actions/setup-node@v4
@@ -60,8 +56,8 @@ jobs:
         id: copilot-claude4-analysis
         continue-on-error: true
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
         run: |
           node -e "
           const core = require('@actions/core');
@@ -162,7 +158,7 @@ jobs:
       - name: 🚀 Create Branch and Commit
         if: steps.git-check.outputs.no_changes == 'false'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
         run: |
           # Configure git
           git config user.name "GitHub Copilot Claude 4 Agent"
@@ -200,7 +196,7 @@ jobs:
       - name: 📋 Create Pull Request
         if: steps.git-check.outputs.no_changes == 'false'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PROJECT_TOKEN }}
         run: |
           # Create PR body file (following proven development agent pattern)
           cat > /tmp/pr_body.md << 'EOF'
