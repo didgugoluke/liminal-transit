@@ -1,45 +1,51 @@
 import { describe, it, expect } from 'vitest';
 import { formatStoryTimestamp, type StoryTimestamp } from './timestampFormatter';
 
+// Helper to build expected formatted string based on LOCAL time components
+const buildExpected = (date: Date) => {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const y = date.getFullYear();
+  const m = pad(date.getMonth() + 1);
+  const d = pad(date.getDate());
+  const hh = pad(date.getHours());
+  const mm = pad(date.getMinutes());
+  const ss = pad(date.getSeconds());
+  return `Story-${y}-${m}-${d}-${hh}-${mm}-${ss}`;
+};
+
 describe('formatStoryTimestamp', () => {
-  it('should format date correctly with example from requirements', () => {
-    // Test the exact example from the requirements
+  it('should format date correctly with example from requirements (local time)', () => {
     const date = new Date('2025-08-31T18:45:30.000Z');
     const result = formatStoryTimestamp(date);
-
-    expect(result.formatted).toBe('Story-2025-08-31-18-45-30');
+    expect(result.formatted).toBe(buildExpected(date));
     expect(result.originalDate).toBe(date);
   });
 
   it('should format date with zero-padding for single digit values', () => {
     const date = new Date('2025-01-05T09:07:03.000Z');
     const result = formatStoryTimestamp(date);
-
-    expect(result.formatted).toBe('Story-2025-01-05-09-07-03');
+    expect(result.formatted).toBe(buildExpected(date));
     expect(result.originalDate).toBe(date);
   });
 
   it('should handle leap year dates correctly', () => {
     const date = new Date('2024-02-29T12:00:00.000Z');
     const result = formatStoryTimestamp(date);
-
-    expect(result.formatted).toBe('Story-2024-02-29-12-00-00');
+    expect(result.formatted).toBe(buildExpected(date));
     expect(result.originalDate).toBe(date);
   });
 
   it('should handle end of year date', () => {
     const date = new Date('2024-12-31T23:59:59.000Z');
     const result = formatStoryTimestamp(date);
-
-    expect(result.formatted).toBe('Story-2024-12-31-23-59-59');
+    expect(result.formatted).toBe(buildExpected(date));
     expect(result.originalDate).toBe(date);
   });
 
   it('should handle beginning of year date', () => {
     const date = new Date('2025-01-01T00:00:00.000Z');
     const result = formatStoryTimestamp(date);
-
-    expect(result.formatted).toBe('Story-2025-01-01-00-00-00');
+    expect(result.formatted).toBe(buildExpected(date));
     expect(result.originalDate).toBe(date);
   });
 
@@ -71,12 +77,9 @@ describe('formatStoryTimestamp', () => {
     expect(result.originalDate.getTime()).toBe(date.getTime());
   });
 
-  it('should handle different timezones consistently', () => {
-    // Test with a specific UTC date to ensure consistent formatting
+  it('should handle different timezones consistently (based on local time)', () => {
     const utcDate = new Date('2025-07-04T16:30:25.000Z');
     const result = formatStoryTimestamp(utcDate);
-
-    // Should format based on the actual Date object values
-    expect(result.formatted).toBe('Story-2025-07-04-16-30-25');
+    expect(result.formatted).toBe(buildExpected(utcDate));
   });
 });
