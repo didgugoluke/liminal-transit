@@ -16,7 +16,7 @@ echo "====================================================================="
     echo "Agent_ID,Agent_Name,Agent_Type,Development_Status,Production_Status,GitHub_Workflow,Lines_of_Code,Primary_Function,Trigger_Method,Performance_Metrics,Last_Updated,Epic_Integration,Dependencies,Notes"
     
     # Process all entries after headers, removing duplicates and fixing V1 agents
-    tail -n +3 "$REGISTER_FILE" | sort -u -t',' -k1,1 | while IFS=',' read -r agent_id agent_name agent_type dev_status prod_status workflow_file lines_of_code primary_function trigger_method performance_metrics last_updated epic_integration dependencies notes; do
+    tail -n +2 "$REGISTER_FILE" | sort -u -t',' -k1,1 | while IFS=',' read -r agent_id agent_name agent_type dev_status prod_status workflow_file lines_of_code primary_function trigger_method performance_metrics last_updated epic_integration dependencies notes; do
         
         # Skip header row if it appears
         if [[ "$agent_id" == "Agent_ID" ]]; then
