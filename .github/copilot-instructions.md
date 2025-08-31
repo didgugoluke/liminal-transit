@@ -1,30 +1,6 @@
-# NOVELI.SH — AI Native Interactive Storytelling Platform
+# NOVELI.SH - AI Native Interactive Storytelling Platform
 
-# NOVELI.SH — AI Native Interactive Storytelling Platform
-
-### AI Native Development Principles
-
-- **100% AI Orchestration** — GitHub Copilot agents manage entire development lifecycle
-- **AWS Well-Architected Foundation** — All architecture decisions align with six pillars for enterprise compliance
-- **Zero Human Overhead Management** — AI handles governance, compliance, security, and operational tasks
-- **Autonomous Code Management** — Self-generating features, tests, and documentation
-- **Zero Human Scaffolding** — AI handles bootstrapping, debugging, and maintenance
-- **Self-Optimizing Architecture** — Real-time performance optimization and scaling
-- **Human-in-the-Middle (HITM)** — Humans focus on strategy, vision, and creative direction
-- **Continuous Learning Loop** — AI agents improve based on user feedback and metrics
-- **Enterprise Compliance by Design** — Automated SOC 2, ISO 27001, GDPR, PCI DSS adherence
-
-### Design Principles
-
-- **Typography is the UI** — whitespace, rhythm, weight > chrome.
-- **Restraint builds immersion** — 1–2 sentences max.
-- **Conversation-first** — log like a chat, Yes/No as large buttons.
-- **Whitespace as drama** — each line spaced with intent.
-- **Ambient feel** — smooth auto-scroll, optional pulsing "…" while thinking.
-- **Minimal palette** — light/dark themes, sparing highlights.
-- **Inclusive by default** — diverse characters without fanfare.
-- **Accessibility** — ARIA roles, keyboard/touch nav, screen reader support.
-- **ZERO EMOJIS** — Use icon libraries exclusively, never emoji characters in any user-facing content, narrative, dialogue, or UI elements.
+Always reference these instructions first and fallback to search or bash commands only when you encounter unexpected information that does not match the info here.
 
 ## Project Overview
 
@@ -175,121 +151,146 @@ scripts/
 
 ---
 
-## Current Status
+## Working Effectively
 
-### ✅ Epic 1 COMPLETED - AI Agent Orchestra Foundation (August 31, 2025)
+- Bootstrap and setup the repository:
+  - `npm install -g pnpm` -- installs the required package manager (1 second)
+  - `pnpm install` -- installs all dependencies. Takes 35 seconds. NEVER CANCEL. Set timeout to 60+ minutes.
+  - Fix ESLint configuration if needed: The .eslintrc.json should use `"plugin:@typescript-eslint/recommended"` not `"@typescript-eslint/recommended"`
 
-**Complete 11-Agent GitHub Workflow Ecosystem - 100% Operational:**
+- Build and test the repository:
+  - `pnpm build` -- builds the project. Takes 4 seconds. NEVER CANCEL. Set timeout to 15+ minutes.
+  - `pnpm typecheck` -- TypeScript type checking. Takes 2 seconds. NEVER CANCEL. Set timeout to 10+ minutes.
+  - `pnpm test:run` -- runs all unit tests with Vitest. Takes 2 seconds. NEVER CANCEL. Set timeout to 10+ minutes.
 
-- [x] **Epic Breakdown Agent** (836+ lines) - Multi-mode Epic → Stories → Tasks generation with validated Epic #60 processing
-- [x] **Scrum Master Agent** - Complete story lifecycle automation (No Status → To Do → In Progress → Done) with Story #54 validation
-- [x] **Development Agent** (420+ lines) - End-to-end implementation with automated branching, PR creation, and project integration
-- [x] **Project Cleanup Agent** (266 lines) - Weekly automated maintenance with orphaned item detection and health monitoring
-- [x] **AI Agent Orchestrator** - Central dispatcher with intelligent routing and priority-based workflow management
-- [x] **Epic Task Orchestrator** - Complete project management engine with GitHub Projects and Observatory integration
-- [x] **Find/Replace Agent** - Repository-wide transformation engine with pattern validation and safety mechanisms
-- [x] **GitHub Issue Comment Agent** - Reusable workflow for standardized agent communication and status reporting
-- [x] **Observatory Monitoring Agent** - 15-minute continuous monitoring with real-time metrics and cost analysis
-- [x] **CI/CD Pipeline Agent** - 5-stage comprehensive automation (Quality, Testing, Security, Build, Observatory)
-- [x] **AWS Well-Architected Compliance Agent** - Six-pillar enterprise compliance ready for Epic 3 activation
+- Run the development environment:
+  - ALWAYS run the bootstrapping steps first
+  - `pnpm dev` -- starts Vite development server on http://localhost:5173. Takes 200ms to start. NEVER CANCEL.
+  - The application loads successfully and displays the NOVELI.SH interactive storytelling interface
+  - Counter functionality works correctly (click to increment)
 
-**Validated Production Results:**
+- Code quality and formatting:
+  - `pnpm lint` -- runs ESLint. Takes 2 seconds. May show some lint errors which is normal. NEVER CANCEL. Set timeout to 10+ minutes.
+  - `pnpm format:check` -- checks Prettier formatting. Takes 1 second. May show format issues which is normal. NEVER CANCEL. Set timeout to 5+ minutes.
+  - `pnpm lint:fix` -- automatically fixes ESLint issues where possible
+  - `pnpm format` -- automatically formats code with Prettier
 
-- [x] **Multi-Agent Coordination** - 100% success rate for Epic → Stories → Tasks → Implementation workflows
-- [x] **GitHub Projects Integration** - Full Project ID 2 automation with real-time Epic/Story/Task relationships
-- [x] **End-to-End Validation** - Story #54 complete + Epic #60 processing with seamless agent handoffs
-- [x] **System Reliability** - 11 agents operating in perfect coordination with comprehensive error recovery
-- [x] **Enterprise Readiness** - Production-grade error handling, rate limiting, retry logic, and API resilience
+## Validation
 
-### ✅ Foundation Architecture Completed
+- ALWAYS manually validate any new code by running the development server and testing functionality
+- ALWAYS run through at least one complete end-to-end scenario after making changes:
+  1. Start the dev server with `pnpm dev`
+  2. Navigate to http://localhost:5173
+  3. Verify the application loads with "NOVELI.SH" title
+  4. Test the counter button functionality (should increment when clicked)
+  5. Verify hot reload works by making a small change to src/App.tsx
+- You can build and run the application successfully for testing
+- ALWAYS run `pnpm typecheck`, `pnpm lint`, and `pnpm test:run` before you are done or the CI (.github/workflows/ci-cd.yml) will fail
+- The build produces a dist/ directory with optimized assets for production
 
-- [x] **AWS Well-Architected Framework** - Complete six-pillar implementation with automation
-- [x] **Enterprise Compliance Framework** - Zero-overhead governance and automated policy enforcement
-- [x] **Architectural Principles** - AI Native design patterns and Well-Architected alignment
-- [x] **HITM Interaction Framework** - Three-point engagement system (VS Code, Dashboard, Mobile)
-- [x] **AI Native Architecture** - Complete AI orchestration and agent design
-- [x] **Security Framework** - Defense in depth with zero-secret-exposure
-- [x] **Observatory System** - Live monitoring and experimentation platform
-- [x] **Epic Management** - Human and AI epic creation and tracking with validated workflows
-- [x] **Technical Debt Tracking** - Automated debt detection and remediation
-- [x] **Backend Persistence Architecture** - Serverless DynamoDB + Lambda + API Gateway
-- [x] **MetaAgent Architecture** - Agent of Agents with infinite loop detection and auto-recovery
+## Common Tasks
 
-### 🚧 Epic 2 IN PROGRESS - AI Agent Observatory Dashboard
+The following are outputs from frequently run commands. Reference them instead of viewing, searching, or running bash commands to save time.
 
-Current Epic #60 Implementation (8 Stories + 24 Tasks):
+### Repository root
+```
+.env.development
+.eslintrc.json
+.git/
+.github/
+.gitignore
+.vscode/
+DEBUG-STATUS.md
+MILESTONE.md
+PROJECT-TOKEN-AND-DOCS-SUMMARY.md
+README.md
+VITE-BUILD-INTEGRATION.md
+context/
+docs/
+index.html
+noveli-ai-observatory.code-workspace
+observatory/
+package.json
+scripts/
+src/
+task_handlers.sh
+tsconfig.json
+tsconfig.node.json
+vite.config.ts
+```
 
-- [ ] Real-time Observatory Dashboard with live AI agent monitoring and coordination
-- [ ] Performance Metrics Collection with comprehensive agent activity tracking
-- [ ] MetaAgent Implementation with infinite loop detection and auto-recovery
-- [ ] Predictive Analytics with ML-based failure prediction and proactive intervention
-- [ ] Cost Optimization Engine with real-time AI cost monitoring and budget enforcement
-- [ ] Quality Assurance automation with intervention capabilities
-- [ ] Agent behavior pattern analysis and optimization
-- [ ] Live A/B testing framework for agent performance optimization
+### package.json scripts
+```json
+{
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "eslint . --ext ts,tsx --fix",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,md}\""
+  }
+}
+```
 
-### 🎯 Epic 3 PLANNED - Platform Implementation
+### src/ directory structure
+```
+src/
+├── App.css
+├── App.tsx
+├── __tests__/
+│   ├── build-tooling.test.ts
+│   └── unit/
+│       └── foundation.test.ts
+├── config/
+├── copilot-hello/
+├── database/
+├── hello/
+├── index.css
+├── lib/
+├── main.tsx
+├── types/
+└── utils/
+```
 
-- [ ] Scaffold Vite + React + TS with AI Native patterns and Well-Architected compliance
-- [ ] Implement autonomous AI provider system with GitHub Copilot orchestration
-- [ ] Create self-optimizing AWS infrastructure with Terraform and compliance automation
-- [ ] Configure GitHub Actions for AI-driven CI/CD workflows with Well-Architected validation
-- [ ] Implement continuous learning and optimization systems
-- [ ] Tests + lint passing with AI quality assurance
-- [ ] Self-generating README + docs with AI maintenance
+### Technology stack
+- **Frontend**: Vite + React + TypeScript + Tailwind CSS
+- **Testing**: Vitest (unit tests) + Playwright (e2e tests)
+- **Package Manager**: pnpm (required, not npm)
+- **Build Tool**: Vite with TypeScript compilation
+- **Linting**: ESLint with TypeScript support
+- **Formatting**: Prettier
+- **AI Integration**: AWS SDK, Anthropic, OpenAI packages included
 
----
+### Common Issues and Solutions
 
-## AI Native Workflow Patterns
+1. **ESLint config error**: If you see "ESLint couldn't find the config @typescript-eslint/recommended", ensure .eslintrc.json uses `"plugin:@typescript-eslint/recommended"` (with "plugin:" prefix)
 
-### Feature Development (AI Orchestrated)
+2. **pnpm not found**: Run `npm install -g pnpm` first before any other commands
 
-1. **HITM Input**: Natural language feature requirement in GitHub Issue
-2. **AI Analysis**: Copilot analyzes codebase context and requirements
-3. **Auto-Branch**: Create feature branch with descriptive naming
-4. **Implementation**: Generate code, tests, and documentation automatically
-5. **Quality Gates**: Run comprehensive AI-driven testing and validation
-6. **PR Creation**: Auto-generate PR with detailed analysis and screenshots
-7. **Review Process**: AI-assisted code review with automated suggestions
-8. **Deployment**: Auto-merge and deploy through staging to production
-9. **Monitoring**: Continuous performance monitoring and optimization
-10. **Learning**: Capture outcomes to improve future implementations
+3. **TypeScript errors**: Always run `pnpm typecheck` to verify TypeScript compilation before building
 
-### Story Generation (AI Content Pipeline)
+4. **Playwright browser install**: `npx playwright install` may fail due to network issues but this doesn't affect core development
 
-1. **Theme Input**: HITM provides high-level narrative themes
-2. **Story Planning**: AI creates GitHub Project board with story progression
-3. **Content Generation**: Generate story beats, choices, and character dialogue
-4. **Quality Assurance**: Automated consistency, grammar, and engagement checks
-5. **Preview Build**: Create shareable preview for stakeholder review
-6. **User Testing**: A/B test narrative variations with real users
-7. **Optimization**: AI analyzes engagement metrics and refines content
-8. **Publication**: Auto-deploy optimized story content to production
-9. **Analytics**: Track user choices and story completion rates
-10. **Iteration**: Continuous story improvement based on user feedback
+5. **Development server not starting**: Ensure port 5173 is available, or Vite will automatically use the next available port
 
-### Infrastructure Management (Self-Optimizing)
+### GitHub Actions Integration
+- The repository has comprehensive GitHub Actions workflows in `.github/workflows/`
+- CI/CD pipeline runs TypeScript checking, linting, testing, and building
+- Always ensure local validation passes before pushing to avoid CI failures
+- The AI Native development approach uses 11 specialized agent workflows for automation
 
-1. **Monitoring**: Real-time AWS infrastructure and application metrics
-2. **Analysis**: AI identifies optimization opportunities and bottlenecks
-3. **Planning**: Generate Terraform changes for infrastructure improvements
-4. **Testing**: Validate changes in staging environment
-5. **Deployment**: Automated infrastructure updates and rollback capability
-6. **Validation**: Verify performance improvements and cost optimization
-7. **Documentation**: Auto-update infrastructure documentation
-8. **Alerting**: Proactive notifications for issues and optimization opportunities
-9. **Cost Optimization**: Continuous AWS resource right-sizing and efficiency
-10. **Scaling**: Predictive scaling based on usage patterns and trends
-
-### Bug Resolution (Autonomous Healing)
-
-1. **Detection**: Automated error monitoring and anomaly detection
-2. **Diagnosis**: AI analyzes logs, metrics, and code to identify root cause
-3. **Categorization**: Classify issue severity and impact automatically
-4. **Solution**: Generate fix implementation with comprehensive testing
-5. **Validation**: Automated testing in isolated environment
-6. **Deployment**: Hot-fix deployment with automated rollback capability
-7. **Verification**: Monitor fix effectiveness and user impact
-8. **Documentation**: Update troubleshooting guides and prevention measures
-9. **Prevention**: Implement safeguards to prevent similar issues
-10. **Learning**: Improve detection and resolution for future incidents
+### AI Native Development Context
+- This is an AI Native Interactive Storytelling Platform with 100% AI-driven development
+- Features autonomous GitHub Copilot orchestration and AWS Well-Architected Framework
+- The platform generates interactive narratives using AI providers (AWS Bedrock, OpenAI, Anthropic)
+- Built for enterprise-grade compliance with zero human scaffolding
+- Uses React for the frontend with AI-powered story generation backend services
