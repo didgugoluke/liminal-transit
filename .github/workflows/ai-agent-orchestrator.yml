@@ -49,6 +49,7 @@ jobs:
 
       - name: AI Agent Analysis
         id: agent-analysis
+        continue-on-error: true
         run: |
           cat > agent-dispatcher.js << 'EOF'
           import { Octokit } from '@octokit/rest';
@@ -103,6 +104,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Execute AI Agent Workflow
+        if: steps.agent-analysis.outcome == 'success'
         run: |
           echo "Executing AI Agent: ${{ steps.agent-analysis.outputs.agent-type }}"
           echo "Priority: ${{ steps.agent-analysis.outputs.priority }}"
@@ -131,6 +133,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update Issue with Agent Assignment
+        if: steps.agent-analysis.outcome == 'success'
         run: |
           gh issue comment ${{ steps.agent-analysis.outputs.issue-number }} --body "AI Agent Activated: ${{ steps.agent-analysis.outputs.agent-type }} assigned with priority ${{ steps.agent-analysis.outputs.priority }}. Autonomous execution initiated."
         env:
