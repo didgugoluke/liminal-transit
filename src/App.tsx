@@ -1,35 +1,32 @@
-import { useState } from 'react'
-import './App.css'
+import { ErrorBoundary } from './components/layout/ErrorBoundary';
+import { StoryInterface } from './components/story/StoryInterface';
+import './App.css';
 
 function App() {
-  const [count, setCount] = useState(0)
+  // Extract seed from URL params if present
+  const urlParams = new URLSearchParams(window.location.search);
+  const seedFromUrl = urlParams.get('seed') || undefined;
 
   return (
-    <div className="app">
-      <header className="app-header">
-        <h1>NOVELI.SH</h1>
-        <p>AI Native Interactive Storytelling Platform</p>
-        <p className="build-info">🔥 Hot Reload Active - Modern Build Tooling Integrated</p>
-      </header>
-      
-      <main className="app-main">
-        <section className="liminal-space">
-          <h2>Welcome to the Liminal Transit</h2>
-          <p>You find yourself in a space between destinations...</p>
-          
-          <div className="debug-counter">
-            <button onClick={() => setCount((count) => count + 1)}>
-              Count: {count}
-            </button>
+    <ErrorBoundary>
+      <div className="app">
+        <header className="app-header">
+          <h1>NOVELI.SH</h1>
+          <p>AI Native Interactive Storytelling Platform</p>
+        </header>
+        
+        <main className="app-main">
+          <div className="story-container">
+            <StoryInterface initialSeed={seedFromUrl} />
           </div>
-        </section>
-      </main>
-      
-      <footer className="app-footer">
-        <p>Built with AI Native Architecture & AWS Well-Architected Framework</p>
-      </footer>
-    </div>
-  )
+        </main>
+        
+        <footer className="app-footer">
+          <p>Built with AI Native Architecture & AWS Well-Architected Framework</p>
+        </footer>
+      </div>
+    </ErrorBoundary>
+  );
 }
 
-export default App
+export default App;

@@ -1,99 +1,170 @@
+/* AI Native Typography-First Design */
+/* Following NOVELI.SH design principles: typography is the UI */
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
 .app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-}
-
-.app-header {
-  margin-bottom: 2rem;
-}
-
-.app-header h1 {
-  color: #646cff;
-  margin-bottom: 0.5rem;
-}
-
-.app-header p {
-  color: #888;
-  font-size: 1.2rem;
-}
-
-.build-info {
-  color: #4ade80 !important;
-  font-size: 1rem !important;
-  font-weight: 500;
-  margin-top: 0.5rem;
-}
-
-.app-main {
-  margin: 2rem 0;
-}
-
-.liminal-space {
-  padding: 2rem;
-  border: 1px solid #333;
-  border-radius: 8px;
-  background-color: rgba(255, 255, 255, 0.02);
-  margin-bottom: 2rem;
-}
-
-.liminal-space h2 {
-  color: #fff;
-  margin-bottom: 1rem;
-}
-
-.liminal-space p {
-  color: #ccc;
-  font-size: 1.1rem;
+  min-height: 100vh;
+  background: #0a0a0a;
+  color: #f5f5f5;
+  display: flex;
+  flex-direction: column;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   line-height: 1.6;
 }
 
-.debug-counter {
-  margin-top: 2rem;
-  padding: 1rem;
-  border: 1px solid #646cff;
-  border-radius: 8px;
-  background-color: rgba(100, 108, 255, 0.1);
+.app-header {
+  padding: 2rem 1.5rem 1rem;
+  text-align: center;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.app-header h1 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+  letter-spacing: 0.025em;
+  color: #f5f5f5;
+}
+
+.app-header p {
+  font-size: 0.875rem;
+  color: #a1a1aa;
+  margin: 0;
+}
+
+.app-main {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  padding: 2rem 1.5rem;
+}
+
+.story-container {
+  width: 100%;
+  max-width: 42rem; /* ~672px - optimal reading width */
+}
+
+.story-interface {
+  /* Typography-first spacing */
+}
+
+.narrative-display {
+  margin-bottom: 3rem;
+}
+
+.narrative-text {
+  font-size: 1.125rem;
+  line-height: 1.75;
+  color: #f5f5f5;
+  margin-bottom: 1.5rem;
+  /* Optimal reading typography */
+  text-wrap: pretty;
+}
+
+.prompt-text {
+  font-size: 0.875rem;
+  text-align: center;
+  font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', 'Consolas', monospace;
+  letter-spacing: 0.05em;
+}
+
+.generating-indicator {
+  text-align: center;
+  font-size: 0.75rem;
+}
+
+.choice-buttons {
+  text-align: center;
+}
+
+.choice-buttons .flex {
+  gap: 1.5rem;
+}
+
+.choice-buttons button {
+  min-width: 5rem;
+  font-size: 1rem;
+  padding: 0.875rem 1.75rem;
+  /* Large touch targets for accessibility */
+  min-height: 44px;
 }
 
 .app-footer {
-  margin-top: 2rem;
-  padding-top: 1rem;
-  border-top: 1px solid #333;
-  color: #666;
-  font-size: 0.9rem;
+  padding: 1rem 1.5rem;
+  text-align: center;
+  border-top: 1px solid #2a2a2a;
+  font-size: 0.75rem;
+  color: #71717a;
 }
 
-@media (prefers-color-scheme: light) {
-  .app-header h1 {
-    color: #747bff;
+/* Animation delays for generating indicator */
+.animation-delay-150 {
+  animation-delay: 150ms;
+}
+
+.animation-delay-300 {
+  animation-delay: 300ms;
+}
+
+/* Mobile-first responsive adjustments */
+@media (max-width: 640px) {
+  .app-header {
+    padding: 1.5rem 1rem 0.75rem;
   }
   
-  .build-info {
-    color: #16a34a !important;
+  .app-main {
+    padding: 1.5rem 1rem;
   }
   
-  .liminal-space {
-    border-color: #ddd;
-    background-color: rgba(0, 0, 0, 0.02);
+  .narrative-text {
+    font-size: 1rem;
   }
   
-  .liminal-space h2 {
-    color: #333;
+  .choice-buttons .flex {
+    gap: 1rem;
   }
   
-  .liminal-space p {
-    color: #666;
+  .choice-buttons button {
+    min-width: 4rem;
+    padding: 0.75rem 1.5rem;
+  }
+}
+
+/* Dark theme focus indicators */
+*:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .app {
+    background: #000;
+    color: #fff;
   }
   
-  .debug-counter {
-    border-color: #747bff;
-    background-color: rgba(116, 123, 255, 0.1);
+  .app-header {
+    border-bottom-color: #666;
   }
   
   .app-footer {
-    border-top-color: #ddd;
-    color: #999;
+    border-top-color: #666;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse {
+    animation: none;
+  }
+  
+  .animate-spin {
+    animation: none;
   }
 }
