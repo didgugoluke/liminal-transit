@@ -7,8 +7,7 @@
  * and demonstrates proper Kanban status transitions.
  */
 
-import { testScrumCopilotIntegration, testKanbanE2EWorkflow, validateWorkflowStage, generateKanbanTestReport, WorkflowStage } from '../utils/scrum-copilot-test.js';
-import { testE2EKanbanWorkflow, validatePRCreation, KanbanIntegrationManager } from '../utils/kanban-integration.js';
+import { testE2EKanbanWorkflow, validatePRCreation } from '../utils/kanban-integration.js';
 
 const ISSUE_NUMBER = 98;
 const TEST_ID = 'KANBAN-E2E-v2';
