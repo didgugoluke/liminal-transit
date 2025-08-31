@@ -51,8 +51,8 @@ describe('Security Intelligence Agent V2 Workflow', () => {
     const inputs = workflow.on.workflow_dispatch.inputs;
     
     expect(inputs.security_task).toBeDefined();
-    expect(inputs.security_task.required).toBe(true);
-    expect(inputs.security_task.options).toEqual([
+    expect(inputs.security_task?.required).toBe(true);
+    expect(inputs.security_task?.options).toEqual([
       'proactive-threat-detection',
       'security-vulnerability-analysis', 
       'incident-response-automation',
@@ -66,16 +66,16 @@ describe('Security Intelligence Agent V2 Workflow', () => {
   it('should support dual AI architecture models', () => {
     const aiModelInput = workflow.on.workflow_dispatch.inputs.ai_model;
     
-    expect(aiModelInput.options).toContain('claude-4');
-    expect(aiModelInput.options).toContain('claude-4-copilot');
-    expect(aiModelInput.options).toContain('dual-ai-architecture');
-    expect(aiModelInput.default).toBe('claude-4');
+    expect(aiModelInput?.options).toContain('claude-4');
+    expect(aiModelInput?.options).toContain('claude-4-copilot');
+    expect(aiModelInput?.options).toContain('dual-ai-architecture');
+    expect(aiModelInput?.default).toBe('claude-4');
   });
 
   it('should have comprehensive security scope options', () => {
     const scopeInput = workflow.on.workflow_dispatch.inputs.security_scope;
     
-    expect(scopeInput.options).toEqual([
+    expect(scopeInput?.options).toEqual([
       'repository',
       'dependencies', 
       'infrastructure',
@@ -86,34 +86,34 @@ describe('Security Intelligence Agent V2 Workflow', () => {
   it('should have appropriate severity threshold settings', () => {
     const severityInput = workflow.on.workflow_dispatch.inputs.severity_threshold;
     
-    expect(severityInput.options).toEqual([
+    expect(severityInput?.options).toEqual([
       'low',
       'medium',
       'high', 
       'critical'
     ]);
-    expect(severityInput.default).toBe('medium');
+    expect(severityInput?.default).toBe('medium');
   });
 
   it('should have required permissions for security operations', () => {
-    const permissions = workflow.jobs['security-intelligence-v2'].permissions;
+    const permissions = workflow.jobs?.['security-intelligence-v2']?.permissions;
     
-    expect(permissions.contents).toBe('read');
-    expect(permissions['pull-requests']).toBe('write');
-    expect(permissions.issues).toBe('write');
-    expect(permissions.actions).toBe('read');
-    expect(permissions['security-events']).toBe('read');
-    expect(permissions.checks).toBe('write');
+    expect(permissions?.contents).toBe('read');
+    expect(permissions?.['pull-requests']).toBe('write');
+    expect(permissions?.issues).toBe('write');
+    expect(permissions?.actions).toBe('read');
+    expect(permissions?.['security-events']).toBe('read');
+    expect(permissions?.checks).toBe('write');
   });
 
   it('should have reasonable timeout for security analysis', () => {
-    const timeout = workflow.jobs['security-intelligence-v2']['timeout-minutes'];
+    const timeout = workflow.jobs?.['security-intelligence-v2']?.['timeout-minutes'];
     expect(timeout).toBe(30);
   });
 
   it('should include all required steps for V2 intelligence', () => {
-    const steps = workflow.jobs['security-intelligence-v2'].steps;
-    const stepNames = steps.map((step: WorkflowStep) => step.name);
+    const steps = workflow.jobs?.['security-intelligence-v2']?.steps;
+    const stepNames = steps?.map((step: WorkflowStep) => step.name);
     
     expect(stepNames).toContain('🔄 Checkout Repository');
     expect(stepNames).toContain('⚡ Setup Rate Limiting and Security Environment');
@@ -125,15 +125,15 @@ describe('Security Intelligence Agent V2 Workflow', () => {
   });
 
   it('should use GitHub token for authentication', () => {
-    const steps = workflow.jobs['security-intelligence-v2'].steps;
-    const checkoutStep = steps.find((step: WorkflowStep) => step.name === '🔄 Checkout Repository');
+    const steps = workflow.jobs?.['security-intelligence-v2']?.steps;
+    const checkoutStep = steps?.find((step: WorkflowStep) => step.name === '🔄 Checkout Repository');
     
     expect(checkoutStep?.with?.token).toBe('${{ secrets.GITHUB_TOKEN }}');
   });
 
   it('should configure environment variables for security analysis', () => {
-    const steps = workflow.jobs['security-intelligence-v2'].steps;
-    const analysisStep = steps.find((step: WorkflowStep) => 
+    const steps = workflow.jobs?.['security-intelligence-v2']?.steps;
+    const analysisStep = steps?.find((step: WorkflowStep) => 
       step.name === '🧠 Dual AI Architecture Security Intelligence Analysis'
     );
     
@@ -145,11 +145,11 @@ describe('Security Intelligence Agent V2 Workflow', () => {
   });
 
   it('should have conditional steps for incident response', () => {
-    const steps = workflow.jobs['security-intelligence-v2'].steps;
-    const copilotStep = steps.find((step: WorkflowStep) => 
+    const steps = workflow.jobs?.['security-intelligence-v2']?.steps;
+    const copilotStep = steps?.find((step: WorkflowStep) => 
       step.name === '🤖 GitHub Copilot Security Code Generation'
     );
-    const incidentStep = steps.find((step: WorkflowStep) => 
+    const incidentStep = steps?.find((step: WorkflowStep) => 
       step.name === '🚨 Automated Incident Response'
     );
     
@@ -158,8 +158,8 @@ describe('Security Intelligence Agent V2 Workflow', () => {
   });
 
   it('should output security metrics for downstream processing', () => {
-    const steps = workflow.jobs['security-intelligence-v2'].steps;
-    const analysisStep = steps.find((step: WorkflowStep) => 
+    const steps = workflow.jobs?.['security-intelligence-v2']?.steps;
+    const analysisStep = steps?.find((step: WorkflowStep) => 
       step.name === '🧠 Dual AI Architecture Security Intelligence Analysis'
     );
     

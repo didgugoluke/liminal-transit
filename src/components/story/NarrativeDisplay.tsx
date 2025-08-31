@@ -1,7 +1,10 @@
+// Narrative Display - Enhanced Typography-First Story Presentation
+// Premium reading experience with ambient animations and accessibility
+
+import { useEffect, useRef, useState } from 'react';
 // Enhanced Narrative Display - Typography-First with Story Intelligence
 // Advanced component for displaying story text with character awareness and atmospheric design
 
-import { useEffect, useRef } from 'react';
 import { StoryContext, Character, WorldState } from '../../types';
 
 export interface NarrativeDisplayProps {
@@ -18,14 +21,26 @@ export function NarrativeDisplay({
   className = '' 
 }: NarrativeDisplayProps) {
   const textRef = useRef<HTMLDivElement>(null);
+  const [isNewContent, setIsNewContent] = useState(false);
 
+  // Handle new content animation
   // Auto-scroll to new content with smooth behavior
   useEffect(() => {
-    if (textRef.current) {
-      textRef.current.scrollIntoView({ 
-        behavior: 'smooth', 
-        block: 'nearest' 
-      });
+    if (narrative) {
+      setIsNewContent(true);
+      
+      // Auto-scroll to new content with enhanced smoothness
+      if (textRef.current) {
+        textRef.current.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center',
+          inline: 'nearest'
+        });
+      }
+      
+      // Reset animation state
+      const timer = setTimeout(() => setIsNewContent(false), 800);
+      return () => clearTimeout(timer);
     }
   }, [narrative]);
 
@@ -45,6 +60,24 @@ export function NarrativeDisplay({
     promptText = '(Restart?)';
   }
 
+  // Enhanced thinking indicator component
+  const ThinkingIndicator = () => (
+    <div 
+      className="generating-indicator"
+      aria-label="AI is crafting the next story beat"
+      role="status"
+    >
+      <div className="flex items-center justify-center gap-1">
+        <span className="w-2 h-2 bg-current rounded-full animate-thinking-pulse" style={{ animationDelay: '0s' }} />
+        <span className="w-2 h-2 bg-current rounded-full animate-thinking-pulse" style={{ animationDelay: '0.2s' }} />
+        <span className="w-2 h-2 bg-current rounded-full animate-thinking-pulse" style={{ animationDelay: '0.4s' }} />
+      </div>
+      <div className="sr-only">
+        Please wait while the AI generates your story
+      </div>
+    </div>
+  );
+
   // Get atmospheric information from context
   const worldState = context?.worldState;
   const recentCharacters = context?.characters?.filter(c => 
@@ -61,8 +94,12 @@ export function NarrativeDisplay({
       className={`narrative-display ${className}`}
       role="region"
       aria-label="Story narrative"
-      aria-live="polite"
     >
+      <div 
+        className={`narrative-text ${isNewContent ? 'animate-narrative-reveal' : ''}`}
+        aria-live="polite"
+        aria-atomic="true"
+      >
       {/* Atmospheric context bar */}
       {worldState && (
         <div className="story-atmosphere mb-6 p-4 rounded-lg bg-gray-900/50 border border-gray-800">
@@ -121,6 +158,12 @@ export function NarrativeDisplay({
 
       {/* Choice prompt */}
       {promptText && (
+        <div 
+          className="prompt-text animate-fade-in-up"
+          style={{ animationDelay: '0.4s' }}
+          aria-label={`Story choice prompt: ${promptText}`}
+        >
+          {promptText}
         <div className="prompt-text mt-6">
           {promptText}
         </div>
@@ -142,6 +185,8 @@ export function NarrativeDisplay({
           </div>
         </div>
       )}
+      
+      {isGenerating && <ThinkingIndicator />}
     </div>
   );
 }
