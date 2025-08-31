@@ -247,8 +247,8 @@ describe('Context Preservation Manager', () => {
 
     const history = manager.getContextHistory(200);
     expect(history.length).toBe(2);
-    expect(history[0].title).toBe('Version 1');
-    expect(history[1].title).toBe('Version 2');
+    expect(history[0]?.title).toBe('Version 1');
+    expect(history[1]?.title).toBe('Version 2');
 
     // Latest context should be version 2
     const latest = manager.getContext(200);
