@@ -1,0 +1,183 @@
+name: 🎯 Copilot PR Manager - Kanban Integration
+
+on:
+  pull_request:
+    types: [ready_for_review]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "PR number to manage"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  copilot-pr-manager:
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'workflow_dispatch') ||
+      (github.event.pull_request.user.login == 'app/copilot-swe-agent')
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: ⚡ Setup Rate Limiting
+        run: |
+          chmod +x scripts/github-rate-limit-manager.sh
+          if ! scripts/github-rate-limit-manager.sh check; then
+            echo "❌ Rate limits too low"
+            exit 1
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: ⚙️ Configure GitHub CLI
+        run: |
+          if ! gh auth status; then
+            echo "❌ GitHub CLI authentication failed"
+            exit 1
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+
+      - name: 📊 Get PR Context
+        id: context
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            PR_NUMBER="${{ github.event.inputs.pr_number }}"
+          else
+            PR_NUMBER="${{ github.event.pull_request.number }}"
+          fi
+
+          echo "🔍 Processing Copilot PR #$PR_NUMBER..."
+
+          # Get PR details
+          FILE_COUNT=$(gh pr view "$PR_NUMBER" --json files --jq '.files | length')
+          ADDITIONS=$(gh pr view "$PR_NUMBER" --json files --jq '.files | map(.additions) | add // 0')
+
+          # Find related issue
+          ISSUE_NUM=$(gh pr view "$PR_NUMBER" --json body | jq -r '.body' | grep -oE "Fixes #([0-9]+)" | grep -oE "[0-9]+" | head -1)
+
+          echo "📊 PR Metrics: $FILE_COUNT files, $ADDITIONS additions"
+          echo "🔗 Related Issue: #$ISSUE_NUM"
+
+          # Set outputs for other steps
+          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+          echo "file_count=$FILE_COUNT" >> $GITHUB_OUTPUT
+          echo "additions=$ADDITIONS" >> $GITHUB_OUTPUT
+          echo "issue_num=$ISSUE_NUM" >> $GITHUB_OUTPUT
+
+      - name: 📋 Update Kanban to In Progress
+        if: steps.context.outputs.issue_num != 'null' && steps.context.outputs.issue_num != ''
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+        run: |
+          echo "📋 Moving issue #${{ steps.context.outputs.issue_num }} to In Progress..."
+
+          # Get project items to find the issue
+          PROJECT_ITEMS=$(gh project item-list 2 --owner "didgugoluke" --format json)
+          ISSUE_TITLE=$(gh issue view "${{ steps.context.outputs.issue_num }}" --json title --jq '.title')
+
+          # Find item ID for this issue
+          ITEM_ID=$(echo "$PROJECT_ITEMS" | jq -r --arg title "$ISSUE_TITLE" '.items[] | select(.content.title == $title) | .id')
+
+          if [ -n "$ITEM_ID" ] && [ "$ITEM_ID" != "null" ]; then
+            echo "Found item ID: $ITEM_ID"
+            # Move to In Progress status
+            if gh project item-edit --id "$ITEM_ID" --field-id "PVTSSF_lAHOCf5VHc4BB2AJzg0OtoQ" --single-select-option-id "47fc9ee4" --project-id "PVT_kwHOCf5VHc4BB2AJ"; then
+              echo "✅ Moved issue to In Progress"
+            else
+              echo "⚠️ Failed to update project status"
+            fi
+          else
+            echo "⚠️ Could not find project item for issue"
+          fi
+
+      - name: 🎯 Risk Assessment
+        id: risk
+        run: |
+          echo "🎯 Assessing risk for PR #${{ steps.context.outputs.pr_number }}..."
+
+          # Risk assessment logic
+          if [ "${{ steps.context.outputs.file_count }}" -le 10 ] && [ "${{ steps.context.outputs.additions }}" -le 200 ]; then
+            echo "✅ Low risk - approved for auto-merge"
+            echo "auto_merge=true" >> $GITHUB_OUTPUT
+          else
+            echo "⚠️ High risk - manual review required"
+            echo "auto_merge=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 🚀 Auto-Merge Low Risk PR
+        if: steps.risk.outputs.auto_merge == 'true'
+        id: merge
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+        run: |
+          echo "🚀 Auto-merging low-risk PR #${{ steps.context.outputs.pr_number }}..."
+
+          # Auto-approve
+          gh pr review "${{ steps.context.outputs.pr_number }}" --approve --body "🤖 Auto-approved: Low-risk Copilot PR (${{ steps.context.outputs.file_count }} files, ${{ steps.context.outputs.additions }} additions)"
+
+          # Merge and delete branch
+          if gh pr merge "${{ steps.context.outputs.pr_number }}" --squash --delete-branch; then
+            echo "✅ PR merged successfully"
+            echo "merge_success=true" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Merge failed"
+            echo "merge_success=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: ✅ Update Kanban to Done
+        if: steps.merge.outputs.merge_success == 'true' && steps.context.outputs.issue_num != 'null' && steps.context.outputs.issue_num != ''
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+        run: |
+          echo "✅ Moving issue #${{ steps.context.outputs.issue_num }} to Done..."
+
+          # Get project items again
+          PROJECT_ITEMS=$(gh project item-list 2 --owner "didgugoluke" --format json)
+          ISSUE_TITLE=$(gh issue view "${{ steps.context.outputs.issue_num }}" --json title --jq '.title')
+
+          # Find item ID
+          ITEM_ID=$(echo "$PROJECT_ITEMS" | jq -r --arg title "$ISSUE_TITLE" '.items[] | select(.content.title == $title) | .id')
+
+          if [ -n "$ITEM_ID" ] && [ "$ITEM_ID" != "null" ]; then
+            # Move to Done status
+            if gh project item-edit --id "$ITEM_ID" --field-id "PVTSSF_lAHOCf5VHc4BB2AJzg0OtoQ" --single-select-option-id "98236846" --project-id "PVT_kwHOCf5VHc4BB2AJ"; then
+              echo "✅ Moved issue to Done"
+              
+              # Close the issue
+              gh issue close "${{ steps.context.outputs.issue_num }}" --reason completed --comment "✅ Implementation completed and merged via PR #${{ steps.context.outputs.pr_number }}"
+            else
+              echo "⚠️ Failed to update final project status"
+            fi
+          fi
+
+      - name: 📝 Manual Review Required
+        if: steps.risk.outputs.auto_merge == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "⚠️ Manual review required for PR #${{ steps.context.outputs.pr_number }}"
+          gh pr comment "${{ steps.context.outputs.pr_number }}" --body "⚠️ **Manual Review Required** - High complexity changes (${{ steps.context.outputs.file_count }} files, ${{ steps.context.outputs.additions }} additions)"
+
+      - name: 🚨 Emergency Cleanup
+        if: failure()
+        run: |
+          echo "🚨 Copilot PR Manager failed"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: ✅ Completion
+        run: |
+          echo "🎯 Copilot PR Manager completed"
+          echo "📊 PR: #${{ steps.context.outputs.pr_number }}"
+          echo "🎯 Auto-merge: ${{ steps.risk.outputs.auto_merge }}"
+          echo "✅ Merge success: ${{ steps.merge.outputs.merge_success }}"
