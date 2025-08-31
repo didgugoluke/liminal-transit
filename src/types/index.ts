@@ -164,7 +164,7 @@ export type ChoiceType =
   | 'multiple' // 2-4 options
   | 'complex' // Context-sensitive choices
   | 'emotional' // Mood-based responses
-  | 'strategic' // Long-term impact choices;
+  | 'strategic' // Long-term impact choices
 
 export interface ChoicePreview {
   likelyOutcome: string;
