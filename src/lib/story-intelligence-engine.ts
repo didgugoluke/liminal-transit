@@ -267,14 +267,12 @@ export class StoryIntelligenceEngine {
         const char1 = charArray[i];
         const char2 = charArray[j];
         
-        if (char1 && char2) {
-          // Generate relationship based on personality compatibility
-          const compatibility = this.calculateCompatibility(char1.personality, char2.personality);
-          const baseRelationship = this.createRelationship(compatibility);
-          
-          char1.relationships.set(char2.id, baseRelationship);
-          char2.relationships.set(char1.id, baseRelationship);
-        }
+        // Generate relationship based on personality compatibility
+        const compatibility = this.calculateCompatibility(char1.personality, char2.personality);
+        const baseRelationship = this.createRelationship(compatibility);
+        
+        char1.relationships.set(char2.id, baseRelationship);
+        char2.relationships.set(char1.id, baseRelationship);
       }
     }
   }
