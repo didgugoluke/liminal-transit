@@ -292,6 +292,62 @@ reset_hello_world() {
     # Clean up any cache files
     rm -f /tmp/project_status_cache_* 2>/dev/null || true
     
+    # 1.5. Clean up generated files from previous runs
+    echo -e "${BLUE}🗑️ Cleaning up generated files...${NC}"
+    
+    # Switch to main branch to ensure we're not on story branch when deleting files
+    git checkout main >/dev/null 2>&1 || true
+    
+    # Check if Hello World files exist from previous runs
+    files_to_delete=()
+    if [ -f "src/hello/index.ts" ]; then
+        files_to_delete+=("src/hello/index.ts")
+    fi
+    if [ -f "src/config/hello.config.ts" ]; then
+        files_to_delete+=("src/config/hello.config.ts")
+    fi
+    if [ -d "src/hello" ] && [ -z "$(ls -A src/hello 2>/dev/null)" ]; then
+        files_to_delete+=("src/hello/")
+    fi
+    if [ -d "src/config" ] && [ -z "$(ls -A src/config 2>/dev/null)" ]; then
+        files_to_delete+=("src/config/")
+    fi
+    
+    if [ ${#files_to_delete[@]} -gt 0 ]; then
+        echo "Deleting files from previous Hello World E2E runs:"
+        for file in "${files_to_delete[@]}"; do
+            echo "  - $file"
+            if [ -d "$file" ]; then
+                rm -rf "$file"
+            else
+                rm -f "$file"
+            fi
+        done
+        
+        # Stage and commit the deletions
+        git add . >/dev/null 2>&1 || true
+        
+        # Check if there are changes to commit
+        if ! git diff --staged --quiet 2>/dev/null; then
+            echo "Committing file cleanup..."
+            git commit -m "🧹 E2E Test Cleanup: Remove Hello World files from previous run
+
+- Delete generated TypeScript modules and config files
+- Prepare clean state for fresh Hello World E2E test
+- Auto-cleanup by hello-world-e2e-test.sh script" >/dev/null 2>&1 || true
+            
+            # Push the cleanup commit
+            git push origin main >/dev/null 2>&1 || true
+            echo "✅ File deletions committed and pushed"
+        else
+            echo "No files to clean up"
+        fi
+    else
+        echo "No Hello World files found to clean up"
+    fi
+    
+    echo -e "${GREEN}✅ Files cleaned${NC}"
+    
     # 2. Reset issues to open state
     echo -e "${BLUE}📝 Resetting issue states...${NC}"
     
