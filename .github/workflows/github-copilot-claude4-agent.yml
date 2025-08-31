@@ -22,6 +22,11 @@ jobs:
   github-copilot-claude4-agent:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      actions: write
 
     steps:
       - name: 🔄 Checkout Repository
@@ -29,6 +34,17 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: ⚡ Setup Rate Limiting
+        run: |
+          chmod +x scripts/github-rate-limit-manager.sh
+          if ! scripts/github-rate-limit-manager.sh check; then
+            echo "❌ Rate limits too low"
+            scripts/github-rate-limit-manager.sh emergency "GitHub Copilot Claude 4 Agent"
+            exit 1
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 🔧 Setup Node.js
         uses: actions/setup-node@v4
@@ -45,8 +61,7 @@ jobs:
         continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           node -e "
           const core = require('@actions/core');
@@ -146,6 +161,8 @@ jobs:
 
       - name: 🚀 Create Branch and Commit
         if: steps.git-check.outputs.no_changes == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Configure git
           git config user.name "GitHub Copilot Claude 4 Agent"
