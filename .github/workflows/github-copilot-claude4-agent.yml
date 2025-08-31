@@ -42,15 +42,23 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
 
-      - name: 🔧 Setup Node.js
+      - name: 🔧 Setup Node.js with Cache
         uses: actions/setup-node@v4
         with:
           node-version: "20"
+          cache: "npm"
 
-      - name: 📦 Install Dependencies
+      - name: 📦 Install Dependencies (Cached)
         run: |
-          npm install @octokit/rest @octokit/action @actions/core openai
-          echo "✅ Dependencies installed successfully"
+          # Use existing package.json if available, or install directly
+          if [ -f "package.json" ]; then
+            npm ci --only=prod
+            echo "✅ Dependencies installed from package.json (cached)"
+          else
+            # Fallback to direct install (will be slow first time only)
+            npm install @octokit/rest @octokit/action @actions/core openai
+            echo "✅ Dependencies installed directly"
+          fi
 
       - name: 🤖 GitHub Copilot Claude 4 Agent Analysis
         id: copilot-claude4-analysis
@@ -256,20 +264,20 @@ jobs:
             --body-file /tmp/pr_body.md \
             --head "$BRANCH_NAME" \
             --base main)
-          
+
           rm /tmp/pr_body.md
 
           echo "✅ Pull request created: $PR_URL"
 
           # Add appropriate labels based on task content (following development agent pattern)
           echo "📊 Adding labels based on agent task..."
-          
+
           # Base labels for all GitHub Copilot Claude 4 Agent tasks
           base_labels="ai-agent automated"
-          
+
           # Context-specific labels based on task type
           context_labels=""
-          
+
           # Check task type for specific labels
           task_type="${{ github.event.inputs.agent_task }}"
           if [ "$task_type" = "hello-world-test" ]; then
@@ -282,7 +290,7 @@ jobs:
             context_labels="$context_labels analysis story"
             echo "📖 Story analysis task detected"
           fi
-          
+
           # Apply labels (proven development agent pattern)
           all_labels="$base_labels $context_labels"
           for label in $all_labels; do
@@ -296,7 +304,7 @@ jobs:
               echo "⚠️ Label not found: $label"
             fi
           done
-      
+
       - name: 📊 Workflow Summary
         if: always()
         run: |

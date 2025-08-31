@@ -1,11 +1,13 @@
 # GitHub Copilot Integration Setup Guide
 
 ## 🎯 Overview
+
 This guide explains how to set up GitHub Copilot integration for the GitHub Copilot + Claude 4 Agent.
 
 ## 🔑 Option 1: GitHub Copilot Chat API (Recommended)
 
 ### Prerequisites
+
 - GitHub Copilot Business or Enterprise subscription
 - Repository with Copilot enabled
 - GitHub organization admin access
@@ -13,6 +15,7 @@ This guide explains how to set up GitHub Copilot integration for the GitHub Copi
 ### Steps to Get API Access
 
 1. **Check Copilot Subscription**
+
    ```bash
    # Check if Copilot is enabled for your organization
    gh api /orgs/{org}/copilot/billing
@@ -33,13 +36,14 @@ This guide explains how to set up GitHub Copilot integration for the GitHub Copi
      - **Callback URL**: `https://your-domain.com/auth/callback`
 
 4. **Set Permissions**
+
    ```
    Repository permissions:
    - Contents: Write
    - Pull requests: Write
    - Actions: Write
    - Metadata: Read
-   
+
    Organization permissions:
    - Copilot Chat: Write (when available)
    ```
@@ -80,21 +84,24 @@ For development and testing, you can use the GitHub CLI Copilot extension.
 ### Setup Steps
 
 1. **Install GitHub CLI Copilot Extension**
+
    ```bash
    gh extension install github/gh-copilot
    ```
 
 2. **Authenticate with Copilot**
+
    ```bash
    gh auth login --scopes write:packages,workflow,repo
    gh copilot auth
    ```
 
 3. **Test Copilot Integration**
+
    ```bash
    # Test basic functionality
    gh copilot suggest "create a TypeScript function"
-   
+
    # Test code explanation
    echo "console.log('hello world')" | gh copilot explain
    ```
@@ -118,7 +125,7 @@ env:
   run: |
     # Install gh copilot extension
     gh extension install github/gh-copilot
-    
+
     # Generate code suggestions
     SUGGESTION=$(gh copilot suggest "create a TypeScript Hello World class")
     echo "$SUGGESTION" > generated-code.md
@@ -133,14 +140,14 @@ Combine GitHub's API capabilities with Claude 4's intelligence:
 async function generateCodeWithCopilotClaude4(prompt) {
   // 1. Use GitHub API to get repository context
   const repoContext = await github.repos.getContent({...});
-  
+
   // 2. Send context + prompt to Claude 4
   const claudeResponse = await anthropic.completions.create({
     model: "claude-3-5-sonnet-20241022",
     prompt: `Repository context: ${repoContext}\\n\\nTask: ${prompt}`,
     max_tokens: 2000
   });
-  
+
   // 3. Use GitHub API to create/update files
   await github.repos.createOrUpdateFileContents({
     content: Buffer.from(claudeResponse.completion).toString('base64')
@@ -151,11 +158,12 @@ async function generateCodeWithCopilotClaude4(prompt) {
 ## 🔒 Security Best Practices
 
 1. **Store API Keys Securely**
+
    ```bash
    # Repository secrets (recommended)
    GITHUB_COPILOT_TOKEN
    ANTHROPIC_API_KEY
-   
+
    # Organization secrets (for multiple repos)
    ORG_COPILOT_TOKEN
    ORG_ANTHROPIC_KEY
@@ -179,7 +187,7 @@ Run our test script to validate the integration:
 # Test GitHub API access
 ./scripts/github-copilot-test.sh
 
-# Test Claude 4 API access  
+# Test Claude 4 API access
 ./scripts/claude4-connection-test.sh
 
 # Test complete integration
