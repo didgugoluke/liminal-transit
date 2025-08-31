@@ -272,12 +272,12 @@ function generateConsequenceFromChoice(choice: EnhancedChoice, context: StoryCon
 }
 
 /**
- * Updates relationships between characters based on enhanced choice
+ * Updates relationships between characters
  */
 function updateRelationships(
   relationships: Relationship[],
   characters: Character[],
-  choiceId: string
+  choice: 'Y' | 'N'
 ): Relationship[] {
   // For now, return existing relationships
   // This would be expanded to create new relationships based on character interactions
@@ -306,6 +306,60 @@ function generateSeed(): string {
   const random = Math.random().toString(36).substr(2, 8);
   
   return `${prefix}_${suffix}_${random}`;
+}
+
+/**
+ * Generates enhanced narrative beats with character awareness
+ */
+export function generateEnhancedNarrative(
+  context: StoryContext,
+  choice: 'Y' | 'N'
+): string {
+  const { worldState, characters, consequences } = context;
+  
+  // Character-aware narrative generation
+  const officialMood = characters.find(c => c.id === 'bus_official')?.currentMood || 'neutral';
+  const tension = worldState.tension;
+  const mystery = worldState.mystery;
+  
+  // Create context-aware narrative
+  if (choice === 'Y' && officialMood === 'pleased') {
+    const narratives = [
+      "The official nods curtly. Behind you, whispers suggest not everyone is so compliant. The bus lurches forward into an uncertain dawn.",
+      "Your ticket satisfies the official, but their eyes linger on the mysterious passenger beside you. Something unspoken passes between them.",
+      "Compliance grants passage, yet the other passengers exchange glances that speak of deeper currents beneath this routine stop."
+    ];
+    return narratives[Math.floor(Math.random() * narratives.length)];
+  }
+  
+  if (choice === 'N' && tension > 0.7) {
+    const narratives = [
+      "Your defiance ripples through the bus like a stone through still water. The official's hand moves toward their radio.",
+      "Silence stretches taut as your refusal hangs in the air. Other passengers shrink back, leaving you isolated in your resistance.",
+      "The official's expression hardens. In the dawn light, you glimpse the weight of authority preparing to descend."
+    ];
+    return narratives[Math.floor(Math.random() * narratives.length)];
+  }
+  
+  // Fallback to mystery-based narratives
+  if (mystery > 0.6) {
+    return "The moment crystallizes around an unspoken truth. Nothing here is as simple as it appears.";
+  }
+  
+  return "The story continues to unfold in ways that surprise even the narrator.";
+}
+
+/**
+ * Updates relationships between characters based on enhanced choice
+ */
+function updateRelationships(
+  relationships: Relationship[],
+  characters: Character[],
+  choiceId: string
+): Relationship[] {
+  // For now, return existing relationships
+  // This would be expanded to create new relationships based on character interactions
+  return relationships;
 }
 
 /**
@@ -449,19 +503,4 @@ export function processEnhancedChoice(
   };
   
   return processEnhancedChoiceSelection(context, legacyChoice, narrative);
-}
-
-/**
- * Checks if story should end based on enhanced conditions
- */
-export function shouldStoryEnd(context: StoryContext): boolean {
-  const { metadata, worldState, consequences } = context;
-  
-  // End conditions based on enhanced story state
-  if (metadata.choicesMade >= 8) return true;
-  if (worldState.tension >= 1.0) return true;
-  if (consequences.length >= 5) return true;
-  if (metadata.completionRate >= 100) return true;
-  
-  return false;
 }
