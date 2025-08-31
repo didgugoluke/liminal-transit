@@ -94,7 +94,7 @@ jobs:
               
               # Trigger GitHub Copilot Claude 4 Agent V2
               echo "🤖 Triggering GitHub Copilot Claude 4 Agent V2..."
-              gh workflow run github-copilot-claude4-agent.yml \
+              gh workflow run ai-intelligence-agent-v2.yml \
                 --field agent_task="story-intelligence-analysis" \
                 --field ai_model="$AI_MODEL" \
                 --field story_number="$TARGET_EPIC" \
@@ -111,7 +111,7 @@ jobs:
                 
                 # Phase 1: Core Intelligence
                 echo "Phase 1: Core Intelligence Agents"
-                gh workflow run github-copilot-claude4-agent.yml \
+                gh workflow run ai-intelligence-agent-v2.yml \
                   --field agent_task="contextual-code-generation" \
                   --field ai_model="$AI_MODEL"
                 
@@ -138,7 +138,7 @@ jobs:
                 echo "✅ All V2 Intelligence Agents triggered"
               else
                 echo "🎯 Triggering Core Intelligence Agents only"
-                gh workflow run github-copilot-claude4-agent.yml \
+                gh workflow run ai-intelligence-agent-v2.yml \
                   --field agent_task="predictive-intelligence" \
                   --field ai_model="$AI_MODEL"
               fi
@@ -151,7 +151,7 @@ jobs:
                 echo "🔍 Analyzing Epic #$TARGET_EPIC with V2 Intelligence..."
                 
                 # Story Intelligence Analysis
-                gh workflow run github-copilot-claude4-agent.yml \
+                gh workflow run ai-intelligence-agent-v2.yml \
                   --field agent_task="story-intelligence-analysis" \
                   --field story_number="$TARGET_EPIC" \
                   --field ai_model="$AI_MODEL"
@@ -168,7 +168,7 @@ jobs:
               echo "• From V1 Automation → V2 Intelligence"
               
               # Trigger capability demonstration
-              gh workflow run github-copilot-claude4-agent.yml \
+              gh workflow run ai-intelligence-agent-v2.yml \
                 --field agent_task="hello-world-test" \
                 --field ai_model="$AI_MODEL" \
                 --field debug_mode="true"
