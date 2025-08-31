@@ -1,22 +1,25 @@
-// Narrative Display - Typography-First Story Presentation
-// Core component for displaying story text with atmospheric design
+// Enhanced Narrative Display - Typography-First with Story Intelligence
+// Advanced component for displaying story text with character awareness and atmospheric design
 
 import { useEffect, useRef } from 'react';
+import { StoryContext, Character, WorldState } from '../../types';
 
 export interface NarrativeDisplayProps {
   narrative: string;
+  context?: StoryContext;
   isGenerating?: boolean;
   className?: string;
 }
 
 export function NarrativeDisplay({ 
   narrative, 
+  context,
   isGenerating = false, 
   className = '' 
 }: NarrativeDisplayProps) {
   const textRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to new content
+  // Auto-scroll to new content with smooth behavior
   useEffect(() => {
     if (textRef.current) {
       textRef.current.scrollIntoView({ 
@@ -42,6 +45,16 @@ export function NarrativeDisplay({
     promptText = '(Restart?)';
   }
 
+  // Get atmospheric information from context
+  const worldState = context?.worldState;
+  const recentCharacters = context?.characters?.filter(c => 
+    Date.now() - c.lastSeen.getTime() < 300000 // Active in last 5 minutes
+  ) || [];
+
+  // Calculate atmospheric indicators
+  const tensionLevel = worldState ? Math.round(worldState.tension * 100) : 0;
+  const mysteryLevel = worldState ? Math.round(worldState.mystery * 100) : 0;
+
   return (
     <div 
       ref={textRef}
@@ -50,49 +63,110 @@ export function NarrativeDisplay({
       aria-label="Story narrative"
       aria-live="polite"
     >
+      {/* Atmospheric context bar */}
+      {worldState && (
+        <div className="story-atmosphere mb-6 p-4 rounded-lg bg-gray-900/50 border border-gray-800">
+          <div className="flex items-center justify-between text-xs text-gray-400">
+            <div className="flex items-center gap-4">
+              <span className="flex items-center gap-1">
+                📍 {worldState.location.replace(/_/g, ' ')}
+              </span>
+              <span className="flex items-center gap-1">
+                🌅 {worldState.timeOfDay}
+              </span>
+              <span className="flex items-center gap-1">
+                💭 {worldState.atmosphere}
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1">
+                <span>Tension:</span>
+                <div className="w-12 h-1 bg-gray-700 rounded overflow-hidden">
+                  <div 
+                    className="h-full bg-red-500 transition-all duration-500"
+                    style={{ width: `${tensionLevel}%` }}
+                  />
+                </div>
+              </div>
+              <div className="flex items-center gap-1">
+                <span>Mystery:</span>
+                <div className="w-12 h-1 bg-gray-700 rounded overflow-hidden">
+                  <div 
+                    className="h-full bg-purple-500 transition-all duration-500"
+                    style={{ width: `${mysteryLevel}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Main narrative text */}
       <div className="narrative-text">
         {storyText}
       </div>
       
+      {/* Active characters indicator */}
+      {recentCharacters.length > 0 && (
+        <div className="character-presence mt-6 p-3 rounded-lg bg-blue-900/20 border border-blue-800/30">
+          <div className="text-xs text-blue-300 mb-2">Present Characters</div>
+          <div className="flex flex-wrap gap-2">
+            {recentCharacters.map(character => (
+              <CharacterIndicator key={character.id} character={character} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Choice prompt */}
       {promptText && (
-        <div className="prompt-text text-gray-400 mt-4">
+        <div className="prompt-text mt-6">
           {promptText}
         </div>
       )}
       
+      {/* AI generation indicator */}
       {isGenerating && (
         <div 
-          className="generating-indicator mt-4 text-gray-500"
+          className="generating-indicator mt-6"
           aria-label="Generating next story beat"
         >
-          <span className="inline-flex items-center gap-1">
-            <svg 
-              className="animate-pulse w-3 h-3" 
-              fill="currentColor" 
-              viewBox="0 0 8 8"
-              aria-hidden="true"
-            >
-              <circle cx="4" cy="4" r="1" />
-            </svg>
-            <svg 
-              className="animate-pulse w-3 h-3 animation-delay-150" 
-              fill="currentColor" 
-              viewBox="0 0 8 8"
-              aria-hidden="true"
-            >
-              <circle cx="4" cy="4" r="1" />
-            </svg>
-            <svg 
-              className="animate-pulse w-3 h-3 animation-delay-300" 
-              fill="currentColor" 
-              viewBox="0 0 8 8"
-              aria-hidden="true"
-            >
-              <circle cx="4" cy="4" r="1" />
-            </svg>
-          </span>
+          <div className="flex items-center justify-center gap-2 text-gray-500">
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 bg-current rounded-full animate-pulse" />
+              <div className="w-2 h-2 bg-current rounded-full animate-pulse animation-delay-150" />
+              <div className="w-2 h-2 bg-current rounded-full animate-pulse animation-delay-300" />
+            </div>
+            <span className="text-sm">AI crafting story...</span>
+          </div>
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * Character indicator component for showing active characters
+ */
+function CharacterIndicator({ character }: { character: Character }) {
+  const moodColors = {
+    pleased: 'text-green-400 border-green-600',
+    irritated: 'text-red-400 border-red-600',
+    intrigued: 'text-yellow-400 border-yellow-600',
+    neutral: 'text-gray-400 border-gray-600',
+    suspicious: 'text-orange-400 border-orange-600'
+  };
+
+  const moodColor = moodColors[character.currentMood as keyof typeof moodColors] || moodColors.neutral;
+
+  return (
+    <div 
+      className={`character-indicator px-2 py-1 rounded text-xs border ${moodColor}`}
+      title={`${character.name} - ${character.currentMood}`}
+    >
+      <span className="font-medium">{character.name}</span>
+      <span className="ml-1 opacity-75">({character.currentMood})</span>
     </div>
   );
 }

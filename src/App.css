@@ -1,5 +1,75 @@
-/* AI Native Typography-First Design */
+/* AI Native Typography-First Design - 10x Enhanced */
 /* Following NOVELI.SH design principles: typography is the UI */
+
+/* Advanced Typography System with Fluid Scaling */
+:root {
+  /* Typography Scale (Perfect Fourth - 1.333 ratio) */
+  --text-xs: clamp(0.694rem, 0.65rem + 0.22vw, 0.833rem);    /* 11-13px */
+  --text-sm: clamp(0.833rem, 0.78rem + 0.27vw, 1rem);        /* 13-16px */
+  --text-base: clamp(1rem, 0.93rem + 0.32vw, 1.2rem);        /* 16-19px */
+  --text-lg: clamp(1.2rem, 1.11rem + 0.43vw, 1.44rem);       /* 19-23px */
+  --text-xl: clamp(1.44rem, 1.32rem + 0.58vw, 1.728rem);     /* 23-28px */
+  --text-2xl: clamp(1.728rem, 1.58rem + 0.74vw, 2.074rem);   /* 28-33px */
+  --text-3xl: clamp(2.074rem, 1.88rem + 0.97vw, 2.488rem);   /* 33-40px */
+
+  /* Line Heights for Perfect Reading Rhythm */
+  --leading-tight: 1.25;     /* Headlines */
+  --leading-snug: 1.375;     /* Subheadings */
+  --leading-normal: 1.5;     /* UI text */
+  --leading-relaxed: 1.625;  /* Body text */
+  --leading-loose: 1.75;     /* Reading text */
+
+  /* Font Families with Proper Fallbacks */
+  --font-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  --font-reading: 'Charter', 'Georgia', 'Times New Roman', serif;
+  --font-mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Consolas', monospace;
+
+  /* Spacing Scale (Based on typography) */
+  --space-px: 1px;
+  --space-0: 0;
+  --space-1: 0.25rem;   /* 4px */
+  --space-2: 0.5rem;    /* 8px */
+  --space-3: 0.75rem;   /* 12px */
+  --space-4: 1rem;      /* 16px */
+  --space-5: 1.25rem;   /* 20px */
+  --space-6: 1.5rem;    /* 24px */
+  --space-8: 2rem;      /* 32px */
+  --space-10: 2.5rem;   /* 40px */
+  --space-12: 3rem;     /* 48px */
+  --space-16: 4rem;     /* 64px */
+  --space-20: 5rem;     /* 80px */
+  --space-24: 6rem;     /* 96px */
+
+  /* Reading Optimized Colors */
+  --color-background: #0a0a0a;
+  --color-surface: #1a1a1a;
+  --color-surface-variant: #2a2a2a;
+  --color-on-background: #f5f5f5;
+  --color-on-background-muted: #a1a1aa;
+  --color-on-background-subtle: #71717a;
+  --color-accent: #3b82f6;
+  --color-accent-muted: #1d4ed8;
+  --color-border: #3a3a3a;
+  --color-border-muted: #2a2a2a;
+
+  /* Touch Target Sizes */
+  --touch-target-min: 44px;
+  --touch-target-comfortable: 48px;
+  --touch-target-spacious: 56px;
+
+  /* Animation Timing */
+  --duration-instant: 0ms;
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 350ms;
+  --duration-slower: 500ms;
+
+  /* Easing Functions */
+  --ease-linear: linear;
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+}
 
 #root {
   width: 100%;
@@ -10,190 +80,470 @@
 
 .app {
   min-height: 100vh;
-  background: #0a0a0a;
-  color: #f5f5f5;
+  background: var(--color-background);
+  color: var(--color-on-background);
   display: flex;
   flex-direction: column;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  line-height: 1.6;
+  font-family: var(--font-ui);
+  line-height: var(--leading-normal);
+  
+  /* Typography optimization */
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+  
+  /* Smooth scrolling for better UX */
+  scroll-behavior: smooth;
 }
 
 .app-header {
   text-align: center;
-  padding: 2rem 1rem;
-  border-bottom: 1px solid #2a2a2a;
+  padding: var(--space-8) var(--space-4);
+  border-bottom: 1px solid var(--color-border-muted);
+  background: var(--color-background);
+  
+  /* Sticky header for better mobile UX */
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(8px);
 }
 
 .header-buttons {
   display: flex;
-  gap: 1rem;
+  gap: var(--space-4);
   justify-content: center;
-  margin-top: 1rem;
+  margin-top: var(--space-4);
+  flex-wrap: wrap;
 }
 
 .observatory-toggle,
 .demo-toggle {
-  padding: 0.75rem 1.5rem;
-  background: #1a1a1a;
-  border: 1px solid #3a3a3a;
-  color: #f5f5f5;
-  border-radius: 6px;
+  padding: var(--space-3) var(--space-6);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-on-background);
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 0.9rem;
-  transition: all 0.2s ease;
+  font-size: var(--text-sm);
+  font-family: var(--font-ui);
+  transition: all var(--duration-normal) var(--ease-out);
+  
+  /* Touch-friendly sizing */
+  min-height: var(--touch-target-min);
+  min-width: var(--touch-target-min);
+}
+
+.observatory-toggle:focus,
+.demo-toggle:focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
 .observatory-toggle:hover,
 .demo-toggle:hover {
-  background: #2a2a2a;
-  border-color: #4a4a4a;
+  background: var(--color-surface-variant);
+  border-color: var(--color-border);
+  transform: translateY(-1px);
 }
 
-.observatory-container {
+.observatory-toggle:active,
+.demo-toggle:active {
+  transform: translateY(0);
+}
+
+/* Container styling for different modes */
+.observatory-container,
+.demo-container {
   min-height: 100vh;
+  background: var(--color-background);
+}
+
+.back-to-story {
+  position: fixed;
+  top: var(--space-4);
+  left: var(--space-4);
+  z-index: 20;
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-on-background);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: var(--text-sm);
+  font-family: var(--font-ui);
+  transition: all var(--duration-normal) var(--ease-out);
+}
+
+.back-to-story:hover {
+  background: var(--color-surface-variant);
+  transform: translateY(-1px);
 }
 
 .app-header h1 {
-  font-size: 1.25rem;
+  font-size: var(--text-xl);
   font-weight: 600;
-  margin: 0 0 0.5rem;
+  margin: 0 0 var(--space-2);
   letter-spacing: 0.025em;
-  color: #f5f5f5;
+  color: var(--color-on-background);
+  line-height: var(--leading-tight);
 }
 
 .app-header p {
-  font-size: 0.875rem;
-  color: #a1a1aa;
+  font-size: var(--text-sm);
+  color: var(--color-on-background-muted);
   margin: 0;
+  line-height: var(--leading-normal);
 }
 
 .app-main {
   flex: 1;
   display: flex;
   justify-content: center;
-  padding: 2rem 1.5rem;
+  padding: var(--space-8) var(--space-6);
+  
+  /* Improve content centering */
+  align-items: flex-start;
 }
 
 .story-container {
   width: 100%;
   max-width: 42rem; /* ~672px - optimal reading width */
+  
+  /* Better spacing for story content */
+  padding: 0 var(--space-4);
 }
 
-.story-interface {
-  /* Typography-first spacing */
+.story-interface > * + * {
+  margin-top: var(--space-6);
 }
 
+/* Premium Typography for Story Content */
 .narrative-display {
-  margin-bottom: 3rem;
+  margin-bottom: var(--space-12);
+  
+  /* Ambient entrance animation */
+  animation: narrativeEnter var(--duration-slow) var(--ease-out);
+}
+
+@keyframes narrativeEnter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .narrative-text {
-  font-size: 1.125rem;
-  line-height: 1.75;
-  color: #f5f5f5;
-  margin-bottom: 1.5rem;
-  /* Optimal reading typography */
+  font-family: var(--font-reading);
+  font-size: var(--text-lg);
+  line-height: var(--leading-loose);
+  color: var(--color-on-background);
+  margin-bottom: var(--space-6);
+  
+  /* Advanced reading optimization */
   text-wrap: pretty;
+  hanging-punctuation: first last;
+  hyphens: auto;
+  hyphenate-limit-chars: 6 3 3;
+  hyphenate-limit-lines: 2;
+  hyphenate-limit-last: always;
+  hyphenate-limit-zone: 8%;
+  
+  /* Reading rhythm with optimal character count */
+  max-width: 65ch;
+  
+  /* Subtle text shadow for better readability */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .prompt-text {
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   text-align: center;
-  font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', 'Consolas', monospace;
+  font-family: var(--font-mono);
   letter-spacing: 0.05em;
+  color: var(--color-on-background-muted);
+  line-height: var(--leading-normal);
+  
+  /* Monospace text centering */
+  text-align: center;
 }
 
 .generating-indicator {
   text-align: center;
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
+  color: var(--color-on-background-subtle);
+  font-family: var(--font-ui);
+  
+  /* Breathing animation for AI processing */
+  animation: breathe 2s ease-in-out infinite;
 }
 
+@keyframes breathe {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* Enhanced Choice Interaction System */
 .choice-buttons {
   text-align: center;
+  
+  /* Better spacing from narrative */
+  margin-top: var(--space-16);
 }
 
 .choice-buttons .flex {
-  gap: 1.5rem;
+  gap: var(--space-6);
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  align-items: center;
 }
 
 .choice-buttons button {
-  min-width: 5rem;
-  font-size: 1rem;
-  padding: 0.875rem 1.75rem;
-  /* Large touch targets for accessibility */
-  min-height: 44px;
+  /* Typography */
+  font-family: var(--font-ui);
+  font-size: var(--text-base);
+  font-weight: 500;
+  
+  /* Sizing for optimal touch targets */
+  min-width: var(--touch-target-spacious);
+  min-height: var(--touch-target-spacious);
+  padding: var(--space-4) var(--space-8);
+  
+  /* Visual design */
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  color: var(--color-on-background);
+  border-radius: 12px;
+  cursor: pointer;
+  
+  /* Interactive states */
+  transition: all var(--duration-normal) var(--ease-out);
+  position: relative;
+  overflow: hidden;
+}
+
+.choice-buttons button:focus {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.choice-buttons button:hover {
+  background: var(--color-surface-variant);
+  border-color: var(--color-accent-muted);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
+}
+
+.choice-buttons button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+}
+
+.choice-buttons button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.choice-buttons button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(59, 130, 246, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width var(--duration-fast) ease, height var(--duration-fast) ease;
+}
+
+.choice-buttons button:active::before {
+  width: 120%;
+  height: 120%;
 }
 
 .app-footer {
-  padding: 1rem 1.5rem;
+  padding: var(--space-4) var(--space-6);
   text-align: center;
-  border-top: 1px solid #2a2a2a;
-  font-size: 0.75rem;
-  color: #71717a;
+  border-top: 1px solid var(--color-border-muted);
+  font-size: var(--text-xs);
+  color: var(--color-on-background-subtle);
+  line-height: var(--leading-normal);
+  
+  /* Subtle background for separation */
+  background: var(--color-background);
 }
 
-/* Animation delays for generating indicator */
+/* Advanced Animation System */
 .animation-delay-150 {
-  animation-delay: 150ms;
+  animation-delay: var(--duration-fast);
 }
 
 .animation-delay-300 {
-  animation-delay: 300ms;
+  animation-delay: var(--duration-normal);
 }
 
-/* Mobile-first responsive adjustments */
+/* Enhanced Responsive Design - Mobile First */
 @media (max-width: 640px) {
   .app-header {
-    padding: 1.5rem 1rem 0.75rem;
+    padding: var(--space-6) var(--space-4) var(--space-3);
   }
   
   .app-main {
-    padding: 1.5rem 1rem;
+    padding: var(--space-6) var(--space-3);
+  }
+  
+  .story-container {
+    padding: 0 var(--space-2);
   }
   
   .narrative-text {
-    font-size: 1rem;
+    font-size: var(--text-base);
+    line-height: var(--leading-relaxed);
   }
   
   .choice-buttons .flex {
-    gap: 1rem;
+    gap: var(--space-4);
+    flex-direction: column;
   }
   
   .choice-buttons button {
-    min-width: 4rem;
-    padding: 0.75rem 1.5rem;
+    min-width: auto;
+    width: 100%;
+    max-width: 280px;
+    padding: var(--space-4) var(--space-6);
+  }
+  
+  .header-buttons {
+    gap: var(--space-3);
+  }
+  
+  .observatory-toggle,
+  .demo-toggle {
+    font-size: var(--text-xs);
+    padding: var(--space-2) var(--space-4);
   }
 }
 
-/* Dark theme focus indicators */
+/* Tablet optimizations */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .app-main {
+    padding: var(--space-10) var(--space-6);
+  }
+  
+  .choice-buttons .flex {
+    gap: var(--space-8);
+  }
+}
+
+/* Large screen optimizations */
+@media (min-width: 1025px) {
+  .app-main {
+    padding: var(--space-12) var(--space-8);
+  }
+  
+  .narrative-text {
+    font-size: var(--text-xl);
+  }
+}
+
+/* Enhanced Accessibility & Focus States */
 *:focus {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid var(--color-accent);
   outline-offset: 2px;
+}
+
+/* Screen reader only content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* High contrast mode support */
 @media (prefers-contrast: high) {
-  .app {
-    background: #000;
-    color: #fff;
+  :root {
+    --color-background: #000;
+    --color-surface: #111;
+    --color-on-background: #fff;
+    --color-border: #666;
+    --color-accent: #00bfff;
   }
   
   .app-header {
-    border-bottom-color: #666;
+    border-bottom-color: var(--color-border);
   }
   
   .app-footer {
-    border-top-color: #666;
+    border-top-color: var(--color-border);
+  }
+  
+  .choice-buttons button {
+    border-width: 3px;
   }
 }
 
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
-  .animate-pulse {
-    animation: none;
+  * {
+    animation-duration: var(--duration-instant) !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: var(--duration-instant) !important;
+    scroll-behavior: auto !important;
   }
   
-  .animate-spin {
+  .breathe,
+  .narrativeEnter {
     animation: none;
+  }
+}
+
+/* Light theme support (for system preference) */
+@media (prefers-color-scheme: light) {
+  :root {
+    --color-background: #fafafa;
+    --color-surface: #ffffff;
+    --color-surface-variant: #f5f5f5;
+    --color-on-background: #1a1a1a;
+    --color-on-background-muted: #525252;
+    --color-on-background-subtle: #737373;
+    --color-border: #e5e5e5;
+    --color-border-muted: #f5f5f5;
+  }
+  
+  .narrative-text {
+    text-shadow: none;
+  }
+}
+
+/* Print styles */
+@media print {
+  .app-header,
+  .app-footer,
+  .choice-buttons {
+    display: none;
+  }
+  
+  .narrative-text {
+    color: #000;
+    font-family: Georgia, serif;
+  }
+  
+  .app {
+    background: white;
   }
 }
