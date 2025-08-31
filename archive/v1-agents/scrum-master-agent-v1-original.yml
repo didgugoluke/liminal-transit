@@ -1,4 +1,4 @@
-name: 📦 [ARCHIVED V1] 🏃‍♂️ Scrum Master Agent - Story Lifecycle Management
+name: 🏃‍♂️ Scrum Master Agent - Story Lifecycle Management
 
 on:
   issue_comment:
@@ -29,8 +29,7 @@ permissions:
 jobs:
   scrum-master:
     runs-on: ubuntu-latest
-    # V1 AGENT ARCHIVED - Disabled for V2 transition. Remove this condition to reactivate.
-    if: false &&
+    if: |
       (github.event_name == 'workflow_dispatch') ||
       ((contains(github.event.comment.body, 'scrum master agent') || contains(github.event.comment.body, '/handoff_to_copilot')) && 
        (contains(github.event.issue.labels.*.name, 'epic-story') || 
@@ -306,8 +305,7 @@ jobs:
           PROJECT_ID: ${{ env.PROJECT_ID }}
 
       - name: 🎯 Schedule Next Actions
-    # V1 AGENT ARCHIVED - Disabled for V2 transition. Remove this condition to reactivate.
-    if: false &&
+        if: steps.execute.outputs.next_action
         env:
           STORY_NUMBER: ${{ env.STORY_NUMBER }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -360,8 +358,7 @@ jobs:
           echo "🚀 Story Lifecycle: MANAGED"
 
       - name: 💬 Update Test Case Issue
-    # V1 AGENT ARCHIVED - Disabled for V2 transition. Remove this condition to reactivate.
-    if: false &&
+        if: env.STORY_NUMBER == '54'
         env:
           STORY_NUMBER: ${{ env.STORY_NUMBER }}
           ACTION: ${{ env.ACTION }}

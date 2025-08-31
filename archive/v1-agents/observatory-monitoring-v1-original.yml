@@ -1,9 +1,7 @@
-name: 📦 [ARCHIVED V1] 🔭 Observatory Monitoring
+name: 🔭 Observatory Monitoring
 
 on:
   schedule:
-    # V1 AGENT ARCHIVED - Disabled for V2 transition. Remove this condition to reactivate.
-    if: false
     - cron: "*/15 * * * *" # Every 15 minutes
   workflow_dispatch: # Manual trigger
 

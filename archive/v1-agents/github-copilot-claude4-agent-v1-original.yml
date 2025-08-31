@@ -1,9 +1,7 @@
-name: 📦 [ARCHIVED V1] 🤖 GitHub Copilot Claude 4 Agent
+name: 🤖 GitHub Copilot Claude 4 Agent
 
 on:
   workflow_dispatch:
-    # V1 AGENT ARCHIVED - Disabled for V2 transition. Remove this condition to reactivate.
-    if: false
     inputs:
       agent_task:
         description: "Task for the GitHub Copilot Claude 4 Agent"

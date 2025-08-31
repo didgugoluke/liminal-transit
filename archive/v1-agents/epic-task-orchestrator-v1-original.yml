@@ -1,4 +1,4 @@
-name: 📦 [ARCHIVED V1] 🤖 AI Project Manager - Epic Task Orchestrator
+name: 🤖 AI Project Manager - Epic Task Orchestrator
 
 on:
   issues:
@@ -15,8 +15,7 @@ permissions:
 jobs:
   epic-task-orchestrator:
     runs-on: ubuntu-latest
-    # V1 AGENT ARCHIVED - Disabled for V2 transition. Remove this condition to reactivate.
-    if: false &&
+    if: contains(github.event.issue.labels.*.name, 'epic') || contains(github.event.comment.body, 'AI Agent Epic breakdown')
 
     steps:
       - name: 🏗️ Checkout Repository
@@ -91,8 +90,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 📋 Create Task Issues from Epic
-    # V1 AGENT ARCHIVED - Disabled for V2 transition. Remove this condition to reactivate.
-    if: false &&
+        if: steps.epic_analysis.outputs.tasks_found == 'true'
         id: create_tasks
         run: |
           echo "Creating individual task issues..."
@@ -177,8 +175,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 📊 Add Tasks to GitHub Project
-    # V1 AGENT ARCHIVED - Disabled for V2 transition. Remove this condition to reactivate.
-    if: false &&
+        if: steps.create_tasks.outputs.created_issues != ''
         run: |
           echo "Adding tasks to GitHub Project..."
 
@@ -212,8 +209,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 🔗 Observatory Integration
-    # V1 AGENT ARCHIVED - Disabled for V2 transition. Remove this condition to reactivate.
-    if: false &&
+        if: steps.create_tasks.outputs.created_issues != ''
         run: |
           echo "Integrating with AI Observatory..."
 
@@ -261,8 +257,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 📝 Commit Observatory Updates
-    # V1 AGENT ARCHIVED - Disabled for V2 transition. Remove this condition to reactivate.
-    if: false &&
+        if: steps.create_tasks.outputs.created_issues != ''
         run: |
           git config user.name "AI Project Manager"
           git config user.email "ai-project-manager@noveli.sh"

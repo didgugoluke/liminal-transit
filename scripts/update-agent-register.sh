@@ -66,8 +66,15 @@ tail -n +2 "$REGISTER_FILE" | while IFS=',' read -r agent_id agent_name agent_ty
     
     # Update production status based on workflow existence
     if [ ! -z "$workflow_file" ] && [ "$workflow_file" != "TBD" ] && [ -f "$workflow_file" ]; then
-        prod_status="✅ Operational"
-        dev_status="✅ Complete"
+        # Check if agent is archived (don't override archived status)
+        if [[ "$prod_status" == "📦 Archived (V1 Baseline)" ]]; then
+            # Keep archived status
+            prod_status="📦 Archived (V1 Baseline)"
+            dev_status="✅ Complete"
+        else
+            prod_status="✅ Operational"
+            dev_status="✅ Complete"
+        fi
     elif [[ "$agent_id" == *"observatory"* ]] || [[ "$agent_id" == *"storygen"* ]] || [[ "$agent_id" == *"qualityguard"* ]] || [[ "$agent_id" == *"experimentlab"* ]] || [[ "$agent_id" == *"debugmaster"* ]]; then
         prod_status="🚧 Epic 2 Development"
         dev_status="🔄 In Development"
@@ -95,6 +102,9 @@ echo "========================"
 
 echo -n "✅ Operational Agents: "
 grep -c "✅ Operational" "$REGISTER_FILE" || echo "0"
+
+echo -n "📦 Archived (V1 Baseline): "
+grep -c "📦 Archived" "$REGISTER_FILE" || echo "0"
 
 echo -n "🔄 In Development: "
 grep -c "🔄 In Development" "$REGISTER_FILE" || echo "0"
