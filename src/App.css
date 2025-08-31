@@ -19,38 +19,34 @@
 }
 
 .app-header {
-  padding: 2rem 1.5rem 1rem;
   text-align: center;
+  padding: 2rem 1rem;
   border-bottom: 1px solid #2a2a2a;
-  position: relative;
 }
 
-.observatory-toggle, .back-to-story {
-  position: absolute;
-  top: 2rem;
-  right: 1.5rem;
-  background: #3b82f6;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
+.header-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.observatory-toggle,
+.demo-toggle {
+  padding: 0.75rem 1.5rem;
+  background: #1a1a1a;
+  border: 1px solid #3a3a3a;
+  color: #f5f5f5;
   border-radius: 6px;
-  font-size: 0.875rem;
   cursor: pointer;
+  font-size: 0.9rem;
   transition: all 0.2s ease;
 }
 
-.observatory-toggle:hover, .back-to-story:hover {
-  background: #2563eb;
-  transform: translateY(-1px);
-}
-
-.back-to-story {
-  position: fixed;
-  top: 1rem;
-  left: 1rem;
-  z-index: 1000;
-  background: rgba(59, 130, 246, 0.9);
-  backdrop-filter: blur(10px);
+.observatory-toggle:hover,
+.demo-toggle:hover {
+  background: #2a2a2a;
+  border-color: #4a4a4a;
 }
 
 .observatory-container {
