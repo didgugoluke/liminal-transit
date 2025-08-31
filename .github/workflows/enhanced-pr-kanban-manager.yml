@@ -50,12 +50,12 @@ jobs:
           echo "🔍 Analyzing PR #$PR_NUMBER..."
 
           PR_DATA=$(gh pr view "$PR_NUMBER" --json title,body,isDraft,files,reviews)
-          
+
           PR_TITLE=$(echo "$PR_DATA" | jq -r '.title')
           IS_DRAFT=$(echo "$PR_DATA" | jq -r '.isDraft')
           FILE_COUNT=$(echo "$PR_DATA" | jq '.files | length')
           ADDITIONS=$(echo "$PR_DATA" | jq '.files | map(.additions) | add // 0')
-          
+
           # Extract issue number
           ISSUE_NUM=$(echo "$PR_DATA" | jq -r '.body' | grep -oE "Fixes #([0-9]+)" | grep -oE "[0-9]+" | head -1 || echo "")
 
@@ -87,11 +87,11 @@ jobs:
 
           # Simple risk scoring: 0-3 points
           RISK_SCORE=0
-          
+
           if [ "$FILE_COUNT" -gt 10 ]; then
             RISK_SCORE=$((RISK_SCORE + 1))
           fi
-          
+
           if [ "$ADDITIONS" -gt 200 ]; then
             RISK_SCORE=$((RISK_SCORE + 1))
           fi
@@ -120,7 +120,7 @@ jobs:
 
           # Approve and merge
           gh pr review "$PR_NUMBER" --approve --body "🤖 Auto-approved: Low-risk Copilot PR"
-          
+
           if gh pr merge "$PR_NUMBER" --squash --delete-branch; then
             echo "✅ PR merged successfully"
             
