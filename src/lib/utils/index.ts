@@ -81,8 +81,19 @@ export function sanitizeInput(input: string): string {
   return input
     .trim()
     .slice(0, 200) // Limit length
-    .replace(/[<>]/g, '') // Remove potential HTML
-    .replace(/\n\n+/g, '\n'); // Normalize whitespace
+    // Remove potential HTML/script tags
+    .replace(/<.*?script.*?>.*?<\/.*?script.*?>/gi, '')
+    .replace(/[<>]/g, '')
+    // Remove common SQL injection patterns
+    .replace(/(--|;|\/\*|\*\/|xp_)/gi, '')
+    // Remove common prompt injection patterns
+    .replace(/(###|---|<<|>>|{{|}}|\[.*?\]\(.*?\))/g, '')
+    // Remove javascript: and data: URIs
+    .replace(/(javascript:|data:)/gi, '')
+    // Remove any remaining suspicious curly braces or brackets
+    .replace(/[\{\}\[\]]/g, '')
+    // Normalize whitespace
+    .replace(/\n\n+/g, '\n');
 }
 
 /**
