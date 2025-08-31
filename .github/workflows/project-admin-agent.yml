@@ -110,13 +110,13 @@ jobs:
           # Determine risk level with detailed reasoning
           RISK_LEVEL="medium"
           RISK_REASONS=()
-          
+
           # Start with Hello World detection
           if [[ "$PR_TITLE" == *"Hello World"* || "$PR_TITLE" == *"hello world"* ]]; then
             RISK_LEVEL="low"
             RISK_REASONS+=("Hello World scenario detected")
           fi
-          
+
           # AI Agent PRs get baseline analysis
           if [[ "$PR_LABELS" == *"ai-agent"* ]]; then
             RISK_REASONS+=("AI Agent generated PR")
@@ -164,7 +164,7 @@ jobs:
           fi
 
           echo "risk_level=$RISK_LEVEL" >> $GITHUB_OUTPUT
-          
+
           # Convert reasons array to comma-separated string for output
           RISK_REASONS_STR=$(IFS=','; echo "${RISK_REASONS[*]}")
           echo "risk_reasons=$RISK_REASONS_STR" >> $GITHUB_OUTPUT

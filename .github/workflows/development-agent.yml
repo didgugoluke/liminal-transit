@@ -795,17 +795,25 @@ jobs:
                     echo "📝 No Prettier config found, skipping formatting"
                   fi
                   
+                  # Re-check for changes after formatting (Prettier might have fixed everything)
                   git add .
-                  git commit -m "🚀 Enhanced Development Agent: Implement tasks for Story #$STORY_NUMBER - $(echo "$TASK_NUMBERS" | wc -w) tasks processed with modular handlers - $STORY_TITLE"
                   
-                  # Push with conflict resolution
-                  echo "📤 Pushing changes to branch: $BRANCH_NAME"
-                  if ! git push origin "$BRANCH_NAME"; then
-                    echo "⚠️ Push failed, attempting to resolve conflicts..."
-                    git pull origin "$BRANCH_NAME" --rebase || echo "ℹ️ No remote changes to rebase"
-                    git push origin "$BRANCH_NAME"
+                  # Final check before commit
+                  if git diff --staged --quiet; then
+                    echo "ℹ️ No changes to commit after formatting - all files were already properly formatted"
+                  else
+                    echo "📝 Committing changes after formatting..."
+                    git commit -m "🚀 Enhanced Development Agent: Implement tasks for Story #$STORY_NUMBER - $(echo "$TASK_NUMBERS" | wc -w) tasks processed with modular handlers - $STORY_TITLE"
+                    
+                    # Push with conflict resolution
+                    echo "📤 Pushing changes to branch: $BRANCH_NAME"
+                    if ! git push origin "$BRANCH_NAME"; then
+                      echo "⚠️ Push failed, attempting to resolve conflicts..."
+                      git pull origin "$BRANCH_NAME" --rebase || echo "ℹ️ No remote changes to rebase"
+                      git push origin "$BRANCH_NAME"
+                    fi
+                    echo "✅ All task implementations committed and pushed"
                   fi
-                  echo "✅ All task implementations committed and pushed"
                 else
                   echo "⚠️ No changes to commit"
                 fi
