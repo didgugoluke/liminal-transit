@@ -35,8 +35,6 @@ export function NarrativeDisplay({
       const timer = setTimeout(() => setIsNewContent(false), 800);
       return () => clearTimeout(timer);
     }
-    // Return undefined if no narrative (satisfies TypeScript)
-    return undefined;
   }, [narrative]);
 
   // Extract the choice prompt from narrative if present
