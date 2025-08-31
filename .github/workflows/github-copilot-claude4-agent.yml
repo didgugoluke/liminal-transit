@@ -202,8 +202,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Create PR using GitHub CLI
-          gh pr create \
+          # Create PR using GitHub CLI (following proven development agent pattern)
+          echo "📝 Creating pull request..."
+
+          # Create the PR first WITHOUT labels (proven pattern)
+          PR_URL=$(gh pr create \
             --title "🤖 GitHub Copilot Claude 4 Hello World Implementation" \
             --body "## GitHub Copilot + Claude 4 Agent Implementation
 
@@ -251,10 +254,36 @@ jobs:
 
           **Ready for review and merge!** ✅" \
             --head "$BRANCH_NAME" \
-            --base main \
-            --label "copilot-claude4-agent,hello-world,typescript,ai-generated"
-
-          echo "✅ Pull Request created successfully"
+            --base main)
+          
+          echo "✅ Pull request created: $PR_URL"
+          
+          # Extract PR number for label operations
+          PR_NUMBER=$(echo "$PR_URL" | grep -o '[0-9]*$')
+          echo "🔍 Extracted PR number: $PR_NUMBER"
+          
+          # Now add labels separately (following proven development agent pattern)
+          echo "🏷️ Adding labels to PR..."
+          
+          # Define base labels for Copilot Claude 4 agent
+          base_labels="ai-agent automated"
+          context_labels="typescript hello-world"
+          
+          # Apply labels with error handling (proven pattern)
+          all_labels="$base_labels $context_labels"
+          for label in $all_labels; do
+            if gh label list | grep -q "^$label"; then
+              if gh pr edit "$PR_URL" --add-label "$label" 2>/dev/null; then
+                echo "✅ Added label: $label"
+              else
+                echo "⚠️ Failed to add label: $label (non-critical)"
+              fi
+            else
+              echo "ℹ️ Label not found: $label (will skip)"
+            fi
+          done
+          
+          echo "✅ Pull Request created successfully with labels"
 
       - name: 📊 Workflow Summary
         if: always()
