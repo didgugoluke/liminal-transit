@@ -44,57 +44,39 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 🔧 Setup V2 Intelligence Environment
+      - name: 🔧 Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
         run: |
-          echo "🧠 Initializing Quality Intelligence Agent V2..."
-          echo "📋 Task: ${{ github.event.inputs.quality_task }}"
-          echo "🤖 AI Model: ${{ github.event.inputs.ai_model }}"
-          echo "🎯 Target PR: ${{ github.event.inputs.target_pr }}"
+          echo "🔧 Installing dependencies for AI Provider Service integration..."
+          npm install --production
+          echo "✅ Dependencies installed"
 
       - name: 🧠 Quality Intelligence V2 Analysis
         id: quality-analysis
         env:
           GITHUB_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+          QUALITY_TASK: ${{ github.event.inputs.quality_task }}
+          AI_MODEL: ${{ github.event.inputs.ai_model }}
+          TARGET_PR: ${{ github.event.inputs.target_pr }}
         run: |
           echo "🔍 Starting Quality Intelligence V2 Analysis..."
+          echo "========================================"
+          echo "🧠 Using Dual AI Architecture (GitHub Copilot + Claude 4)"
+          echo "📋 Task: ${{ github.event.inputs.quality_task }}"
+          echo "🤖 AI Model: ${{ github.event.inputs.ai_model }}"
+          echo "🎯 Target PR: ${{ github.event.inputs.target_pr }}"
+          echo ""
           
-          # Placeholder for V2 Quality Intelligence implementation
-          # This will be implemented in Phase 2 of Epic 2
+          # Run Quality Intelligence Agent with AI Provider Service integration
+          node scripts/quality-intelligence-agent.cjs
           
-          TASK="${{ github.event.inputs.quality_task }}"
-          AI_MODEL="${{ github.event.inputs.ai_model }}"
-          TARGET_PR="${{ github.event.inputs.target_pr }}"
-          
-          case "$TASK" in
-            "predictive-bug-detection")
-              echo "🔮 Predictive Bug Detection with $AI_MODEL"
-              echo "• Analyzing code patterns for potential bugs"
-              echo "• Cross-referencing with historical bug data"
-              echo "• Generating predictive insights"
-              ;;
-            "semantic-code-review")
-              echo "📝 Semantic Code Review with $AI_MODEL"
-              echo "• Understanding code intent and context"
-              echo "• Identifying logical inconsistencies"
-              echo "• Suggesting improvements"
-              ;;
-            "quality-metrics-analysis")
-              echo "📊 Quality Metrics Analysis with $AI_MODEL"
-              echo "• Analyzing code complexity trends"
-              echo "• Predicting maintenance burden"
-              echo "• Recommending refactoring opportunities"
-              ;;
-            "regression-prediction")
-              echo "⚠️ Regression Prediction with $AI_MODEL"
-              echo "• Analyzing change impact"
-              echo "• Predicting regression risks"
-              echo "• Recommending additional testing"
-              ;;
-          esac
-          
+          echo ""
           echo "✅ Quality Intelligence V2 Analysis completed"
-          echo "phase=2" >> $GITHUB_OUTPUT
-          echo "agent_type=quality-intelligence" >> $GITHUB_OUTPUT
 
       - name: 📊 Quality Intelligence Summary
         run: |
@@ -103,8 +85,11 @@ jobs:
           echo "📋 Task: ${{ github.event.inputs.quality_task }}"
           echo "🤖 AI Model: ${{ github.event.inputs.ai_model }}"
           echo "🎯 Target PR: ${{ github.event.inputs.target_pr }}"
-          echo "🔄 Phase: ${{ steps.quality-analysis.outputs.phase }}"
-          echo "🧠 Agent Type: ${{ steps.quality-analysis.outputs.agent_type }}"
+          echo "🔄 Analysis Status: ${{ steps.quality-analysis.outputs.analysis_complete }}"
+          echo "⚠️ Risk Level: ${{ steps.quality-analysis.outputs.risk_level }}"
+          echo "🧠 Model Used: ${{ steps.quality-analysis.outputs.model_used }}"
+          echo "🔢 Tokens Used: ${{ steps.quality-analysis.outputs.tokens_used }}"
+          echo "⏱️ Response Time: ${{ steps.quality-analysis.outputs.response_time }}ms"
           echo ""
-          echo "✅ Phase 2 Quality Intelligence foundation ready"
-          echo "🚀 Next: Complete Phase 2 implementation"
+          echo "✅ V2 Quality Intelligence with Claude 4 integration complete"
+          echo "🚀 Advanced code analysis and predictive bug detection operational"
