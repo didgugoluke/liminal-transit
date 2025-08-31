@@ -1,0 +1,1410 @@
+openapi: 3.0.3
+info:
+  title: NOVELI.SH API
+  description: |
+    AI Native Interactive Storytelling Platform API
+    
+    This API provides endpoints for creating and managing interactive AI-generated stories,
+    user authentication and management, analytics, and AI model optimization.
+    
+    Built on AWS Well-Architected Framework principles with enterprise-grade compliance.
+  version: 1.0.0
+  contact:
+    name: NOVELI.SH Development Team
+    url: https://github.com/didgugoluke/liminal-transit
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.noveli.sh/v1
+    description: Production server
+  - url: https://api-dev.noveli.sh/v1
+    description: Development server
+  - url: http://localhost:3000/api
+    description: Local development server
+
+security:
+  - CognitoAuth: []
+paths:
+  # Authentication Endpoints
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User login
+      description: Authenticate user with Cognito and return JWT tokens
+      operationId: loginUser
+      security: []  # No auth required for login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /auth/refresh:
+    post:
+      tags:
+        - Authentication
+      summary: Refresh JWT token
+      description: Refresh access token using refresh token
+      operationId: refreshToken
+      security: []  # Uses refresh token in body
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: User logout
+      description: Invalidate user session and tokens
+      operationId: logoutUser
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: User registration
+      description: Register new user with Cognito
+      operationId: registerUser
+      security: []  # No auth required for registration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+
+  # User Management Endpoints
+  /user/profile:
+    get:
+      tags:
+        - User Management
+      summary: Get user profile
+      description: Retrieve current user's profile information
+      operationId: getUserProfile
+      responses:
+        '200':
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+    put:
+      tags:
+        - User Management
+      summary: Update user profile
+      description: Update current user's profile information
+      operationId: updateUserProfile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserProfileRequest'
+      responses:
+        '200':
+          description: User profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /user/preferences:
+    get:
+      tags:
+        - User Management
+      summary: Get user preferences
+      description: Retrieve current user's preferences
+      operationId: getUserPreferences
+      responses:
+        '200':
+          description: User preferences retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPreferences'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+    post:
+      tags:
+        - User Management
+      summary: Update user preferences
+      description: Update current user's preferences
+      operationId: updateUserPreferences
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserPreferencesRequest'
+      responses:
+        '200':
+          description: User preferences updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPreferences'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /user/history:
+    get:
+      tags:
+        - User Management
+      summary: Get user story history
+      description: Retrieve user's story session history
+      operationId: getUserHistory
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of results to return
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          description: Number of results to skip
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: status
+          in: query
+          description: Filter by session status
+          schema:
+            type: string
+            enum: [active, completed, abandoned]
+      responses:
+        '200':
+          description: User history retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserHistoryResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /user/data:
+    delete:
+      tags:
+        - User Management
+      summary: Delete user data (GDPR)
+      description: Delete all user data for GDPR compliance
+      operationId: deleteUserData
+      responses:
+        '202':
+          description: User data deletion initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataDeletionResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  # Story Generation Endpoints
+  /story/start:
+    post:
+      tags:
+        - Story Generation
+      summary: Start new story
+      description: Generate the opening of a new interactive story
+      operationId: startStory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartStoryRequest'
+      responses:
+        '201':
+          description: Story started successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StoryResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /story/continue:
+    post:
+      tags:
+        - Story Generation
+      summary: Continue story
+      description: Generate next story beat based on user choice
+      operationId: continueStory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContinueStoryRequest'
+      responses:
+        '200':
+          description: Story continued successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StoryResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /story/session/{sessionId}:
+    get:
+      tags:
+        - Story Generation
+      summary: Get story session
+      description: Retrieve complete story session data
+      operationId: getStorySession
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          description: Unique story session identifier
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Story session retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorySession'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+    delete:
+      tags:
+        - Story Generation
+      summary: Delete story session
+      description: Delete story session and all associated data
+      operationId: deleteStorySession
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          description: Unique story session identifier
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Story session deleted successfully
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /story/sessions:
+    get:
+      tags:
+        - Story Generation
+      summary: List user story sessions
+      description: Get list of user's story sessions
+      operationId: listStorySessions
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of results to return
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          description: Number of results to skip
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Story sessions retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorySessionsResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  # Analytics Endpoints
+  /analytics/dashboard:
+    get:
+      tags:
+        - Analytics
+      summary: Get analytics dashboard data
+      description: Retrieve dashboard analytics data (admin only)
+      operationId: getAnalyticsDashboard
+        - CognitoAuth: []
+      parameters:
+        - name: timeRange
+          in: query
+          description: Time range for analytics data
+          schema:
+            type: string
+            enum: [1h, 24h, 7d, 30d, 90d]
+            default: 24h
+        - name: metrics
+          in: query
+          description: Specific metrics to include
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [sessions, users, completions, quality, engagement]
+      responses:
+        '200':
+          description: Analytics dashboard data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsDashboard'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /analytics/event:
+    post:
+      tags:
+        - Analytics
+      summary: Record analytics event
+      description: Record user interaction or system event for analytics
+      operationId: recordAnalyticsEvent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnalyticsEventRequest'
+      responses:
+        '202':
+          description: Analytics event recorded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  # AI Model Management Endpoints
+  /ai/health:
+    get:
+      tags:
+        - AI Management
+      summary: Check AI provider health
+      description: Get health status of all AI providers
+      operationId: checkAIProviderHealth
+      security:
+        - CognitoAuth: [admin, developer]
+      responses:
+        '200':
+          description: AI provider health retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AIHealthResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /ai/optimize:
+    post:
+      tags:
+        - AI Management
+      summary: Optimize AI model
+      description: Trigger AI model optimization based on usage data
+      operationId: optimizeAIModel
+      security:
+        - CognitoAuth: [admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AIOptimizeRequest'
+      responses:
+        '202':
+          description: AI optimization initiated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AIOptimizeResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+components:
+  securitySchemes:
+    CognitoAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: AWS Cognito JWT token authentication
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for programmatic access
+
+  schemas:
+    # Authentication Schemas
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          format: email
+          description: User email address
+        password:
+          type: string
+          format: password
+          minLength: 8
+          description: User password
+        rememberMe:
+          type: boolean
+          default: false
+          description: Keep user logged in for extended period
+
+    RegisterRequest:
+      type: object
+      required:
+        - username
+        - password
+        - email
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 50
+          pattern: '^[a-zA-Z0-9_-]+$'
+          description: Unique username
+        password:
+          type: string
+          format: password
+          minLength: 8
+          description: User password
+        email:
+          type: string
+          format: email
+          description: User email address
+        firstName:
+          type: string
+          maxLength: 50
+          description: User's first name
+        lastName:
+          type: string
+          maxLength: 50
+          description: User's last name
+
+    RefreshTokenRequest:
+      type: object
+      required:
+        - refreshToken
+      properties:
+        refreshToken:
+          type: string
+          description: Valid refresh token
+
+    AuthResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          description: JWT access token
+        refreshToken:
+          type: string
+          description: JWT refresh token
+        tokenType:
+          type: string
+          enum: [Bearer]
+          default: Bearer
+        expiresIn:
+          type: integer
+          description: Access token expiry time in seconds
+        user:
+          $ref: '#/components/schemas/UserProfile'
+
+    RegisterResponse:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+          description: Unique user identifier
+        username:
+          type: string
+          description: Username
+        email:
+          type: string
+          format: email
+          description: User email
+        verificationRequired:
+          type: boolean
+          description: Whether email verification is required
+
+    # User Management Schemas
+    UserProfile:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+          description: Unique user identifier
+        username:
+          type: string
+          description: Username
+        email:
+          type: string
+          format: email
+          description: User email
+        firstName:
+          type: string
+          description: User's first name
+        lastName:
+          type: string
+          description: User's last name
+        role:
+          type: string
+          enum: [admin, premium-user, standard-user, trial-user]
+          description: User role for RBAC
+        subscriptionTier:
+          type: string
+          enum: [premium, standard, trial, anonymous]
+          description: User subscription tier
+        createdAt:
+          type: string
+          format: date-time
+          description: Account creation timestamp
+        lastLogin:
+          type: string
+          format: date-time
+          description: Last login timestamp
+        isEmailVerified:
+          type: boolean
+          description: Email verification status
+
+    UpdateUserProfileRequest:
+      type: object
+      properties:
+        firstName:
+          type: string
+          maxLength: 50
+        lastName:
+          type: string
+          maxLength: 50
+        email:
+          type: string
+          format: email
+
+    UserPreferences:
+      type: object
+      properties:
+        aiModel:
+          type: string
+          enum: [bedrock, openai, claude]
+          default: bedrock
+          description: Preferred AI model for story generation
+        storyGenre:
+          type: array
+          items:
+            type: string
+            enum: [fantasy, sci-fi, mystery, romance, horror, adventure, drama, comedy]
+          description: Preferred story genres
+        accessibility:
+          $ref: '#/components/schemas/AccessibilitySettings'
+        analytics:
+          type: boolean
+          default: true
+          description: Allow analytics collection
+        notifications:
+          $ref: '#/components/schemas/NotificationSettings'
+
+    UpdateUserPreferencesRequest:
+      type: object
+      properties:
+        aiModel:
+          type: string
+          enum: [bedrock, openai, claude]
+        storyGenre:
+          type: array
+          items:
+            type: string
+        accessibility:
+          $ref: '#/components/schemas/AccessibilitySettings'
+        analytics:
+          type: boolean
+        notifications:
+          $ref: '#/components/schemas/NotificationSettings'
+
+    AccessibilitySettings:
+      type: object
+      properties:
+        fontSize:
+          type: string
+          enum: [small, medium, large, extra-large]
+          default: medium
+        highContrast:
+          type: boolean
+          default: false
+        screenReader:
+          type: boolean
+          default: false
+        reducedMotion:
+          type: boolean
+          default: false
+
+    NotificationSettings:
+      type: object
+      properties:
+        email:
+          type: boolean
+          default: true
+        push:
+          type: boolean
+          default: true
+        storyUpdates:
+          type: boolean
+          default: true
+        weeklyDigest:
+          type: boolean
+          default: false
+
+    UserHistoryResponse:
+      type: object
+      properties:
+        sessions:
+          type: array
+          items:
+            $ref: '#/components/schemas/StorySessionSummary'
+        pagination:
+          $ref: '#/components/schemas/PaginationInfo'
+        totalCount:
+          type: integer
+          description: Total number of user sessions
+
+    StorySessionSummary:
+      type: object
+      properties:
+        sessionId:
+          type: string
+          format: uuid
+        seed:
+          type: string
+          description: Story seed that was used
+        title:
+          type: string
+          description: Generated story title
+        status:
+          type: string
+          enum: [active, completed, abandoned]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        choiceCount:
+          type: integer
+          description: Number of choices made
+        qualityScore:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: AI-generated quality score
+
+    DataDeletionResponse:
+      type: object
+      properties:
+        requestId:
+          type: string
+          format: uuid
+          description: Data deletion request identifier
+        status:
+          type: string
+          enum: [initiated, processing, completed]
+        estimatedCompletionTime:
+          type: string
+          format: date-time
+          description: Estimated completion time for data deletion
+
+    # Story Generation Schemas
+    StartStoryRequest:
+      type: object
+      required:
+        - seed
+      properties:
+        seed:
+          type: string
+          minLength: 3
+          maxLength: 200
+          description: Story seed/prompt from user
+        aiModel:
+          type: string
+          enum: [bedrock, openai, claude]
+          description: Preferred AI model (overrides user preference)
+        genre:
+          type: string
+          enum: [fantasy, sci-fi, mystery, romance, horror, adventure, drama, comedy]
+          description: Preferred genre (overrides user preference)
+        maxLength:
+          type: integer
+          minimum: 50
+          maximum: 500
+          default: 200
+          description: Maximum length of generated content in words
+
+    ContinueStoryRequest:
+      type: object
+      required:
+        - sessionId
+        - choiceId
+      properties:
+        sessionId:
+          type: string
+          format: uuid
+          description: Active story session identifier
+        choiceId:
+          type: string
+          description: Selected choice identifier
+        additionalContext:
+          type: string
+          maxLength: 200
+          description: Additional context or custom input from user
+
+    StoryResponse:
+      type: object
+      properties:
+        sessionId:
+          type: string
+          format: uuid
+          description: Story session identifier
+        beatNumber:
+          type: integer
+          description: Current story beat number
+        content:
+          $ref: '#/components/schemas/StoryContent'
+        choices:
+          type: array
+          items:
+            $ref: '#/components/schemas/StoryChoice'
+          minItems: 2
+          maxItems: 4
+        metadata:
+          $ref: '#/components/schemas/StoryMetadata'
+
+    StoryContent:
+      type: object
+      properties:
+        text:
+          type: string
+          description: Generated story content
+        title:
+          type: string
+          description: Story or chapter title
+        mood:
+          type: string
+          enum: [tense, peaceful, mysterious, romantic, dramatic, humorous, dark, hopeful]
+          description: Generated content mood
+        setting:
+          type: string
+          description: Current story setting/location
+        characters:
+          type: array
+          items:
+            type: string
+          description: Active characters in current beat
+
+    StoryChoice:
+      type: object
+      properties:
+        choiceId:
+          type: string
+          description: Unique choice identifier
+        text:
+          type: string
+          description: Choice description for user
+        consequence:
+          type: string
+          enum: [positive, negative, neutral, unknown]
+          description: Hint about choice consequence
+        riskLevel:
+          type: string
+          enum: [low, medium, high]
+          description: Risk level of this choice
+
+    StoryMetadata:
+      type: object
+      properties:
+        aiModel:
+          type: string
+          description: AI model used for generation
+        generationTime:
+          type: number
+          description: Generation time in milliseconds
+        qualityScore:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: AI-assessed content quality
+        genre:
+          type: string
+          description: Detected or specified genre
+        complexity:
+          type: string
+          enum: [simple, moderate, complex]
+          description: Story complexity level
+
+    StorySession:
+      type: object
+      properties:
+        sessionId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        seed:
+          type: string
+          description: Original story seed
+        currentBeat:
+          type: integer
+          description: Current story beat number
+        status:
+          type: string
+          enum: [active, completed, abandoned]
+        storyData:
+          type: object
+          properties:
+            beats:
+              type: array
+              items:
+                $ref: '#/components/schemas/StoryBeat'
+            choices:
+              type: array
+              items:
+                $ref: '#/components/schemas/StoryChoiceRecord'
+            context:
+              $ref: '#/components/schemas/StoryContext'
+        metadata:
+          type: object
+          properties:
+            created:
+              type: string
+              format: date-time
+            updated:
+              type: string
+              format: date-time
+            platform:
+              type: string
+              enum: [web, mobile]
+            location:
+              $ref: '#/components/schemas/GeoLocation'
+        ttl:
+          type: integer
+          description: Session TTL timestamp for auto-cleanup
+
+    StoryBeat:
+      type: object
+      properties:
+        beatNumber:
+          type: integer
+        content:
+          $ref: '#/components/schemas/StoryContent'
+        timestamp:
+          type: string
+          format: date-time
+        metadata:
+          $ref: '#/components/schemas/StoryMetadata'
+
+    StoryChoiceRecord:
+      type: object
+      properties:
+        beatNumber:
+          type: integer
+        choiceId:
+          type: string
+        choiceText:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    StoryContext:
+      type: object
+      properties:
+        characters:
+          type: array
+          items:
+            $ref: '#/components/schemas/Character'
+        settings:
+          type: array
+          items:
+            type: string
+        plotPoints:
+          type: array
+          items:
+            type: string
+        mood:
+          type: string
+        theme:
+          type: string
+
+    Character:
+      type: object
+      properties:
+        name:
+          type: string
+        role:
+          type: string
+          enum: [protagonist, antagonist, supporting, minor]
+        description:
+          type: string
+        traits:
+          type: array
+          items:
+            type: string
+
+    StorySessionsResponse:
+      type: object
+      properties:
+        sessions:
+          type: array
+          items:
+            $ref: '#/components/schemas/StorySessionSummary'
+        pagination:
+          $ref: '#/components/schemas/PaginationInfo'
+
+    # Analytics Schemas
+    AnalyticsDashboard:
+      type: object
+      properties:
+        timeRange:
+          type: string
+        totalSessions:
+          type: integer
+        totalUsers:
+          type: integer
+        completionRate:
+          type: number
+          minimum: 0
+          maximum: 1
+        averageQualityScore:
+          type: number
+          minimum: 0
+          maximum: 1
+        popularGenres:
+          type: array
+          items:
+            $ref: '#/components/schemas/GenreStatistic'
+        aiModelUsage:
+          type: array
+          items:
+            $ref: '#/components/schemas/AIModelStatistic'
+        userEngagement:
+          $ref: '#/components/schemas/EngagementMetrics'
+
+    GenreStatistic:
+      type: object
+      properties:
+        genre:
+          type: string
+        sessionCount:
+          type: integer
+        completionRate:
+          type: number
+        averageQuality:
+          type: number
+
+    AIModelStatistic:
+      type: object
+      properties:
+        model:
+          type: string
+        usageCount:
+          type: integer
+        averageGenerationTime:
+          type: number
+        averageQuality:
+          type: number
+        costPerGeneration:
+          type: number
+
+    EngagementMetrics:
+      type: object
+      properties:
+        averageSessionLength:
+          type: number
+        averageChoicesPerSession:
+          type: number
+        returnUserRate:
+          type: number
+        peakUsageHours:
+          type: array
+          items:
+            type: integer
+
+    AnalyticsEventRequest:
+      type: object
+      required:
+        - eventType
+        - timestamp
+      properties:
+        eventType:
+          type: string
+          enum: [session_start, session_end, choice_made, story_completed, story_abandoned, user_registered, user_login]
+        sessionId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        timestamp:
+          type: string
+          format: date-time
+        properties:
+          type: object
+          description: Event-specific properties
+        platform:
+          type: string
+          enum: [web, mobile]
+        userAgent:
+          type: string
+
+    # AI Management Schemas
+    AIHealthResponse:
+      type: object
+      properties:
+        overall:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        providers:
+          type: array
+          items:
+            $ref: '#/components/schemas/AIProviderHealth'
+        lastChecked:
+          type: string
+          format: date-time
+
+    AIProviderHealth:
+      type: object
+      properties:
+        provider:
+          type: string
+          enum: [bedrock, openai, claude]
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        responseTime:
+          type: number
+          description: Average response time in milliseconds
+        errorRate:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Error rate in last hour
+        lastError:
+          type: string
+          description: Last error message if any
+        capacity:
+          type: object
+          properties:
+            current:
+              type: integer
+            maximum:
+              type: integer
+            utilization:
+              type: number
+
+    AIOptimizeRequest:
+      type: object
+      properties:
+        models:
+          type: array
+          items:
+            type: string
+            enum: [bedrock, openai, claude]
+          description: Models to optimize (all if not specified)
+        optimizationType:
+          type: string
+          enum: [quality, performance, cost]
+          default: quality
+          description: Optimization target
+        dataRange:
+          type: string
+          enum: [1d, 7d, 30d]
+          default: 7d
+          description: Data range for optimization analysis
+
+    AIOptimizeResponse:
+      type: object
+      properties:
+        optimizationId:
+          type: string
+          format: uuid
+          description: Optimization job identifier
+        status:
+          type: string
+          enum: [initiated, processing, completed, failed]
+        estimatedCompletionTime:
+          type: string
+          format: date-time
+        affectedModels:
+          type: array
+          items:
+            type: string
+
+    # Common Schemas
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          default: true
+        message:
+          type: string
+          description: Success message
+        timestamp:
+          type: string
+          format: date-time
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              description: Error code
+            message:
+              type: string
+              description: Human-readable error message
+            details:
+              type: string
+              description: Additional error details
+            requestId:
+              type: string
+              format: uuid
+              description: Request identifier for debugging
+            timestamp:
+              type: string
+              format: date-time
+
+    PaginationInfo:
+      type: object
+      properties:
+        limit:
+          type: integer
+        offset:
+          type: integer
+        totalCount:
+          type: integer
+        hasMore:
+          type: boolean
+
+    GeoLocation:
+      type: object
+      properties:
+        latitude:
+          type: number
+          minimum: -90
+          maximum: 90
+        longitude:
+          type: number
+          minimum: -180
+          maximum: 180
+        country:
+          type: string
+        region:
+          type: string
+        city:
+          type: string
+
+  responses:
+    UnauthorizedError:
+      description: Authentication required or invalid token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: UNAUTHORIZED
+              message: "Invalid or expired token"
+              requestId: "550e8400-e29b-41d4-a716-446655440000"
+              timestamp: "2024-01-01T12:00:00Z"
+
+    ForbiddenError:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: FORBIDDEN
+              message: "Insufficient permissions for this operation"
+              requestId: "550e8400-e29b-41d4-a716-446655440000"
+              timestamp: "2024-01-01T12:00:00Z"
+
+    NotFoundError:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: NOT_FOUND
+              message: "Requested resource not found"
+              requestId: "550e8400-e29b-41d4-a716-446655440000"
+              timestamp: "2024-01-01T12:00:00Z"
+
+    BadRequestError:
+      description: Invalid request parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: BAD_REQUEST
+              message: "Invalid request parameters"
+              details: "Required field 'seed' is missing"
+              requestId: "550e8400-e29b-41d4-a716-446655440000"
+              timestamp: "2024-01-01T12:00:00Z"
+
+    ConflictError:
+      description: Resource conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: CONFLICT
+              message: "Resource already exists"
+              requestId: "550e8400-e29b-41d4-a716-446655440000"
+              timestamp: "2024-01-01T12:00:00Z"
+
+    RateLimitError:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: RATE_LIMIT_EXCEEDED
+              message: "Too many requests. Please try again later."
+              requestId: "550e8400-e29b-41d4-a716-446655440000"
+              timestamp: "2024-01-01T12:00:00Z"
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: INTERNAL_ERROR
+              message: "An unexpected error occurred"
+              requestId: "550e8400-e29b-41d4-a716-446655440000"
+              timestamp: "2024-01-01T12:00:00Z"
+
+tags:
+  - name: Authentication
+    description: User authentication and authorization endpoints
+  - name: User Management
+    description: User profile and preference management
+  - name: Story Generation
+    description: AI-powered interactive story generation
+  - name: Analytics
+    description: Platform analytics and insights
+  - name: AI Management
+    description: AI model health and optimization
